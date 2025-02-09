@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_friends"
+        android:icon="@drawable/icon_friends_24dp"
+        android:title="@string/title_friends" />
+
+    <item
+        android:id="@+id/navigation_recommendations"
+        android:icon="@drawable/icon_recommend_24dp"
+        android:title="@string/title_recommendations" />
+
+    <item
+        android:id="@+id/navigation_scan"
+        android:icon="@drawable/icon_scan_24dp"
+        android:title="@string/title_scan" />
+
+    <item
+        android:id="@+id/navigation_history"
+        android:icon="@drawable/icon_history_24dp"
+        android:title="@string/title_history" />
+
+</menu>
