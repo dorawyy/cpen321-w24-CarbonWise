@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <ImageView
+        android:id="@+id/centerImage"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_placeholder"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"/>
+
+    <FrameLayout
+        android:id="@+id/topSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_bottom_background"
+        android:padding="16dp"
+        android:elevation="4dp"
+        android:layout_marginBottom="-50dp"
+        app:layout_constraintBottom_toTopOf="@id/centerImage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/productNameText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Product Name"
+            android:textSize="20sp"
+            android:textColor="@android:color/black"
+            android:textStyle="bold"
+            android:gravity="center"/>
+    </FrameLayout>
+
+
+    <LinearLayout
+        android:id="@+id/bottomSection"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@drawable/rounded_top_background"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:elevation="6dp"
+        android:layout_marginTop="-50dp"
+        app:layout_constraintTop_toBottomOf="@id/centerImage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:fitsSystemWindows="true"
+            android:clipToPadding="false"
+            android:paddingBottom="64dp">
+
+
+            <LinearLayout
+                android:id="@+id/subsectionContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <LinearLayout
+                    android:id="@+id/ecoScoreSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/rounded_subsection"
+                    android:padding="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/ecoScoreText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Eco Score: 85"
+                        android:textSize="18sp"
+                        android:textColor="@android:color/black"
+                        android:textStyle="bold"/>
+
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/ecoScoreProgress"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:indeterminate="false"
+                        app:indicatorSize="48dp"
+                        app:trackThickness="6dp"
+                        app:indicatorColor="@color/green"
+                        app:trackColor="@color/gray"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/co2InfoSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/rounded_subsection"
+                    android:padding="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/co2Title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="CO₂ Information"
+                        android:textSize="18sp"
+                        android:textColor="@android:color/black"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/co2Total"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total CO₂: -"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:layout_marginTop="8dp"/>
+
+                    <TextView
+                        android:id="@+id/co2Agriculture"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Agriculture: -"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/darker_gray"/>
+
+                    <TextView
+                        android:id="@+id/co2Packaging"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Packaging: -"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/darker_gray"/>
+
+                    <TextView
+                        android:id="@+id/co2Transport"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Transport: -"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/darker_gray"/>
+
+                    <TextView
+                        android:id="@+id/co2Processing"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Processing: -"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/darker_gray"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/ingredientHighlightSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/rounded_subsection"
+                    android:padding="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/ingredientHighlightTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ingredient Overview"
+                        android:textSize="18sp"
+                        android:textColor="@android:color/black"
+                        android:textStyle="bold"/>
+
+                    <LinearLayout
+                        android:id="@+id/ingredientListContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="8dp"/>
+                </LinearLayout>
+
+            </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
