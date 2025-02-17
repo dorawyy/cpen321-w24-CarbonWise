@@ -10,7 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.749.0",
     "@types/express": "^5.0.0",
+    "aws-sdk": "^2.1692.0",
+    "axios": "^1.7.9",
     "express": "^4.21.2",
     "express-validator": "^7.2.1",
     "mongodb": "^6.12.0",
