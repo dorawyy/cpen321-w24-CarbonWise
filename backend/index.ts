@@ -46,4 +46,3 @@ client.connect().then(() => {
     console.error(err);
     client.close();
 })
-
