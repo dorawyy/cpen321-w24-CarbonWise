@@ -4,7 +4,16 @@ on:
   push:
     branches: 
       - main
-      - development
+  workflow_dispatch:
+    inputs:
+      reset_db:
+        description: "Reset the database?"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 jobs:
   deploy:
@@ -50,7 +59,7 @@ jobs:
 
   reset-db:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.reset_db == 'true'
     steps:
       - name: Reset Database on EC2
         uses: appleboy/ssh-action@master
