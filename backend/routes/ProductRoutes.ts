@@ -10,6 +10,7 @@ export const ProductRoutes = [
         action: controller.getProductById,
         validation: [
             param('id').isString().withMessage('Invalid product ID')
-        ]
+        ],
+        protected: false // Requires authentication
     }
 ]
