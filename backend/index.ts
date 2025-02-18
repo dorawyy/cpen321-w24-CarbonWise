@@ -3,13 +3,14 @@ import { client } from "./services";
 import { ProductRoutes } from './routes/ProductRoutes';
 import { validationResult } from 'express-validator';
 import morgan from "morgan";
+import { UserRoutes } from './routes/UserRoutes';
 
 const app = express();
 
 app.use(express.json());
 app.use(morgan('tiny'));
 
-const Routes = [...ProductRoutes]
+const Routes = [...ProductRoutes, ...UserRoutes]
 
 Routes.forEach((route) => {
     (app as any)[route.method](
