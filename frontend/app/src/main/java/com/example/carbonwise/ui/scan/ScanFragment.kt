@@ -2,7 +2,10 @@ package com.example.carbonwise.ui.scan
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Rect
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +13,11 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
-import androidx.camera.core.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -24,6 +31,7 @@ import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+
 class ScanFragment : Fragment() {
 
     private var _binding: FragmentScanBinding? = null
@@ -32,6 +40,10 @@ class ScanFragment : Fragment() {
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var barcodeScanner: BarcodeScanner
     private var lastScannedResult: String = ""
+
+    private val overlayClearDelay: Long = 2000L // 2 seconds delay
+    private val handler = Handler(Looper.getMainLooper())
+    private var clearOverlayRunnable: Runnable? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -114,6 +126,7 @@ class ScanFragment : Fragment() {
 
         barcodeScanner.process(image)
             .addOnSuccessListener { barcodes ->
+                val rects = mutableListOf<Rect>()
                 for (barcode in barcodes) {
                     val rawValue = barcode.rawValue
                     if (rawValue != null && rawValue != lastScannedResult) {
@@ -121,7 +134,17 @@ class ScanFragment : Fragment() {
                         binding.textScan.text = "Scanned: $rawValue"
                         Toast.makeText(requireContext(), "Scanned: $rawValue", Toast.LENGTH_SHORT).show()
                     }
+                    barcode.boundingBox?.let { boundingBox ->
+                        val transformedBox = transformRectToView(boundingBox, imageProxy)
+                        rects.add(transformedBox)
+                    }
                 }
+
+                binding.barcodeOverlay.setBarcodeRects(rects)
+
+                clearOverlayRunnable?.let { handler.removeCallbacks(it) }
+                clearOverlayRunnable = Runnable { binding.barcodeOverlay.setBarcodeRects(emptyList()) }
+                handler.postDelayed(clearOverlayRunnable!!, overlayClearDelay)
             }
             .addOnFailureListener {
                 Log.e("Barcode", "Scanning failed", it)
@@ -129,6 +152,29 @@ class ScanFragment : Fragment() {
             .addOnCompleteListener {
                 imageProxy.close()
             }
+    }
+
+    private fun transformRectToView(rect: Rect, imageProxy: ImageProxy): Rect {
+        val imageWidth = imageProxy.width.toFloat()
+        val imageHeight = imageProxy.height.toFloat()
+
+        val viewWidth = binding.previewView.width.toFloat()
+        val viewHeight = binding.previewView.height.toFloat()
+
+        val scale = maxOf(viewWidth / imageWidth, viewHeight / imageHeight)
+
+        val scaledWidth = imageWidth * scale
+        val scaledHeight = imageHeight * scale
+
+        val dx = ((viewWidth - scaledWidth) / 2) + (scaledWidth/8)
+        val dy = ((viewHeight - scaledHeight) / 2) - (scaledHeight/8)
+
+        return Rect(
+            (dx + rect.left * scale).toInt(),
+            (dy + rect.top * scale).toInt(),
+            (dx + rect.right * scale).toInt(),
+            (dy + rect.bottom * scale).toInt()
+        )
     }
 
     override fun onDestroyView() {
