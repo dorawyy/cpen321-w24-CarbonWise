@@ -3,22 +3,35 @@ import { client } from "./services";
 import { ProductRoutes } from './routes/ProductRoutes';
 import { validationResult } from 'express-validator';
 import morgan from "morgan";
+import { UserRoutes } from './routes/UserRoutes';
+import passport from "passport";
+import session from "express-session";
+import dotenv from "dotenv";
+import authRoutes, { authenticateJWT } from "./auth";
+
+dotenv.config();
 
 const app = express();
 
 app.use(express.json());
 app.use(morgan('tiny'));
 
-const Routes = [...ProductRoutes]
+app.use(session({ secret: process.env.JWT_SECRET as string, resave: false, saveUninitialized: false }));
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use(authRoutes);
+
+const Routes = [...ProductRoutes, ...UserRoutes]
 
 Routes.forEach((route) => {
     (app as any)[route.method](
         route.route,
         route.validation,
+        route.protected ? authenticateJWT : [],
         async (req: Request, res: Response, next: NextFunction) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                /* If there are validation errors, send a response with the error messages */
                 return res.status(400).send({ errors: errors.array() });
             }
             
@@ -30,7 +43,7 @@ Routes.forEach((route) => {
                 );
             } catch (err) {
                 console.log(err)
-                return res.sendStatus(500); // Don't expose internal server workings
+                return res.sendStatus(500);
             }
         },
     );
