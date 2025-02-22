@@ -5,17 +5,22 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { OAuth2Client } from "google-auth-library";
 import { Request, Response, NextFunction } from "express";
-
+import { v4 as uuidv4 } from "uuid";
+import { client } from "./services";
+import { Collection } from "mongodb";
 
 dotenv.config();
 
 const router = express.Router();
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const oauthClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 interface User {
-  id: string;
+  _id: string;
+  google_id: string;
   email: string;
   name: string;
+  uuid: string;
+  fcm_registration_token: string;
 }
 
 //=========================== FOR BROWSER TESTING ===========================
@@ -24,18 +29,33 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      callbackURL: "/auth/google/callback",
+      callbackURL: process.env.GOOGLE_REDIRECT_URI as string,
     },
     async (_accessToken, _refreshToken, profile, done) => {
-      const user: User = {
-        id: profile.id,
-        email: profile.emails?.[0].value || "",
-        name: profile.displayName,
-      };
-      return done(null, user);
+      const userCollection: Collection<User> = client.db("users_db").collection("users");
+
+      let user = await userCollection.findOne({ google_id: profile.id });
+
+      if (!user) {
+
+        const user_uuid = uuidv4();
+
+        user = {
+          _id: user_uuid,
+          google_id: profile.id,
+          email: profile.emails?.[0].value || "",
+          name: profile.displayName,
+          uuid: user_uuid,
+          fcm_registration_token: "",
+        };
+        await userCollection.insertOne(user);
+      }
+
+      return done(null, user as User);
     }
   )
 );
+
 
 passport.serializeUser((user, done) => {
   done(null, user);
@@ -70,7 +90,7 @@ router.post("/auth/google", async (req, res) => {
   const { token } = req.body;
 
   try {
-    const ticket = await client.verifyIdToken({
+    const ticket = await oauthClient.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
@@ -78,28 +98,42 @@ router.post("/auth/google", async (req, res) => {
     const payload = ticket.getPayload();
     if (!payload) throw new Error("Invalid token payload");
 
-    const user: User = { id: payload.sub, email: payload.email || "", name: payload.name || "" };
+    const userCollection: Collection<User> = client.db("users_db").collection("users");
+    let user = await userCollection.findOne({ google_id: payload.sub });
+    if (!user) {
+      const user_uuid = uuidv4();
+      user = {
+        _id: user_uuid,
+        google_id: payload.sub,
+        email: payload.email || "",
+        name: payload.name || "",
+        uuid: user_uuid,
+        fcm_registration_token: "",
+      };
+      await userCollection.insertOne(user);
+    }
 
-    const jwtToken = jwt.sign(user, process.env.JWT_SECRET as string, { expiresIn: "1h" });
-    
-    //TODO: Create a user in the database or return the user if it already exists
+    const jwtToken = jwt.sign(
+      user,
+      process.env.JWT_SECRET as string,
+      { expiresIn: "1h" }
+    );
 
-    res.json({ token: jwtToken, user });
+    res.json({ token: jwtToken });
   } catch (error) {
     res.status(401).json({ error: "Invalid token" });
   }
 });
 
-
 export const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.split(" ")[1];
+  const token = req.headers.token;
 
   if (!token) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+    const decoded = jwt.verify(token as string, process.env.JWT_SECRET as string);
     (req as any).user = decoded;
     next();
   } catch (err) {
@@ -108,4 +142,3 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
 };
 
 export default router;
-

@@ -31,14 +31,22 @@ jobs:
           script: |
             cd /home/ubuntu/cpen321-jelx/backend
 
+            # Write Google application credentials JSON to a file
+            echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" > google-credentials.json
+
             # Write secrets into .env
             cat > .env <<EOF
             PORT=${{ secrets.PROD_PORT }}
             DB_URI=${{ secrets.PROD_DB_URI }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}
+            GOOGLE_APPLICATION_CREDENTIALS=google-credentials.json
             EOF
 
-            # Give .env permissions
-            chmod 600 .env
+            # Give .env and google-credentials.json permissions
+            chmod 600 .env google-credentials.json
 
             # Install npm packages
             npm ci

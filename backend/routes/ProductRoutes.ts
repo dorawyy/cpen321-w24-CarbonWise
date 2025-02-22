@@ -11,7 +11,7 @@ export const ProductRoutes = [
         validation: [
             param('id').isString().withMessage('Invalid product ID')
         ],
-        protected: false // Requires authentication
+        protected: false
     },
     {
         method: "get",
@@ -23,6 +23,7 @@ export const ProductRoutes = [
             query("languages").optional().isString().withMessage("Languages must be a comma-separated string"),
             query("countries").optional().isString().withMessage("Countries must be a comma-separated string"),
             query("exclude_countries").optional().isString().withMessage("Excluded countries must be a comma-separated string")
-        ]
+        ],
+        protected: false // TODO: Might want to make this protected
     }
 ]
