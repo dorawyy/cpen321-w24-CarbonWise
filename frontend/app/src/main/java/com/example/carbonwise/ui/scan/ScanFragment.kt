@@ -2,10 +2,7 @@ package com.example.carbonwise.ui.scan
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.Rect
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -13,15 +10,11 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
-import androidx.camera.core.Camera
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.carbonwise.databinding.FragmentScanBinding
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.mlkit.vision.barcode.BarcodeScanner
@@ -39,21 +32,18 @@ class ScanFragment : Fragment() {
 
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var barcodeScanner: BarcodeScanner
-    private var lastScannedResult: String = ""
-
+    private var lastScannedResult: String? = null
+    private var isDialogDisplayed = false
+    private var isScanningLocked = false
     private var camera: Camera? = null
     private var isFlashOn = false
-
-    private val overlayClearDelay: Long = 2000L // 2 seconds delay
-    private val handler = Handler(Looper.getMainLooper())
-    private var clearOverlayRunnable: Runnable? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
+        Log.d("ScanFragment", "onCreateView: ScanFragment is being created")
         _binding = FragmentScanBinding.inflate(inflater, container, false)
 
-        // Configure Barcode Scanner with all formats
         val options = BarcodeScannerOptions.Builder()
             .setBarcodeFormats(Barcode.FORMAT_ALL_FORMATS)
             .build()
@@ -62,11 +52,22 @@ class ScanFragment : Fragment() {
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         requestCameraPermission()
-
-        // Set up flash button
         binding.buttonFlash.setOnClickListener { toggleFlash() }
 
         return binding.root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        resetScanner()
+        startCamera()
+    }
+
+    private fun resetScanner() {
+        lastScannedResult = null
+        isDialogDisplayed = false
+        isScanningLocked = false
+        binding.textScan.text = "Waiting for scan..."
     }
 
     private fun requestCameraPermission() {
@@ -94,6 +95,7 @@ class ScanFragment : Fragment() {
 
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+            cameraProvider.unbindAll()
 
             val preview = Preview.Builder()
                 .build()
@@ -112,12 +114,10 @@ class ScanFragment : Fragment() {
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
             try {
-                cameraProvider.unbindAll()
                 camera = cameraProvider.bindToLifecycle(
                     viewLifecycleOwner, cameraSelector, preview, imageAnalysis
                 )
 
-                // Only show flash button if phone supports flash
                 binding.buttonFlash.isEnabled = camera?.cameraInfo?.hasFlashUnit() == true
 
             } catch (exc: Exception) {
@@ -132,7 +132,7 @@ class ScanFragment : Fragment() {
             val flashEnabled = it.cameraInfo.hasFlashUnit()
             if (flashEnabled) {
                 isFlashOn = !isFlashOn
-                it.cameraControl.enableTorch(isFlashOn) // Turn flash on/off
+                it.cameraControl.enableTorch(isFlashOn)
                 updateFlashButtonUI()
             } else {
                 Toast.makeText(requireContext(), "Flash not available", Toast.LENGTH_SHORT).show()
@@ -151,25 +151,20 @@ class ScanFragment : Fragment() {
 
         barcodeScanner.process(image)
             .addOnSuccessListener { barcodes ->
-                val rects = mutableListOf<Rect>()
                 for (barcode in barcodes) {
-                    val rawValue = barcode.rawValue
-                    if (rawValue != null && rawValue != lastScannedResult) {
-                        lastScannedResult = rawValue
-                        binding.textScan.text = "Scanned: $rawValue"
-                        Toast.makeText(requireContext(), "Scanned: $rawValue", Toast.LENGTH_SHORT).show()
-                    }
-                    barcode.boundingBox?.let { boundingBox ->
-                        val transformedBox = transformRectToView(boundingBox, imageProxy)
-                        rects.add(transformedBox)
+                    var rawValue = barcode.rawValue
+                    if (rawValue != null) {
+                        if (rawValue.length == 12) {
+                            rawValue = "0$rawValue"
+                        }
+
+                        if (rawValue != lastScannedResult) {
+                            lastScannedResult = rawValue
+                            binding.textScan.text = "Scanned: $rawValue"
+                            showConfirmationDialog(rawValue)
+                        }
                     }
                 }
-
-                binding.barcodeOverlay.setBarcodeRects(rects)
-
-                clearOverlayRunnable?.let { handler.removeCallbacks(it) }
-                clearOverlayRunnable = Runnable { binding.barcodeOverlay.setBarcodeRects(emptyList()) }
-                handler.postDelayed(clearOverlayRunnable!!, overlayClearDelay)
             }
             .addOnFailureListener {
                 Log.e("Barcode", "Scanning failed", it)
@@ -179,27 +174,40 @@ class ScanFragment : Fragment() {
             }
     }
 
-    private fun transformRectToView(rect: Rect, imageProxy: ImageProxy): Rect {
-        val imageWidth = imageProxy.width.toFloat()
-        val imageHeight = imageProxy.height.toFloat()
+    private fun showConfirmationDialog(barcode: String) {
+        if (isDialogDisplayed) return
 
-        val viewWidth = binding.previewView.width.toFloat()
-        val viewHeight = binding.previewView.height.toFloat()
+        isDialogDisplayed = true
 
-        val scale = maxOf(viewWidth / imageWidth, viewHeight / imageHeight)
+        activity?.let {
+            val builder = android.app.AlertDialog.Builder(it)
+            builder.setTitle("Confirm Scan")
+            builder.setMessage("Scan result: $barcode\nDo you want to proceed?")
 
-        val scaledWidth = imageWidth * scale
-        val scaledHeight = imageHeight * scale
+            builder.setPositiveButton("Accept") { _, _ ->
+                isDialogDisplayed = false
+                isScanningLocked = false
+                val action = ScanFragmentDirections.actionScanFragmentToInfoFragment(barcode)
+                Log.d("ScanFragment", "Navigating to InfoFragment with barcode: $barcode")
+                findNavController().navigate(action)
+            }
 
-        val dx = ((viewWidth - scaledWidth) / 2) + (scaledWidth/8)
-        val dy = ((viewHeight - scaledHeight) / 2) - (scaledHeight/8)
+            builder.setNegativeButton("Cancel") { dialog, _ ->
+                isDialogDisplayed = false
+                isScanningLocked = false
+                lastScannedResult = null
+                dialog.dismiss()
+            }
 
-        return Rect(
-            (dx + rect.left * scale).toInt(),
-            (dy + rect.top * scale).toInt(),
-            (dx + rect.right * scale).toInt(),
-            (dy + rect.bottom * scale).toInt()
-        )
+            builder.setOnDismissListener {
+                isDialogDisplayed = false
+                isScanningLocked = false
+                lastScannedResult = null
+            }
+
+            val dialog = builder.create()
+            dialog.show()
+        }
     }
 
     override fun onDestroyView() {

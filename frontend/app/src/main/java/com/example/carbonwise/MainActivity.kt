@@ -45,6 +45,21 @@ class MainActivity : AppCompatActivity() {
         }
         binding.navView.inflateMenu(bottomMenuResId)
         binding.navView.setupWithNavController(navController)
+
+        binding.navView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_scan -> {
+                    val navController = findNavController(R.id.nav_host_fragment_activity_main)
+                    navController.popBackStack(R.id.navigation_scan, true)
+                    navController.navigate(R.id.navigation_scan)
+                    true
+                }
+                else -> {
+                    navController.navigate(item.itemId)
+                    true
+                }
+            }
+        }
     }
 
     fun switchToLoggedInMode() {

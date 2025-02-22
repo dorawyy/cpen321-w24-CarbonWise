@@ -7,14 +7,32 @@
 
     <fragment
         android:id="@+id/navigation_scan"
-        android:name="com.example.carbonwise.ui.info.InfoFragment"
+        android:name="com.example.carbonwise.ui.scan.ScanFragment"
         android:label="Scan"
-        tools:layout="@layout/fragment_info" />
+        tools:layout="@layout/fragment_scan">
+
+        <action
+            android:id="@+id/action_scanFragment_to_infoFragment"
+            app:destination="@id/navigation_info"
+            app:popUpTo="@id/navigation_scan"
+            app:popUpToInclusive="false"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_info"
+        android:name="com.example.carbonwise.ui.info.InfoFragment"
+        android:label="Product Info"
+        tools:layout="@layout/fragment_info">
+
+        <argument
+            android:name="upcCode"
+            app:argType="string"
+            android:defaultValue=""/>
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_login"
         android:name="com.example.carbonwise.ui.login.LoginFragment"
         android:label="Login"
         tools:layout="@layout/fragment_login" />
-
 </navigation>
