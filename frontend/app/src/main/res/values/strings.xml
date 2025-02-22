@@ -7,4 +7,5 @@
     <string name="title_recommendations">For You</string>
     <string name="log_in_button_text">Log In</string>
     <string name="log_in_text">Please log in</string>"
+    <string name="default_notification_channel_id">fcm_default_channel</string>
 </resources>
