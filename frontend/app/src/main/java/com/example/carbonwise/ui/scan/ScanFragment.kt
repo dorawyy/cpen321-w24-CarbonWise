@@ -228,12 +228,13 @@ class ScanFragment : Fragment() {
 
         barcodeScanner.process(image)
             .addOnSuccessListener { barcodes ->
+                val localBinding = _binding ?: return@addOnSuccessListener
                 val rects = mutableListOf<Rect>()
                 for (barcode in barcodes) {
                     val rawValue = barcode.rawValue
                     if (rawValue != null && rawValue != lastScannedResult) {
                         lastScannedResult = rawValue
-                        binding.textScan.text = "Scanned: $rawValue"
+                        localBinding.textScan.text = "Scanned: $rawValue"
                         Toast.makeText(requireContext(), "Scanned: $rawValue", Toast.LENGTH_SHORT).show()
                         fetchAndDisplayProductInfo(rawValue)
                     }
@@ -242,11 +243,9 @@ class ScanFragment : Fragment() {
                         rects.add(transformedBox)
                     }
                 }
-
-                binding.barcodeOverlay.setBarcodeRects(rects)
-
+                localBinding.barcodeOverlay.setBarcodeRects(rects)
                 clearOverlayRunnable?.let { handler.removeCallbacks(it) }
-                clearOverlayRunnable = Runnable { binding.barcodeOverlay.setBarcodeRects(emptyList()) }
+                clearOverlayRunnable = Runnable { localBinding.barcodeOverlay.setBarcodeRects(emptyList()) }
                 handler.postDelayed(clearOverlayRunnable!!, overlayClearDelay)
             }
             .addOnFailureListener {
@@ -282,6 +281,7 @@ class ScanFragment : Fragment() {
 
     // fetch product info from either Backend or OpenFoodFacts (can be changed later)
     private fun fetchAndDisplayProductInfo(productId: String) {
+        if (_binding == null) return
         binding.productInfoLayout.visibility = View.VISIBLE
         binding.textProductName.text = "Loading..."
         binding.textEnvironmentalScore.text = ""
@@ -291,25 +291,27 @@ class ScanFragment : Fragment() {
                 val response = productApi.getProduct(productId)
 
                 withContext(Dispatchers.Main) {
+                    // Capture a local binding instance
+                    val localBinding = _binding ?: return@withContext
+
                     if (response.status == 1 && response.product != null) {
                         val product = response.product
-                        binding.textProductName.text = product.product_name ?: "Unknown Product"
-
-                        binding.textNutriScore.text = "Nutri-Score: ${product.nutriscore_grade?.uppercase() ?: "N/A"}"
-                        binding.textNovaGroup.text = "NOVA Group: ${product.nova_group ?: "N/A"}"
-                        binding.textEcoScore.text = "Green Score: ${product.ecoscore_grade?.uppercase() ?: "N/A"}"
-                        binding.textEnvironmentalImpact.text = "Impact: ${product.environment_impact_level ?: "N/A"}"
+                        localBinding.textProductName.text = product.product_name ?: "Unknown Product"
+                        localBinding.textNutriScore.text = "Nutri-Score: ${product.nutriscore_grade?.uppercase() ?: "N/A"}"
+                        localBinding.textNovaGroup.text = "NOVA Group: ${product.nova_group ?: "N/A"}"
+                        localBinding.textEcoScore.text = "Green Score: ${product.ecoscore_grade?.uppercase() ?: "N/A"}"
+                        localBinding.textEnvironmentalImpact.text = "Impact: ${product.environment_impact_level ?: "N/A"}"
 
                         if (!product.image_url.isNullOrEmpty()) {
-                            binding.imageProduct.visibility = View.VISIBLE
-                            Glide.with(this@ScanFragment).load(product.image_url).into(binding.imageProduct)
+                            localBinding.imageProduct.visibility = View.VISIBLE
+                            Glide.with(this@ScanFragment).load(product.image_url).into(localBinding.imageProduct)
                         } else {
-                            binding.imageProduct.visibility = View.GONE
+                            localBinding.imageProduct.visibility = View.GONE
                         }
                     } else {
-                        binding.textProductName.text = "Product not found"
-                        binding.textEnvironmentalScore.text = ""
-                        binding.imageProduct.visibility = View.GONE
+                        localBinding.textProductName.text = "Product not found"
+                        localBinding.textEnvironmentalScore.text = ""
+                        localBinding.imageProduct.visibility = View.GONE
                     }
                 }
             } catch (e: Exception) {
