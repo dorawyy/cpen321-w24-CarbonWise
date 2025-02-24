@@ -16,7 +16,8 @@
     <com.example.carbonwise.ui.scan.BarcodeOverlayView
         android:id="@+id/barcodeOverlay"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:clickable="false"/>
 
     <!-- center barcode box (outline for barcode/QR) -->
     <ImageView
@@ -48,5 +49,101 @@
         android:textSize="18sp"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="24dp" />
+
+    <!-- product info overlay -->
+    <LinearLayout
+        android:id="@+id/productInfoLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="#E0FFFFFF"
+        android:visibility="gone"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="50dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textProductName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Product Name"
+                android:textColor="@android:color/black"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/textEnvironmentalScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Score: ?"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:layout_marginTop="8dp"/>
+
+            <TextView
+                android:id="@+id/textNutriScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nutri-Score: "
+                android:textColor="@android:color/black"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/textNovaGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="NOVA Group: "
+                android:textColor="@android:color/black"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/textEcoScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Green Score: "
+                android:textColor="@android:color/black"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/textEnvironmentalImpact"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Impact: "
+                android:textColor="@android:color/black"
+                android:textSize="16sp"/>
+
+            <Button
+                android:id="@+id/buttonCloseProductInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Close"
+                android:layout_marginTop="16dp"/>
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/imageProduct"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:layout_marginStart="16dp"
+            android:contentDescription="@string/product_image"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/buttonManualSearch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/manual_search"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_margin="16dp"
+        android:backgroundTint="@android:color/white"
+        android:textColor="@android:color/black"/>
 
 </FrameLayout>

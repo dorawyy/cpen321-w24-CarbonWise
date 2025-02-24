@@ -8,7 +8,10 @@
     <string name="log_in_button_text">Log In</string>
     <string name="log_in_text">Please log in</string>"
     <string name="camera_preview">Camera Preview</string>
-    <string name="toggle_flash">Toggle Flash</string>
+    <string name="toggle_flash">Flash✨</string>
     <string name="scan_instruction">Place the barcode or QR code inside the box</string>
     <string name="barcode_scanning_area">Barcode scanning area</string>
+    <string name="manual_search">Search🔍</string>
+    <string name="product_image">product_image</string>
+    <string name="score_text">Score: %1$s</string>
 </resources>
