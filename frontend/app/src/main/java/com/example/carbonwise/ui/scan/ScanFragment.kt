@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AlertDialog
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
@@ -93,6 +94,9 @@ class ScanFragment : Fragment() {
     private lateinit var barcodeScanner: BarcodeScanner
     private var lastScannedResult: String = ""
 
+    private var camera: Camera? = null
+    private var isFlashOn = false
+
     private val overlayClearDelay: Long = 2000L // 2 seconds delay
     private val handler = Handler(Looper.getMainLooper())
     private var clearOverlayRunnable: Runnable? = null
@@ -120,15 +124,16 @@ class ScanFragment : Fragment() {
 
         // Configure Barcode Scanner with all formats
         val options = BarcodeScannerOptions.Builder()
-            .setBarcodeFormats(
-                Barcode.FORMAT_ALL_FORMATS
-            )
+            .setBarcodeFormats(Barcode.FORMAT_ALL_FORMATS)
             .build()
 
         barcodeScanner = BarcodeScanning.getClient(options)
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         requestCameraPermission()
+
+        // Set up flash button
+        binding.buttonFlash.setOnClickListener { toggleFlash() }
 
         binding.buttonManualSearch.setOnClickListener {
             showManualSearchDialog()
@@ -185,14 +190,35 @@ class ScanFragment : Fragment() {
 
             try {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
+                camera = cameraProvider.bindToLifecycle(
                     viewLifecycleOwner, cameraSelector, preview, imageAnalysis
                 )
+
+                // Only show flash button if phone supports flash
+                binding.buttonFlash.isEnabled = camera?.cameraInfo?.hasFlashUnit() == true
+
             } catch (exc: Exception) {
                 Log.e("CameraX", "Use case binding failed", exc)
             }
 
         }, ContextCompat.getMainExecutor(requireContext()))
+    }
+
+    private fun toggleFlash() {
+        camera?.let {
+            val flashEnabled = it.cameraInfo.hasFlashUnit()
+            if (flashEnabled) {
+                isFlashOn = !isFlashOn
+                it.cameraControl.enableTorch(isFlashOn) // Turn flash on/off
+                updateFlashButtonUI()
+            } else {
+                Toast.makeText(requireContext(), "Flash not available", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun updateFlashButtonUI() {
+        binding.buttonFlash.text = if (isFlashOn) "Turn Flash Off" else "Turn Flash On"
     }
 
     @OptIn(ExperimentalGetImage::class)
