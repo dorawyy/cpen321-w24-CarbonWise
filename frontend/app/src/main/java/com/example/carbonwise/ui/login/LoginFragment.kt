@@ -16,6 +16,14 @@ import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.gms.auth.api.identity.SignInCredential
 import com.google.android.gms.common.api.ApiException
+import okhttp3.*
+import java.io.IOException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+
 
 class LoginFragment : Fragment() {
 
@@ -75,7 +83,19 @@ class LoginFragment : Fragment() {
                 if (idToken != null) {
                     Log.d(TAG, "Google ID Token: $idToken")
                     saveToken(requireContext(), idToken)
-                    (activity as? MainActivity)?.switchToLoggedInMode()
+
+                    // Use MainScope to launch a coroutine to call getJWT and update the UI
+                    MainScope().launch {
+                        val jwtToken = getJWT(idToken)
+                        if (jwtToken != null) {
+                            // Save JWT token
+                            saveJWTToken(requireContext(), jwtToken)
+                            // Switch to logged-in mode on the main thread
+                            (activity as? MainActivity)?.switchToLoggedInMode()
+                        } else {
+                            Log.e(TAG, "Failed to obtain JWT token.")
+                        }
+                    }
                 } else {
                     Log.e(TAG, "No ID token found!")
                 }
@@ -95,6 +115,48 @@ class LoginFragment : Fragment() {
         with(sharedPref.edit()) {
             putString("google_id_token", token)
             apply()
+        }
+    }
+
+    private fun saveJWTToken(context: Context, jwtToken: String) {
+        val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        Log.e(TAG, "Got JWT Token: ${jwtToken}")
+        with(sharedPref.edit()) {
+            putString("jwt_token", jwtToken)
+            apply()
+        }
+    }
+
+    private suspend fun getJWT(googleIdToken: String): String? {
+        val url = "https://api.cpen321-jelx.com/auth/google"
+        val jsonBody = """
+    {
+        "token": "$googleIdToken"
+    }
+    """.trimIndent()
+        val requestBody = RequestBody.create(MediaType.get("application/json"), jsonBody)
+        val request = Request.Builder()
+            .url(url)
+            .post(requestBody)
+            .build()
+
+        val client = OkHttpClient()
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val responseBody = response.body()?.string()
+                    val jsonObject = JSONObject(responseBody)
+                    val token = jsonObject.optString("token")
+                    return@withContext token
+                } else {
+                    Log.e(TAG, "Request failed with code: ${response.code()}")
+                    return@withContext null
+                }
+            } catch (e: IOException) {
+                Log.e(TAG, "Request failed: ${e.message}")
+                return@withContext null
+            }
         }
     }
 

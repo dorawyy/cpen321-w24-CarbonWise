@@ -80,6 +80,8 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val PREFS_NAME = "AppPrefs"
         private const val TOKEN_KEY = "google_id_token"
+        private const val JWT_TOKEN_KEY = "jwt_token"
+
 
         fun saveToken(context: Context, token: String) {
             val sharedPref = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -92,6 +94,11 @@ class MainActivity : AppCompatActivity() {
         fun getToken(context: Context): String? {
             val sharedPref = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             return sharedPref.getString(TOKEN_KEY, null)
+        }
+
+        fun getJWTToken(context: Context): String? {
+            val sharedPref = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return sharedPref.getString(JWT_TOKEN_KEY, null)
         }
 
         fun clearToken(context: Context) {

@@ -1,6 +1,5 @@
 package com.example.carbonwise.ui.info
 
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Base64
@@ -184,16 +183,23 @@ class InfoFragment : Fragment() {
     }
 
     private fun updateProductImage(imageBase64: String) {
-        if (imageBase64.isNotEmpty()) {
-            try {
-                val decodedBytes = Base64.decode(imageBase64, Base64.DEFAULT)
-                val bitmap: Bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+        if (imageBase64.isBlank()) {
+            Log.e("InfoFragment", "Base64 string is empty or blank.")
+            return
+        }
+        try {
+            val decodedBytes = Base64.decode(imageBase64, Base64.DEFAULT)
+            if (decodedBytes.isEmpty()) {
+                Log.e("InfoFragment", "Decoded bytes are empty.")
+            } else {
+                val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
                 binding.centerImage.setImageBitmap(bitmap)
-            } catch (e: IllegalArgumentException) {
-                Log.e("InfoFragment", "Failed to decode base64 image", e)
             }
+        } catch (e: IllegalArgumentException) {
+            Log.e("InfoFragment", "Failed to decode base64 image", e)
         }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
