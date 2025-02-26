@@ -164,8 +164,7 @@ export class UserController {
     async getFriendHistory(req: Request, res: Response, nextFunction: NextFunction) {
         const user = req.user as User;
         const user_uuid = user.uuid;
-        const { timestamp } = req.query;
-        const { fetch_product_details } = req.body;
+        const { timestamp, fetch_product_details } = req.query;
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
         const historyCollection = client.db("users_db").collection<History>("history");
@@ -183,7 +182,7 @@ export class UserController {
 
                 const detailedHistory = await Promise.all(friendHistory.map(async (entry) => {
                     const detailedProducts = await Promise.all(entry.products.map(async (product) => {
-                        if (fetch_product_details) {
+                        if (fetch_product_details === 'true') {
                             const productDetails = await fetchProductById(product.product_id);
                             const productImage = await fetchProductImageById(product.product_id);
                             return {
@@ -214,8 +213,7 @@ export class UserController {
     async getHistory(req: Request, res: Response, nextFunction: NextFunction) {
         const user = req.user as User;
         const user_uuid = user.uuid;
-        const { timestamp } = req.query;
-        const { fetch_product_details } = req.body;
+        const { timestamp, fetch_product_details } = req.query;
 
         const historyCollection = client.db("users_db").collection<History>("history");
 
@@ -229,7 +227,7 @@ export class UserController {
         if (userHistory.length > 0) {
             const detailedHistory = await Promise.all(userHistory.map(async (entry) => {
                 const detailedProducts = await Promise.all(entry.products.map(async (product) => {
-                    if (fetch_product_details) {
+                    if (fetch_product_details === 'true') {
                         const productDetails = await fetchProductById(product.product_id);
                         const productImage = await fetchProductImageById(product.product_id);
                         return {
@@ -288,8 +286,7 @@ export class UserController {
         const user = req.user as User;
         const user_uuid = user.uuid;
         const { friend_uuid } = req.params;
-        const { timestamp } = req.query;
-        const { fetch_product_details } = req.body;
+        const { timestamp, fetch_product_details } = req.query;
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
         const historyCollection = client.db("users_db").collection<History>("history");
@@ -309,7 +306,7 @@ export class UserController {
 
         const detailedHistory = await Promise.all(friendHistory.map(async (entry) => {
             const detailedProducts = await Promise.all(entry.products.map(async (product) => {
-                if (fetch_product_details) {
+                if (fetch_product_details === 'true') {
                     const productDetails = await fetchProductById(product.product_id);
                     const productImage = await fetchProductImageById(product.product_id);
                     return {

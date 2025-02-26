@@ -19,7 +19,7 @@ export const UserRoutes = [
         action: controller.getHistory,
         validation: [
             query("timestamp").optional().isISO8601().withMessage("Timestamp should be a valid ISO 8601 date string"),
-            body("fetch_product_details").optional().default(true).isBoolean().withMessage("Fetch Product Details should be a boolean")
+            query("fetch_product_details").optional().default(true).isBoolean().withMessage("Fetch Product Details should be a boolean")
         ],
         protected: true
     },
@@ -30,7 +30,7 @@ export const UserRoutes = [
         validation: [
             param("friend_uuid").isString().withMessage("Friend UUID should be a string"),
             query("timestamp").optional().isISO8601().withMessage("Timestamp should be a valid ISO 8601 date string"),
-            body("fetch_product_details").optional().default(true).isBoolean().withMessage("Fetch Product Details should be a boolean")
+            query("fetch_product_details").optional().default(true).isBoolean().withMessage("Fetch Product Details should be a boolean")
         ],
         protected: true
     },
@@ -76,7 +76,7 @@ export const UserRoutes = [
         action: controller.getFriendHistory,
         validation: [
             query("timestamp").optional().isISO8601().withMessage("Timestamp should be a valid ISO 8601 date string"),
-            body("fetch_product_details").optional().default(true).isBoolean().withMessage("Fetch Product Details should be a boolean")
+            query("fetch_product_details").optional().default(true).isBoolean().withMessage("Fetch Product Details should be a boolean")
         ],
         protected: true
     },
