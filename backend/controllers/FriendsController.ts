@@ -19,9 +19,16 @@ export class FriendsController {
         }
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
+        const userCollection = client.db("users_db").collection<User>("users");
 
         const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
         const targetFriends = await friendsCollection.findOne({ user_uuid: target_uuid });
+
+        const userFromDb = await userCollection.findOne({ user_uuid: user_uuid });
+
+        if (!userFromDb) {
+            return res.status(404).send({message: "User not found"});
+        }
 
         if (userFriends?.friends?.some(friend => friend.user_uuid === target_uuid) || targetFriends?.friends?.some(friend => friend.user_uuid === user_uuid)) {
             return res.status(400).send({message: "Already friends"});
@@ -30,7 +37,7 @@ export class FriendsController {
         if (!targetFriends?.incoming_requests?.some(request => request.user_uuid === user_uuid)) {
             await friendsCollection.updateOne(
                 { user_uuid: target_uuid },
-                { $addToSet: { incoming_requests: { user_uuid: user_uuid, name: user.name } } },
+                { $addToSet: { incoming_requests: { user_uuid: user_uuid, name: userFromDb.name } } },
                 { upsert: true }
             );
             res.status(200).send({message: "Friend request sent"});
@@ -49,9 +56,15 @@ export class FriendsController {
         }
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
+        const userCollection = client.db("users_db").collection<User>("users");
 
         const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
-        const friend = await client.db("users_db").collection<User>("users").findOne({ user_uuid: friend_uuid });
+        const friend = await userCollection.findOne({ user_uuid: friend_uuid });
+        const userFromDb = await userCollection.findOne({ user_uuid: user_uuid });
+
+        if (!userFromDb) {
+            return res.status(404).send({message: "User not found"});
+        }
 
         if (userFriends?.incoming_requests?.some(request => request.user_uuid === friend_uuid)) {
             await friendsCollection.updateOne(
@@ -67,7 +80,7 @@ export class FriendsController {
 
             await friendsCollection.updateOne(
                 { user_uuid: friend_uuid },
-                { $addToSet: { friends: { user_uuid: user_uuid, name: user.name } } }
+                { $addToSet: { friends: { user_uuid: user_uuid, name: userFromDb.name } } }
             );
             res.status(200).send({message: "Friend request accepted"});
         } else {
