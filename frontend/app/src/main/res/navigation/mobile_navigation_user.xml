@@ -9,13 +9,17 @@
         android:id="@+id/navigation_friends"
         android:name="com.example.carbonwise.ui.friends.FriendsFragment"
         android:label="@string/title_friends"
-        tools:layout="@layout/fragment_friends" />
+        tools:layout="@layout/fragment_friends">
 
-    <fragment
-        android:id="@+id/navigation_recommendations"
-        android:name="com.example.carbonwise.ui.recommendations.RecommendationsFragment"
-        android:label="@string/title_recommendations"
-        tools:layout="@layout/fragment_recommendations" />
+        <action
+            android:id="@+id/action_friendsFragment_to_friendsHistoryFragment"
+            app:destination="@id/navigation_friends_history">
+            <argument
+                android:name="friendUuid"
+                app:argType="string" />
+        </action>
+
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_scan"
@@ -46,5 +50,34 @@
         android:id="@+id/navigation_history"
         android:name="com.example.carbonwise.ui.history.HistoryFragment"
         android:label="History"
-        tools:layout="@layout/fragment_history" />
+        tools:layout="@layout/fragment_history">
+
+        <action
+            android:id="@+id/action_historyFragment_to_infoFragment"
+            app:destination="@id/navigation_info"
+            app:popUpTo="@id/navigation_history"
+            app:popUpToInclusive="false"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_friends_history"
+        android:name="com.example.carbonwise.ui.history.FriendsHistoryFragment"
+        android:label="Friend's History"
+        tools:layout="@layout/fragment_history">
+
+        <argument
+            android:name="friendUuid"
+            app:argType="string"
+            android:defaultValue=""/>
+
+        <action
+            android:id="@+id/action_friendsHistoryFragment_to_infoFragment"
+            app:destination="@id/navigation_info">
+            <argument
+                android:name="upcCode"
+                app:argType="string"/>
+        </action>
+
+    </fragment>
+
 </navigation>

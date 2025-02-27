@@ -4,11 +4,12 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.carbonwise.databinding.ItemIncomingRequestBinding
+import com.example.carbonwise.network.FriendRequest
 
 class IncomingRequestsAdapter(
-    private var requests: MutableList<String>,
-    private val onAccept: (String) -> Unit,
-    private val onReject: (String) -> Unit
+    private var requests: MutableList<FriendRequest>,
+    private val onAccept: (FriendRequest) -> Unit,
+    private val onReject: (FriendRequest) -> Unit
 ) : RecyclerView.Adapter<IncomingRequestsAdapter.RequestViewHolder>() {
 
     class RequestViewHolder(val binding: ItemIncomingRequestBinding) : RecyclerView.ViewHolder(binding.root)
@@ -20,7 +21,7 @@ class IncomingRequestsAdapter(
 
     override fun onBindViewHolder(holder: RequestViewHolder, position: Int) {
         val request = requests[position]
-        holder.binding.textFriendRequest.text = request
+        holder.binding.textFriendRequest.text = request.name ?: "Unknown Requester"
 
         holder.binding.buttonAccept.setOnClickListener {
             onAccept(request)
@@ -33,7 +34,7 @@ class IncomingRequestsAdapter(
 
     override fun getItemCount(): Int = requests.size
 
-    fun updateRequests(newRequests: List<String>) {
+    fun updateRequests(newRequests: List<FriendRequest>) {
         requests.clear()
         requests.addAll(newRequests)
         notifyDataSetChanged()

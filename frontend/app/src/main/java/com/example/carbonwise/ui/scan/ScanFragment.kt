@@ -24,6 +24,15 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.network.AddToHistoryRequest
+import com.example.carbonwise.MainActivity
+import com.example.carbonwise.ui.history.HistoryCacheManager
 
 class ScanFragment : Fragment() {
 
@@ -149,6 +158,9 @@ class ScanFragment : Fragment() {
         val mediaImage = imageProxy.image ?: return
         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
 
+        // Check for null binding safely
+        val binding = binding ?: return // If binding is null, return early
+
         barcodeScanner.process(image)
             .addOnSuccessListener { barcodes ->
                 for (barcode in barcodes) {
@@ -174,6 +186,7 @@ class ScanFragment : Fragment() {
             }
     }
 
+
     private fun showConfirmationDialog(barcode: String) {
         if (isDialogDisplayed) return
 
@@ -185,6 +198,9 @@ class ScanFragment : Fragment() {
             builder.setMessage("Scan result: $barcode\nDo you want to proceed?")
 
             builder.setPositiveButton("Accept") { _, _ ->
+                // Add the barcode to history here
+                addToHistory(barcode)
+
                 isDialogDisplayed = false
                 isScanningLocked = false
                 val action = ScanFragmentDirections.actionScanFragmentToInfoFragment(barcode)
@@ -209,6 +225,42 @@ class ScanFragment : Fragment() {
             dialog.show()
         }
     }
+
+    private fun addToHistory(barcode: String) {
+        val token = MainActivity.getJWTToken(requireContext())
+        if (token.isNullOrEmpty()) {
+            Toast.makeText(requireContext(), "No token found", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val requestBody = AddToHistoryRequest(barcode)
+
+        // Initialize Retrofit instance
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.cpen321-jelx.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val apiService = retrofit.create(ApiService::class.java)
+
+        // Call the addToHistory API
+        val call = apiService.addToHistory(token, requestBody)
+        call.enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if (response.isSuccessful) {
+                    HistoryCacheManager.invalidateCache(requireContext())
+                    Toast.makeText(requireContext(), "Item added to history", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "Failed to add item to history", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

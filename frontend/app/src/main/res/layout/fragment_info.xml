@@ -208,6 +208,32 @@
                         android:layout_marginTop="8dp"/>
                 </LinearLayout>
 
+                <LinearLayout
+                    android:id="@+id/recommendationsWrapper"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/rounded_subsection"
+                    android:padding="16dp"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Recommended Products"
+                        android:textSize="18sp"
+                        android:textColor="@android:color/black"
+                        android:textStyle="bold"/>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recommendationsRecyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal" />
+                </LinearLayout>
+
             </LinearLayout>
         </ScrollView>
 
