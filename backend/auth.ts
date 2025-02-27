@@ -8,20 +8,12 @@ import { Request, Response, NextFunction } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { client } from "./services";
 import { Collection } from "mongodb";
+import { User } from "./types";
 
 dotenv.config();
 
 const router = express.Router();
 const oauthClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-interface User {
-  _id: string;
-  google_id: string;
-  email: string;
-  name: string;
-  uuid: string;
-  fcm_registration_token: string;
-}
 
 //=========================== FOR BROWSER TESTING ===========================
 passport.use(
@@ -45,7 +37,7 @@ passport.use(
           google_id: profile.id,
           email: profile.emails?.[0].value || "",
           name: profile.displayName,
-          uuid: user_uuid,
+          user_uuid: user_uuid,
           fcm_registration_token: "",
         };
         await userCollection.insertOne(user);
@@ -87,11 +79,11 @@ router.get(
 
 // Verify Google OAuth Token
 router.post("/auth/google", async (req, res) => {
-  const { token } = req.body;
+  const { google_id_token } = req.body;
 
   try {
     const ticket = await oauthClient.verifyIdToken({
-      idToken: token,
+      idToken: google_id_token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
@@ -107,7 +99,7 @@ router.post("/auth/google", async (req, res) => {
         google_id: payload.sub,
         email: payload.email || "",
         name: payload.name || "",
-        uuid: user_uuid,
+        user_uuid: user_uuid,
         fcm_registration_token: "",
       };
       await userCollection.insertOne(user);
@@ -121,7 +113,7 @@ router.post("/auth/google", async (req, res) => {
 
     res.json({ token: jwtToken });
   } catch (error) {
-    res.status(401).json({ error: "Invalid token" });
+    res.status(401).json({ message: "Invalid token" });
   }
 });
 
@@ -129,7 +121,7 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
   const token = req.headers.token;
 
   if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.status(401).json({ message: "No token provided" });
   }
 
   try {
@@ -137,7 +129,7 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
     (req as any).user = decoded;
     next();
   } catch (err) {
-    return res.status(403).json({ error: "Forbidden" });
+    return res.status(403).json({ message: "Unauthorized" });
   }
 };
 

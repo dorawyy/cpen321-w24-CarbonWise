@@ -1,0 +1,295 @@
+import { NextFunction, Request, Response } from "express";
+import { client } from "../services";
+import { Filter, Document } from "mongodb";
+import { fetchProductById, fetchProductImageById } from "./ProductsController";
+import { getMessaging, TokenMessage } from 'firebase-admin/messaging';
+import { getFirebaseApp } from "../services";
+import { User, Friends, History } from "../types";
+import { getHistoryByUserUUID } from "./UsersController";
+
+export class FriendsController {
+    
+    async sendFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
+        const { user_uuid: target_uuid } = req.body;
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+
+        if (user_uuid === target_uuid) {
+            return res.status(400).send({message: "Cannot send friend request to yourself"});
+        }
+
+        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+
+        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const targetFriends = await friendsCollection.findOne({ user_uuid: target_uuid });
+
+        if (userFriends?.friends?.some(friend => friend.user_uuid === target_uuid) || targetFriends?.friends?.some(friend => friend.user_uuid === user_uuid)) {
+            return res.status(400).send({message: "Already friends"});
+        }
+
+        if (!targetFriends?.incoming_requests?.some(request => request.user_uuid === user_uuid)) {
+            await friendsCollection.updateOne(
+                { user_uuid: target_uuid },
+                { $addToSet: { incoming_requests: { user_uuid: user_uuid, name: user.name } } },
+                { upsert: true }
+            );
+            res.status(200).send({message: "Friend request sent"});
+        } else {
+            res.status(400).send({message: "Friend request already sent"});
+        }
+    }
+
+    async acceptFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
+        const { user_uuid: friend_uuid } = req.body;
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+
+        if (user_uuid === friend_uuid) {
+            return res.status(400).send({message: "Cannot accept friend request from yourself"});
+        }
+
+        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+
+        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const friend = await client.db("users_db").collection<User>("users").findOne({ user_uuid: friend_uuid });
+
+        if (userFriends?.incoming_requests?.some(request => request.user_uuid === friend_uuid)) {
+            await friendsCollection.updateOne(
+                { user_uuid: user_uuid },
+                { $pull: { incoming_requests: { user_uuid: friend_uuid } }, $addToSet: { friends: { user_uuid: friend_uuid, user_name: friend?.name || "" } } }
+            );
+
+            // Ensure the other user has a friends document
+            const friendFriends = await friendsCollection.findOne({ user_uuid: friend_uuid });
+            if (!friendFriends) {
+                await friendsCollection.insertOne({ user_uuid: friend_uuid, friends: [], incoming_requests: [] });
+            }
+
+            await friendsCollection.updateOne(
+                { user_uuid: friend_uuid },
+                { $addToSet: { friends: { user_uuid: user_uuid, user_name: user.name } } }
+            );
+            res.status(200).send({message: "Friend request accepted"});
+        } else {
+            res.status(400).send({message: "No such friend request"});
+        }
+    }
+
+    async removeFriend(req: Request, res: Response, nextFunction: NextFunction) {
+        const { user_uuid: friend_uuid } = req.query;
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+
+        if (user_uuid === friend_uuid) {
+            return res.status(400).send({message: "Cannot remove yourself as a friend"});
+        }
+    
+        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+    
+        const result = await friendsCollection.updateOne(
+            { user_uuid: user_uuid },
+            { $pull: { friends: { user_uuid: friend_uuid } } as Filter<Document> }
+        );
+
+        const result2 = await friendsCollection.updateOne(
+            { user_uuid: friend_uuid },
+            { $pull: { friends: { user_uuid: user_uuid } } as Filter<Document> }
+        );
+
+        if (result.modifiedCount > 0 && result2.modifiedCount > 0) {
+            res.status(200).send({message: "Friend removed"});
+        } else {
+            res.status(404).send({message: "Friend not found"});
+        }
+    }
+
+    async rejectFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
+        const { user_uuid: friend_uuid } = req.query;
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+
+        if (friend_uuid === user_uuid) {
+            return res.status(400).send({message: "Cannot reject friend request from yourself"});
+        }
+
+        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+
+        const result = await friendsCollection.updateOne(
+            { user_uuid: user_uuid },
+            { $pull: { incoming_requests: { user_uuid: friend_uuid as string } } }
+        );
+
+        if (result.modifiedCount > 0) {
+            res.status(200).send({message: "Friend request rejected"});
+        } else {
+            res.status(404).send({message: "Friend request not found"});
+        }
+    }
+
+    async getFriendHistory(req: Request, res: Response, nextFunction: NextFunction) {
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+        const { timestamp } = req.query;
+
+        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+
+        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+
+        if (userFriends?.friends) {
+            const historyMap: Record<string, any[]> = {};
+            for (const friend of userFriends.friends) {
+                const friendHistory = await getHistoryByUserUUID(friend.user_uuid, timestamp as string);
+
+                const detailedHistory = await Promise.all(friendHistory.map(async (entry) => {
+                    const detailedProducts = await Promise.all(entry.products.map(async (product) => {
+                        const productDetails = await fetchProductById(product.product_id);
+                        const productImage = await fetchProductImageById(product.product_id);
+                        return {
+                            ...product,
+                            "product": {
+                                ...productDetails,
+                                image: productImage
+                            }
+                        }; 
+                    }));
+                    return {
+                        ...entry,
+                        products: detailedProducts
+                    };
+                }));
+
+                historyMap[friend.user_uuid] = detailedHistory;
+            }
+            res.status(200).send(historyMap);
+        } else {
+            res.status(200).send({});
+        }
+    }
+
+    async getFriendRequests(req: Request, res: Response, nextFunction: NextFunction) {
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+
+        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+
+        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+
+        if (userFriends?.incoming_requests) {
+            res.status(200).send(userFriends.incoming_requests);
+        } else {
+            res.status(200).send([]);
+        }
+    }
+
+    async getCurrentFriends(req: Request, res: Response, nextFunction: NextFunction) {
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+
+        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+
+        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+
+        if (userFriends?.friends) {
+            res.status(200).send(userFriends.friends);
+        } else {
+            res.status(200).send([]);
+        }
+    }
+
+    async getFriendHistoryByUUID(req: Request, res: Response, nextFunction: NextFunction) {
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+        const { user_uuid: friend_uuid } = req.params;
+        const { timestamp } = req.query;
+
+        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+
+        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === friend_uuid);
+
+        if (!friendRelationship) {
+            return res.status(404).send({message: "User does not exist or is not a friend"});
+        }
+
+        const friendHistory = await getHistoryByUserUUID(friend_uuid, timestamp as string);
+
+        const detailedHistory = await Promise.all(friendHistory.map(async (entry) => {
+            const detailedProducts = await Promise.all(entry.products.map(async (product) => {
+                const productDetails = await fetchProductById(product.product_id);
+                const productImage = await fetchProductImageById(product.product_id);
+                return {
+                    ...product,
+                    "product": {
+                        ...productDetails,
+                        image: productImage
+                    }
+                };
+            }));
+            return {
+                ...entry,
+                products: detailedProducts
+            };
+        }));
+
+        res.status(200).send(detailedHistory);
+    }
+
+    async sendProductNotification(req: Request, res: Response, nextFunction: NextFunction) {
+        const { user_uuid: target_uuid, product_id, message_type } = req.body;
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+
+        if (user_uuid === target_uuid) {
+            return res.status(400).send({message: "Cannot send notification to yourself"});
+        }
+
+        // Ensure firebase app is initialized
+        getFirebaseApp();
+
+        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+        const userCollection = client.db("users_db").collection<User>("users");
+        const historyCollection = client.db("users_db").collection<History>("history");
+
+        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === target_uuid);
+
+        if (!friendRelationship) {
+            return res.status(404).send({message: "User does not exist or is not a friend"});
+        }
+
+        const targetUser = await userCollection.findOne({ user_uuid: target_uuid });
+        const userHistory = await historyCollection.findOne({ user_uuid: target_uuid, "products.product_id": product_id });
+
+        if (!userHistory) {
+            return res.status(404).send({message: "Product not found in user's history"});
+        }
+
+        const productDetails = await fetchProductById(product_id);
+        const productName = productDetails?.product_name || "the product";
+
+        let messageBody = "";
+        if (message_type === "praise") {
+            messageBody = `${user.name} has praised you for buying ${productName}`;
+        } else if (message_type === "shame") {
+            messageBody = `${user.name} has shamed you for buying ${productName}`;
+        } else {
+            return res.status(400).send({message: "Invalid message type"});
+        }
+
+        const message = {
+            notification: {
+                title: 'CarbonWise',
+                body: messageBody
+            },
+            token: targetUser?.fcm_registration_token
+        };
+
+        getMessaging().send(message as TokenMessage)
+            .then((response: string) => {
+                res.status(200).send({message: "Notification sent"});
+            })
+            .catch((error: any) => {
+                res.status(500).send({message: "Error sending notification"});
+            });
+    }
+}

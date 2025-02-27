@@ -3,106 +3,13 @@ import { client } from "../services";
 import { Collection } from "mongodb";
 import axios from "axios";
 import { Buffer } from "buffer";
+import { Product } from "../types";
 
-interface Product {
-    _id: string;
-    product_name?: string;
-    ecoscore_grade?: string;
-    ecoscore_score?: number;
-    ecoscore_data?: Record<string, any>;
-    categories_tags?: string[];
-    categories_hierarchy?: string[];
-    countries_tags?: string[];
-    lang?: string;
-    [key: string]: any;
-}
-
-export async function fetchProductById(id: string): Promise<Product | null> {
-    const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
-
-    let product = await collection.findOne({ _id: id });
-
-    if (!product) {
-        const apiUrl = `https://world.openfoodfacts.org/api/v2/product/${id}.json`;
-
-        try {
-            const response = await axios.get(apiUrl);
-            if (response.data?.status === 1 && response.data.product) {
-                const fetchedProduct = response.data.product;
-
-                const updatedProduct: Product = {
-                    _id: id,
-                    ...fetchedProduct,
-                };
-
-                await collection.insertOne(updatedProduct);
-                product = updatedProduct;
-            } else {
-                return null;
-            }
-        } catch (error) {
-            return null;
-        }
-    }
-
-    return {
-        _id: product._id,
-        product_name: product.product_name || undefined,
-        ecoscore_grade: product.ecoscore_grade || undefined,
-        ecoscore_score: product.ecoscore_score || undefined,
-        ecoscore_data: product.ecoscore_data || undefined,
-        categories_tags: product.categories_tags || undefined,
-        categories_hierarchy: product.categories_hierarchy || undefined,
-        countries_tags: product.countries_tags || undefined,
-        lang: product.lang || undefined
-    };
-}
-
-export async function fetchProductImageById(id: string): Promise<string | null> {
-    try {
-        const imageKey =
-            id.length === 13
-                ? `data/${id.slice(0, 3)}/${id.slice(3, 6)}/${id.slice(6, 9)}/${id.slice(9)}/1.jpg`
-                : `data/${id}/1.jpg`;
-
-        const imageUrl = `https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/${imageKey}`;
-
-        const imageResponse = await axios.get(imageUrl, { responseType: "arraybuffer" });
-        return Buffer.from(imageResponse.data, "binary").toString("base64");
-    } catch (error) {
-        return null;
-    }
-}
-
-export class ProductController {
+export class ProductsController {
+    
     async getProductById(req: Request, res: Response, next: NextFunction) {
         try {
-            const { id } = req.params;
-
-            const product = await fetchProductById(id);
-            if (!product) {
-                return res.status(404).json({
-                    product: null,
-                    image: null,
-                });
-            }
-
-            const image = await fetchProductImageById(id);
-
-            return res.status(200).json({
-                product: { ...product, image: image || null }
-            });
-        } catch (error) {
-            return res.status(500).json({
-                product: null,
-                image: null,
-            });
-        }
-    }
-    
-    async getRecommendationsByProductId(req: Request, res: Response, next: NextFunction) {
-        try {
-            const { id } = req.params;
+            const { product_id } = req.params;
             const queryParams = req.query;
 
             const UPPER_LIMIT = 50;  
@@ -114,16 +21,12 @@ export class ProductController {
             const excludedCountries: string[] = queryParams.exclude_countries ? (queryParams.exclude_countries as string).split(",") : [];
             const RESULT_LIMIT = parseInt(queryParams.recommendations as string) || 1;  
 
-            const baseProduct = await fetchProductById(id);
+            const baseProduct = await fetchProductById(product_id);
             if (!baseProduct || !baseProduct.categories_hierarchy || !baseProduct.categories_tags) {
-                return res.status(404).json({
-                    original_product: null,
-                    recommendations: [],
-                    message: "Product not found or missing required fields.",
-                });
+                return res.status(404).json({ message: "Product not found or missing required fields." });
             }
 
-            const baseProductImage = await fetchProductImageById(id);
+            const baseProductImage = await fetchProductImageById(product_id);
 
             const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
 
@@ -136,7 +39,7 @@ export class ProductController {
                 );
 
                 let query: any = {
-                    _id: { $ne: id },
+                    _id: { $ne: product_id },
                     categories_tags: { $all: tagsToUse },
                     ecoscore_score: { $exists: true },
                     ecoscore_grade: { $exists: true },
@@ -188,15 +91,78 @@ export class ProductController {
             );
 
             return res.status(200).json({
-                original_product: { ...baseProduct, image: baseProductImage || null },
+                product: { ...baseProduct, image: baseProductImage || null },
                 recommendations: recommendationsWithImages
             });
         } catch (error) {
-            return res.status(500).json({
-                original_product: null,
-                recommendations: [],
-                message: "Internal server error",
-            });
+            return res.status(500).json({ message: "Internal server error" });
         }
+    }
+}
+
+
+export async function fetchProductById(product_id: string): Promise<Product | null> {
+    const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
+
+    let product = await collection.findOne({ _id: product_id });
+
+    if (!product) {
+        const apiUrl = `https://world.openfoodfacts.org/api/v2/product/${product_id}.json`;
+
+        try {
+            const response = await axios.get(apiUrl);
+            if (response.data?.status === 1 && response.data.product) {
+
+                const fetchedProduct = response.data.product;
+
+                if (!fetchedProduct.product_name || !fetchedProduct.ecoscore_grade || !fetchedProduct.ecoscore_score || !fetchedProduct.ecoscore_data || !fetchedProduct.categories_tags || !fetchedProduct.categories_hierarchy) {
+                    return null;
+                }
+
+                const updatedProduct: Product = {
+                    _id: product_id,
+                    ...fetchedProduct,
+                };
+
+                await collection.insertOne(updatedProduct);
+                product = updatedProduct;
+            } else {
+                return null;
+            }
+        } catch (error) {
+            return null;
+        }
+    }
+
+    if (!product.product_name || !product.ecoscore_grade || !product.ecoscore_score || !product.ecoscore_data || !product.categories_tags || !product.categories_hierarchy) {
+        return null;
+    }
+
+    return {
+        _id: product._id,
+        product_name: product.product_name,
+        ecoscore_grade: product.ecoscore_grade,
+        ecoscore_score: product.ecoscore_score,
+        ecoscore_data: product.ecoscore_data,
+        categories_tags: product.categories_tags,
+        categories_hierarchy: product.categories_hierarchy,
+        countries_tags: product.countries_tags || undefined,
+        lang: product.lang || undefined
+    };
+}
+
+export async function fetchProductImageById(product_id: string): Promise<string | null> {
+    try {
+        const imageKey =
+            product_id.length === 13
+                ? `data/${product_id.slice(0, 3)}/${product_id.slice(3, 6)}/${product_id.slice(6, 9)}/${product_id.slice(9)}/1.jpg`
+                : `data/${product_id}/1.jpg`;
+
+        const imageUrl = `https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/${imageKey}`;
+
+        const imageResponse = await axios.get(imageUrl, { responseType: "arraybuffer" });
+        return Buffer.from(imageResponse.data, "binary").toString("base64");
+    } catch (error) {
+        return null;
     }
 }
