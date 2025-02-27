@@ -80,4 +80,12 @@ interface ApiService {
         @Query("timestamp") timestamp: String? = null,
         @Query("fetch_product_details") fetchProductDetails: Boolean = true
     ): Call<List<HistoryItem>>
+
+    @POST("users/fcm_registration_token")
+    @Headers("Content-Type: application/json")
+    fun sendFCMToken(
+        @Header("token") token: String,
+        @Body request: FCMTokenRequest
+    ): Call<Void>
+
 }
