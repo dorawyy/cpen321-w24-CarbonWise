@@ -4,6 +4,7 @@ import { Collection } from "mongodb";
 import axios from "axios";
 import { Buffer } from "buffer";
 import { Product } from "../types";
+import { RECOMMENDATIONS_UPPER_LIMIT, RECOMMENDATIONS_LOWER_LIMIT, OPENFOODFACTS_API_URL, OPENFOODFACTS_IMAGE_API_URL } from "../constants";
 
 export class ProductsController {
     
@@ -11,10 +12,6 @@ export class ProductsController {
         try {
             const { product_id } = req.params;
             const queryParams = req.query;
-
-            const UPPER_LIMIT = 50;  
-            const LOWER_LIMIT = 1;  
-            const SIMILARITY_CUTOFF_PERCENTAGE = 0.3;  
 
             const requestedLanguages: string[] = queryParams.languages ? (queryParams.languages as string).split(",") : [];
             const includedCountries: string[] = queryParams.countries ? (queryParams.countries as string).split(",") : [];
@@ -61,10 +58,10 @@ export class ProductsController {
                             categories_tags: 1, categories_hierarchy: 1, countries_tags: 1
                         }
                     })
-                    .limit(UPPER_LIMIT)
+                    .limit(RECOMMENDATIONS_UPPER_LIMIT)
                     .toArray();
 
-                if (matchingProducts.length >= LOWER_LIMIT) break;
+                if (matchingProducts.length >= RECOMMENDATIONS_LOWER_LIMIT) break;
                 remainingTags.pop();
             }
 
@@ -79,12 +76,8 @@ export class ProductsController {
                 }))
                 .sort((a, b) => a.categories_tags_difference - b.categories_tags_difference);  
 
-            const similarityCutoff = Math.ceil(matchingProducts.length * SIMILARITY_CUTOFF_PERCENTAGE);
-            let refinedProducts = matchingProducts.slice(0, similarityCutoff)
-                .sort((a, b) => (b.ecoscore_score || 0) - (a.ecoscore_score || 0));
-
             const recommendationsWithImages = await Promise.all(
-                refinedProducts.slice(0, RESULT_LIMIT).map(async (product) => {
+                matchingProducts.slice(0, RESULT_LIMIT).map(async (product) => {
                     const productImage = await fetchProductImageById(product._id);
                     return { ...product, image: productImage || null };
                 })
@@ -107,7 +100,7 @@ export async function fetchProductById(product_id: string): Promise<Product | nu
     let product = await collection.findOne({ _id: product_id });
 
     if (!product) {
-        const apiUrl = `https://world.openfoodfacts.org/api/v2/product/${product_id}.json`;
+        const apiUrl = `${OPENFOODFACTS_API_URL}api/v2/product/${product_id}.json`;
 
         try {
             const response = await axios.get(apiUrl);
@@ -158,7 +151,7 @@ export async function fetchProductImageById(product_id: string): Promise<string 
                 ? `data/${product_id.slice(0, 3)}/${product_id.slice(3, 6)}/${product_id.slice(6, 9)}/${product_id.slice(9)}/1.jpg`
                 : `data/${product_id}/1.jpg`;
 
-        const imageUrl = `https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/${imageKey}`;
+        const imageUrl = `${OPENFOODFACTS_IMAGE_API_URL}${imageKey}`;
 
         const imageResponse = await axios.get(imageUrl, { responseType: "arraybuffer" });
         return Buffer.from(imageResponse.data, "binary").toString("base64");
