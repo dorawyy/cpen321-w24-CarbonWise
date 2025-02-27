@@ -6,10 +6,12 @@ import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import com.example.carbonwise.R
 import com.example.carbonwise.databinding.ItemFriendBinding
+import com.example.carbonwise.network.Friend
 
 class FriendsAdapter(
-    private var friends: MutableList<String>,
-    private val onRemoveFriend: (String) -> Unit
+    private var friends: MutableList<Friend>,
+    private val onRemoveFriend: (Friend) -> Unit,
+    private val onViewHistory: (Friend) -> Unit
 ) : RecyclerView.Adapter<FriendsAdapter.FriendViewHolder>() {
 
     class FriendViewHolder(val binding: ItemFriendBinding) : RecyclerView.ViewHolder(binding.root)
@@ -21,16 +23,23 @@ class FriendsAdapter(
 
     override fun onBindViewHolder(holder: FriendViewHolder, position: Int) {
         val friend = friends[position]
-        holder.binding.textFriendName.text = friend
+        holder.binding.textFriendName.text = friend.name ?: "Unknown Friend"
 
         holder.binding.buttonOptions.setOnClickListener { view ->
             val popupMenu = PopupMenu(view.context, view)
             popupMenu.inflate(R.menu.friend_options_menu)
             popupMenu.setOnMenuItemClickListener { item ->
-                if (item.itemId == R.id.menu_remove_friend) {
-                    onRemoveFriend(friend)
-                    true
-                } else false
+                when (item.itemId) {
+                    R.id.menu_view_history -> {
+                        onViewHistory(friend)
+                        true
+                    }
+                    R.id.menu_remove_friend -> {
+                        onRemoveFriend(friend)
+                        true
+                    }
+                    else -> false
+                }
             }
             popupMenu.show()
         }
@@ -38,8 +47,9 @@ class FriendsAdapter(
 
     override fun getItemCount(): Int = friends.size
 
-    fun updateFriends(newFriends: List<String>) {
-        friends = newFriends.toMutableList()
+    fun updateFriends(newFriends: List<Friend>) {
+        friends.clear()
+        friends.addAll(newFriends)
         notifyDataSetChanged()
     }
 }

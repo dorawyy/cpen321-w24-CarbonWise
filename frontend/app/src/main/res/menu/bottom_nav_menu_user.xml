@@ -2,14 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/navigation_friends"
-        android:icon="@drawable/icon_friends_24dp"
-        android:title="@string/title_friends" />
-
-    <item
-        android:id="@+id/navigation_recommendations"
-        android:icon="@drawable/icon_recommend_24dp"
-        android:title="@string/title_recommendations" />
+        android:id="@+id/navigation_history"
+        android:icon="@drawable/icon_history_24dp"
+        android:title="@string/title_history" />
 
     <item
         android:id="@+id/navigation_scan"
@@ -17,8 +12,8 @@
         android:title="@string/title_scan" />
 
     <item
-        android:id="@+id/navigation_history"
-        android:icon="@drawable/icon_history_24dp"
-        android:title="@string/title_history" />
+        android:id="@+id/navigation_friends"
+        android:icon="@drawable/icon_friends_24dp"
+        android:title="@string/title_friends" />
 
 </menu>
