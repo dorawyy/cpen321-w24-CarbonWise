@@ -280,6 +280,10 @@ export class FriendsController {
             return res.status(400).send({message: "Invalid message type"});
         }
 
+        if (!targetUser?.fcm_registration_token) {
+            return res.status(404).send({message: "Target user does not have notifications enabled"});
+        }
+
         const message = {
             notification: {
                 title: 'CarbonWise',
