@@ -468,7 +468,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
         4. Balance eco-scores and similarity ranking to prioritize environmentally friendly choices.  
         5. Dynamically adjust search criteria if the initial query returns too few or too many results.  
         6. Return the best-ranked alternatives.  
-   - **Pseudo-code**:
+    - **Pseudo-code**:
         ```
         function getRecommendations(product_id, filters):  
 
