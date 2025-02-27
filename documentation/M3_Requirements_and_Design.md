@@ -1,124 +1,516 @@
 # M3 - Requirements and Design
 
 ## 1. Change History
-<!-- Leave blank for M3 -->
+
+None (Plan B)
 
 ## 2. Project Description
 
+CarbonWise empowers consumers to make more sustainable choices by providing clear and accessible information about the environmental impact of their purchases. Whether users are new to sustainability or already committed to eco-conscious shopping, the app delivers reliable insights to support informed decision-making. Additionally, CarbonWise encourages accountability by allowing users to connect with friends, compare sustainability scores, and share progress, fostering a community-driven approach to responsible consumption.
 
 ## 3. Requirements Specification
+
 ### **3.1. Use-Case Diagram**
 
+![Use-Case Diagram](/documentation/images/use_case_diagram.jpg)
 
 ### **3.2. Actors Description**
-1. **[WRITE_NAME_HERE]**: ...
-2. **[WRITE_NAME_HERE]**: ...
 
+1. **User**: User that is authenticated and has access to all functionality.
+2. **Guest User**: Guest user who is not authenticated and has limited access.
 
 ### **3.3. Functional Requirements**
 <a name="fr1"></a>
 
-1. **[WRITE_FUNCTIONAL_REQUIREMENT_1_NAME_HERE]** 
+1. **Scan Products**  
+     
+    - **Overview**:  
+       
+        1. Scanning a product
+
+    - **Detailed Flow for Each Independent Scenario**:  
+       
+        1. **Scanning a product**  
+            - **Description**: Users and Guest Users can scan a product’s barcode to retrieve an eco-score, sustainability information, and product recommendations.  
+            - **Primary actor(s)**: User, Guest User  
+            - **Main success scenario**:  
+                1. User or Guest User navigates to the scan tab.  
+                2. The system requests camera permissions if not previously granted.  
+                3. User or Guest User grants camera permissions if requested.  
+                4. User or Guest User scans a barcode using the device camera.  
+                5. The system retrieves and displays an eco-score, sustainability information, and product recommendations for the scanned product.  
+                6. The system adds the scanned product to the User’s history if the User is authenticated.
+            - **Failure scenario(s)**:  
+                - 3a. User denies camera permissions.  
+                    - 3a1. The system informs the User or Guest User that camera access is required to scan products.  
+                    - 3a2. The system displays instructions on the scan tab to enable camera permissions in settings.  
+                - 4a. The barcode is unreadable due to camera quality.  
+                    - 4a1. The system waits on the scan tab until it is provided with a readable barcode.  
+                - 5a. The system is unable to retrieve an eco-score or sustainability information for the product.  
+                    - 5a1. The system informs the User or Guest User  that information for the product is not available.  
+                    - 5a2. The system returns the User or Guest User to the scan tab.  
+                - 5b. The system is unable to retrieve product data due to a server error.  
+                    - 5b1. The system informs the User or Guest User  that product information could not be retrieved and displays the relevant server error.  
+                    - 5b2. The system returns the User or Guest User to the scan tab.  
+                - 6a. The system is unable to add the scanned product to the User’s history due to a server error.  
+                    - 6a1. The system informs the User the scanned product could not be added to history and displays the relevant server error.
+
+<a name="fr2"></a>
+
+2. **Authenticate Guest User**  
+     
     - **Overview**:
-        1. [WRITE_FUNCTIONAL_REQUIREMENT_1_1_NAME_HERE]
-        2. ...
-    
-    - **Detailed Flow for Each Independent Scenario**: 
-        1. **[WRITE_FUNCTIONAL_REQUIREMENT_1_1_NAME_HERE]**:
-            - **Description**: ...
-            - **Primary actor(s)**: ... 
-            - **Main success scenario**:
-                1. ...
-                2. ...
+
+        1. Authenticate Guest User with Google OAuth
+
+    - **Detailed Flow for Each Independent Scenario**:  
+       
+        1. **Authenticate Guest User with Google OAuth**  
+            - **Description**: A Guest User can log in using a Google account. If an existing account is linked to the Google account, they are logged in. If no account exists, the system automatically creates an account and logs the Guest User in. Once authenticated, the Guest User becomes a User with full access.  
+            - **Primary actor(s)**: Guest User  
+            - **Main success scenario**:  
+                1. Guest User navigates to the login tab.  
+                2. The system prompts the Guest User with the Google OAuth authentication screen.  
+                3. Guest User selects a Google account and grants permission for the system to access profile details.  
+                4. The system verifies authentication with Google OAuth.  
+                5. The system logs the Guest User in, transitioning them to a User with full access.
+            - **Failure scenario(s)**:  
+                - 2a. An error occurs with Google OAuth service  
+                    - 2a1. The system informs the Guest User that authentication failed due to a Google OAuth service issue.  
+                    - 2a2. The system returns the Guest User to the login tab.  
+                - 3a. The Guest User declines to continue with Google OAuth.  
+                    - 3a1. The system informs the Guest User that authentication is required to log in.  
+                    - 3a2. The system returns the Guest User to the login tab.  
+                - 4a. The Google OAuth token is invalid or expired.  
+                    - 4a1. The system informs the Guest User that authentication has expired or is invalid.  
+                    - 4a2. The system returns the Guest User to the login tab.  
+                - 4b. The system fails to transition the Guest User to a User due to a server error.  
+                    - 4b1. The system informs the Guest User that login could not be completed due to a server error.  
+                    - 4b2. The system returns the Guest User to the login tab.
+
+<a name="fr3"></a>
+
+3. **Manage Friends**  
+     
+    - **Overview**:  
+       
+        1. Send a friend request  
+        2. Accept a friend request  
+        3. Reject a friend request  
+        4. Remove a friend
+
+    - **Detailed Flow for Each Independent Scenario**:  
+       
+        1. **Send a friend request**  
+            - **Description**: Users can send a friend request by entering a friend's unique friend code.  
+            - **Primary actor(s)**: User  
+            - **Main success scenario**:  
+                1. User navigates to the friends tab.  
+                2. User enters the friend’s unique friend code and sends the friend request.  
+                3. The system sends a friend request notification to the recipient.  
+                4. The system informs the User the friend request was successfully sent.
+
+            - **Failure scenario(s)**:  
+                - 2a. The entered friend code does not match any existing User.  
+                    - 2a1. The system informs the User that the friend code is invalid.  
+                - 2b. The friend code belongs to a User who is already a friend.  
+                    - 2b1. The system informs the User that the friend has already been added.  
+                - 2c. The friend request could not be sent due to a server error.  
+                    - 2c1. The system informs the User that the request could not be sent due to a server error and prompts them to try again.
+
+        2. **Accept a friend request**  
+            - **Description**: Users can accept incoming friend requests to add friends to their friend list.  
+            - **Primary actor(s)**: User  
+            - **Main success scenario**:  
+                1. User navigates to the friends tab.  
+                2. User views pending friend requests.  
+                3. User selects a pending request and accepts it.  
+                4. The system updates both Users' friend lists.  
+                5. The system informs the User that the friend request has been accepted.
+            - **Failure scenario(s)**:  
+                - 3a. The friend request is no longer valid.  
+                    - 3a1. The system informs the User that the request is no longer valid.  
+                - 3b. The friend request could not be accepted due to a server error.  
+                    - 3b1. The system informs the User that the friend request was not accepted and displays the relevant server error.  
+                    - 3b2. The system prompts the User to try again later.
+
+        3. **Reject a friend request**  
+            - **Description**: Users can decline incoming friend requests.  
+            - **Primary actor(s)**: User  
+            - **Main success scenario**:  
+                1. User navigates to the friends tab.  
+                2. User views pending friend requests.  
+                3. User selects a pending request and rejects it.  
+                4. The system removes the pending request.  
+                5. The system informs the User that the request has been rejected.
+            - **Failure scenario(s)**:  
+                - 4b. The friend request could not be rejected due to a server error.  
+                    - 4b1. The system informs the User that the friend request was not rejected and displays the relevant server error.  
+                    - 4b2. The system prompts the User to try again later.
+
+        4. **Remove a friend**  
+            - **Description**: Users can remove a friend from their friends list.  
+            - **Primary actor(s)**: User  
+            - **Main success scenario**:  
+                1. User navigates to the friends tab.  
+                2. User selects a friend from their list to remove.  
+                3. The system prompts the User to confirm the removal.  
+                4. User confirms the removal.  
+                5. The system removes the friend from both Users’ friend lists.  
+                6. The system informs the User that the friend has been removed.
             - **Failure scenario(s)**:
-                - 1a. ...
-                    - 1a1. ...
-                    - 1a2. ...
-                - 1b. ...
-                    - 1b1. ...
-                    - 1b2. ...
-                - 2a. ...
-                    - 2a1. ...
-                    - 2a2. ...
+                - 4a. User does not confirm the removal of the friend.
+                    - 4a1. The system returns the User to the friends tab.   
+                - 5a. The friend has already been removed or no longer exists.  
+                    - 5a1. The system informs the User that the friend has already been removed.  
+                - 5b. The friend request could not be removed due to a server error.  
+                    - 5b1. The system informs the User that the friend was not removed and displays the relevant server error.  
+                    - 5b2. The system prompts the User to try again later.
 
-        2. ...
-    
-2. ...
+<a name="fr4"></a>
 
+4. **React to a Friend**  
+     
+    - **Overview**:  
+       
+        1. React to a friend’s product
+
+    - **Detailed Flow for Each Independent Scenario**:
+
+        1. **React to a friend’s product**  
+            - **Description**: Users can select a friend, choose a product from that friend's history, and send a predefined reaction (e.g., "shame" or "praise"). The system sends a notification to the selected friend with the chosen reaction.  
+            - **Primary actor(s)**: User  
+            - **Main success scenario**:  
+                1. User navigates to the friends tab.  
+                2. User selects a friend from their friend list.  
+                3. User views the friend's product history.  
+                4. User selects a predefined reaction to a product in the selected friend's history.  
+                5. The system sends a notification to the selected friend with the chosen reaction and associated product details.  
+                6. The system informs the User that the reaction has been sent successfully.
+
+            - **Failure scenario(s)**:  
+                - 4a. The selected product is no longer available in the friend’s history.  
+                    - 4a1. The system informs the User that the product is not part of their friend’s product history.  
+                    - 4a2. The system refreshes the friend’s product history.  
+                - 4b. The selected friend is no longer a friend.  
+                    - 4b1. The system informs the User that the selected friend is no longer their friend.  
+                - 5a. The system fails to send the reaction due to a server error.  
+                    - 5a1. The system informs the User that the reaction could not be sent due to a server error and displays the relevant error message.  
+                    - 5a2. The system prompts the User to try again later.
+
+<a name="fr5"></a>
+
+5. **Manage Product History**  
+     
+    - **Overview**:
+
+        1. Delete product from history
+
+    - **Detailed Flow for Each Independent Scenario**:  
+       
+        1. **Delete product from history**  
+            - **Description**:  Users can delete a product from their history.  
+            - **Primary actor(s)**: User  
+            - **Main success scenario**:  
+                1. User navigates to the history tab.  
+                2. User presses the delete button for a product in their history.  
+                3. The system prompts the User to confirm the deletion.  
+                4. User confirms the deletion.  
+                5. The system removes the selected product from the User’s history.  
+                6. The system informs the User that the product has been successfully deleted.
+            - **Failure scenario(s)**:  
+                - 4a. User does not confirm the deletion.  
+                    - 4a1. The system cancels the deletion process and returns the User to the history tab.  
+                - 5a. The selected product does not exist in the User’s history.  
+                    - 5a1. The system informs the User that the product is not present in their history.  
+                    - 5a2. The system refreshes the history tab.  
+                - 5b. The system fails to delete the product due to a server error.  
+                    - 5b1. The system informs the User that the product could not be deleted due to a server error and displays the relevant error message.  
+                    - 5b2. The system prompts the User to try again later.
 
 ### **3.4. Screen Mockups**
 
 
+
 ### **3.5. Non-Functional Requirements**
+
 <a name="nfr1"></a>
 
-1. **[WRITE_NAME_HERE]**
-    - **Description**: ...
-    - **Justification**: ...
-2. ...
+1. **Product Database Size**  
+   - **Description**: The app should be able to recognize and retrieve eco-scores for at least 100,000 distinct products.  
+   - **Justification**: A large product database is crucial so that users can receive eco-scores and sustainability information from scanned products. A large product database also improves the quality of product recommendations by allowing comparisons across more products with eco-scores.  
 
+<a name="nfr2"></a>
 
-## 4. Designs Specification
+2. **Product Information Response Time**  
+   - **Description**: Product details, including eco-scores, sustainability information, and recommendations, should be displayed within five seconds of scanning.  
+   - **Justification**: Quick retrieval of product information is important to allow users to make informed purchase decisions in real time.
+
+## 4. Designs Specification	
+
 ### **4.1. Main Components**
-1. **[WRITE_NAME_HERE]**
-    - **Purpose**: ...
-    - **Interfaces**: 
-        1. ...
-            - **Purpose**: ...
-        2. ...
-2. ...
 
+1. **Products**  
+    - **Purpose**: The Products component is responsible for managing product data, including retrieval, storage, and recommendation generation based on eco-scores and categories. It integrates with MongoDB for caching and the OpenFoodFacts API for missing product details.   
+    - **Interfaces**:   
+        1. **`Product fetchProductById(String product_id)`**  
+            - **Purpose:** Retrieves product details and recommendations from the products database for a product with the specified ID. If the product is not found locally, it queries the OpenFoodFacts API, updates the product database with the retrieved information, and returns the result.  
+            - **Parameters:**  
+                - `product_id` (String): The barcode of the product  
+            - **Returns:**   
+                - The retrieved product data or `null` if not found.  
+        2. **`String fetchProductImageById(String product_id)`**  
+            - **Purpose:** Fetches a product image from the OpenFoodFacts API given a product identifier.  
+            - **Parameters:**  
+                - `product_id` (String): The barcode of the product.  
+            - **Returns:**   
+                - A base64-encoded version of the product image or `null` if not found.  
+        3. **`GET /products/{product\_id}`**  
+            - **Purpose:** Retrieves a product’s eco-score, sustainability information, image, and recommendations.   
+            - **Parameters:**  
+            - `product_id` (String): The barcode of the product.  
+            - **Returns:**   
+            - Product information, recommendations, and base64-encoded images on success; an error message on failure.
+
+2. **Users**  
+    - **Purpose**: The Users component manages user authentication, Firebase Cloud Messaging (FCM) registration tokens, and product history tracking.
+    - **Interfaces**:   
+        1. **`List<History> getHistoryByUserUUID(String user_uuid, String timestamp)`**  
+            - **Purpose:** Retrieves a user’s product history entries based on their UUID and an optional timestamp filter.  
+            - **Parameters:**  
+                - `user_uuid` (String): The UUID of the user whose history is being retrieved.  
+                - `timestamp` (String, optional): An ISO 8601 formatted timestamp to filter history entries.  
+            - **Returns:**   
+                - A list of product history entries that match the given criteria.  
+        2. **`POST /auth/google`**  
+            - **Purpose:** Authenticates users via Google OAuth by exchanging a Google ID token for a JWT.  
+            - **Parameters:**  
+                - `google_id_token` (String): The Google ID token provided by the client after authentication.  
+            - **Returns:**   
+                - A JWT token containing user details on success, an error message on failure.  
+        3. **`POST /users/history`**  
+            - **Purpose:** Add a scanned product to a user’s history.  
+            - **Parameters:**  
+                - `product_id` (String): The barcode of the product.  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - The unique identifier of the added product in the user’s history.  
+        4. **`GET /users/history`**  
+            - **Purpose:** Retrieves a user’s product history.  
+            - **Parameters:**  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - Product details, scan timestamps, and scan unique identifiers on success; an error message on failure.  
+        5. **`DELETE /users/history`**  
+            - **Purpose:** Removes a scanned product from a user’s history.  
+            - **Parameters:**  
+                - `scan_uuid` (String): The unique identifier of the scan entry to be removed.  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - Confirmation message or an error response.  
+        6. **`GET /users/uuid`**  
+            - **Purpose:** Retrieves the UUID of the authenticated user, enabling other users to send friend requests.  
+            - **Parameters:**  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - The authenticated user's UUID on success, an error response on failure.  
+        7. **`POST /users/fcm_registration_token`**  
+            - **Purpose:** Updates the Firebase Cloud Messaging (FCM) registration token for push notifications.  
+            - **Parameters:**  
+                - `fcm_registration_token` (String): The new FCM registration token.  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - Confirmation message or an error response.
+
+3. **Friends**  
+   - **Purpose**: The Friends component allows users to manage their social connections within the system. It enables sending and accepting friend requests, viewing friends' product histories, and sending notifications about product choices.  
+    - **Interfaces**:   
+        1. **`POST /friends/requests`**  
+            - **Purpose:** Sends a friend request to another user.  
+            - **Parameters:**  
+                - `user_uuid` (String): The UUID of the user to send a friend request to.  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - Confirmation message or an error response.  
+        2. **`POST /friends/requests/accept`**  
+            - **Purpose:** Accepts an incoming friend request.  
+            - **Parameters:**  
+                - `user_uuid` (String): The UUID of the user whose friend request is being accepted.  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - Confirmation message or an error response.  
+        3. **`DELETE /friends`**  
+            - **Purpose:** Removes a friend from the user's friend list.  
+            - **Parameters:**  
+                - `user_uuid` (String): The UUID of the friend to be removed.  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - Confirmation message or an error response.  
+        4. **`DELETE /friends/requests`**  
+            - **Purpose:** Rejects a pending friend request.  
+            - **Parameters:**  
+                - `user_uuid` (String): The UUID of the user whose request is being rejected.  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - Confirmation message or an error response.  
+        5. **`GET /friends/history`**  
+            - **Purpose:** Retrieves product history for all friends.  
+            - **Parameters:**  
+                - `timestamp` (String, optional): ISO 8601 formatted timestamp to filter history entries.  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - Friends product histories and product details on success, or an error message on failure.  
+        6. **`GET /friends/history/{user_uuid}`**  
+            - **Purpose:** Retrieves product history for a specific friend.  
+            - **Parameters:**  
+                - `user_uuid` (String): The UUID of the friend whose history is being retrieved.  
+                - `timestamp` (String, optional): ISO 8601 formatted timestamp to filter history entries.  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - Friend product history and product details on success, or an error message on failure.  
+        7. **`GET /friends/history/{user_uuid}`**  
+        - **Purpose:** Retrieves product history for a specific friend.  
+            - **Parameters:**  
+                - `user_uuid` (String): The UUID of the friend whose history is being retrieved.  
+                - `timestamp` (String, optional): ISO 8601 formatted timestamp to filter history entries.  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - Friend product history and product details on success, or an error message on failure.  
+        8. **`GET /friends`**  
+            - **Purpose:** Retrieves the list of current friends.  
+            - **Parameters:**  
+                - `user_uuid` (String): The UUID of the friend whose history is being retrieved.  
+                - `timestamp` (String, optional): ISO 8601 formatted timestamp to filter history entries.  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - List of a user’s friends including their names and user unique identifiers.  
+        9. **`POST /friends/notifications`**  
+            - **Purpose:** Sends a Firebase Cloud Messaging (FCM) notification to a friend about a product.  
+            - **Parameters:**  
+                - `user_uuid` (String): The UUID of the friend to notify.  
+                - `scan_uuid` (String): The unique identifier of the scanned product in history.  
+                - `message_type` (String): Either "praise" or "shame".  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**   
+                - Confirmation message or an error response.
 
 ### **4.2. Databases**
-1. **[WRITE_NAME_HERE]**
-    - **Purpose**: ...
-2. ...
 
+1. **User Database (MongoDB)**  
+   - **Purpose:** Stores user information, authentication details, and friend connections. It also manages user product history, Firebase Cloud Messaging (FCM) registration tokens, and interaction tracking.  
+   - Collections:  
+     - **`users`** – Contains user profiles, authentication credentials, and FCM tokens.  
+     - **`history`** – Stores scanned product entries for each user, including timestamps and eco-score data.  
+     - **`friends`** – Tracks friend relationships, incoming friend requests, and user interactions.  
+2. **Product Database (MongoDB)**  
+    - **Purpose:** Maintains product data, including eco-scores, sustainability insights, and recommendations. It integrates with the OpenFoodFacts API to fetch missing product information.  
+    - Collections:  
+        - **`products`** – Stores product details such as names, categories, eco-scores, and images.
 
 ### **4.3. External Modules**
-1. **[WRITE_NAME_HERE]** 
-    - **Purpose**: ...
-2. ...
 
+1. **Open Food Facts API**  
+   - **Purpose**: Provides access to product information, including eco-scores and sustainability data, through barcode-based lookups. The Open Food Facts API offers a MongoDB data dump for initial database population and is then queried dynamically to ensure products are up-to-date in our MongoDB database.  
+2. **Google OAuth API**  
+    - **Purpose**: Enables secure authentication by validating user identities with Google ID tokens. These tokens are exchanged for JWTs that contain a unique identifier for the user in the users database allowing for us to verify their identity and authenticate them.
 
 ### **4.4. Frameworks**
-1. **[WRITE_NAME_HERE]**
-    - **Purpose**: ...
-    - **Reason**: ...
-2. ...
 
+1. **Express.js**
+    - **Purpose:** Serves as the backend framework for handling API requests, routing, and middleware integration.  
+    - **Reason:** Lightweight and efficient, making it ideal for building scalable RESTful APIs with minimal overhead.  
+2. **AWS Elastic Compute Cloud (EC2)**  
+   - **Purpose**: Hosts the backend server and provides scalable compute power for handling API requests and data processing.  
+   - **Reason**:  EC2 allows dynamic scaling to handle varying workloads efficiently, ensuring availability and responsiveness. The EC2 instance can be scaled up during computationally intensive operations such as MongoDB indexing and database population, then scaled down to reduce costs.  
+3. **ML Kit**  
+   - **Purpose:** Enables barcode scanning functionality to extract product information from scanned images.  
+   - **Reason:** Provides fast and accurate barcode recognition on Android with support for Kotlin.  
+4. **Firebase Messaging Client (FCM)**  
+   - **Purpose:** Facilitates real-time push notifications for friend interactions.  
+   - **Reason:** Enables sending notifications to Android devices allowing for alerts about friend activity.
 
 ### **4.5. Dependencies Diagram**
 
+![Dependencies Diagram](/documentation/images/dependencies_diagram.jpg)
 
 ### **4.6. Functional Requirements Sequence Diagram**
-1. [**[WRITE_NAME_HERE]**](#fr1)\
-[SEQUENCE_DIAGRAM_HERE]
-2. ...
 
+1. [**Scan Product**](#fr1)\
+![Scan Product Sequence Diagram](/documentation/images/scan_product_sequence_diagram.jpg)
+2. [**Authenticate User**](#fr2)\
+![Authenticate User Sequence Diagram](/documentation/images/authenticate_user_sequence_diagram.jpg)
+3. [**Manage Product History**](#fr3)\
+![Manage Product History Sequence Diagram](/documentation/images/manage_product_history_sequence_diagram.jpg)  
+4. [**[React to a Friend]**](#fr4)\
+![React to a Friend Sequence Diagram](/documentation/images/react_to_a_friend_sequence_diagram.jpg)  
+5. [**[Manage Friends]**](#fr5)\
+![Manage Friends Sequence Diagram](/documentation/images/manage_friends_sequence_diagram.jpg)
 
 ### **4.7. Non-Functional Requirements Design**
-1. [**[WRITE_NAME_HERE]**](#nfr1)
-    - **Validation**: ...
-2. ...
 
+1. [**Product Database Size**](#nfr1)
+   - **Validation:** The app will maintain a large product catalog by integrating the Open Food Facts MongoDB dump for initial population and querying their API for updates. Testing will verify that at least 100,000 products fit the criteria and have all required eco-scores and sustainability information.  
+2. [**Product Information Response Time**](#nfr2)
+   - **Validation:** The backend will use MongoDB indexing to speed up database retrievals and optimize product queries for recommendations. Testing will measure the time taken to retrieve and display product details after scanning, ensuring responses are consistently delivered within five seconds under normal network conditions.
 
 ### **4.8. Main Project Complexity Design**
-**[WRITE_NAME_HERE]**
-- **Description**: ...
-- **Why complex?**: ...
-- **Design**:
-    - **Input**: ...
-    - **Output**: ...
-    - **Main computational logic**: ...
-    - **Pseudo-code**: ...
-        ```
-        
-        ```
 
+1. **Product Recommendation Algorithm**
+    - **Description**: Our recommendation algorithm suggests sustainable alternatives when a user scans a product. It identifies similar products and ranks them based on their eco-scores while considering user preferences such as language and country.  
+    - **Why complex?**: The challenge lies in defining product similarity, as products may differ in characteristics, branding, or ingredients but serve the same purpose. Additionally, the system must prioritize eco-friendly choices while ensuring performance remains fast enough for real-time recommendations despite a database of millions of products.  
+    - **Design**:  
+        - **Input**: A product ID (barcode number).  
+        - **Output**: A ranked list of recommended products and their information.  
+    - **Main computational logic**:  
+        1. Identify potential alternatives by selecting products with similar properties.  
+        2. Filter by region and language preferences.  
+        3. Compute similarity scores based on shared attributes.  
+        4. Balance eco-scores and similarity ranking to prioritize environmentally friendly choices.  
+        5. Dynamically adjust search criteria if the initial query returns too few or too many results.  
+        6. Return the best-ranked alternatives.  
+   - **Pseudo-code**:
+        ```
+        function getRecommendations(product_id, filters):  
+
+            # Fetch the original product from the database
+            product = fetchProductById(product_id)  
+            if not valid_product(product):  
+                return error # Return an error if the product does not exist or is invalid
+            
+            candidates = []  
+            search_features = extractFeatures(product)  
+            
+            # While we have not found enough candidates to make recommendations, continue searching
+            while search_features not empty:  
+                results = queryDatabase(product_id, search_features)  
+                filtered_results = filterResults(results, filters)  
+                
+                for each result in filtered_results:  
+                    similarity = calculateSimilarity(product, result)  
+                    if similarity exceeds threshold:  
+                        candidates.append(result)  
+                
+                # If we have found enough candidates, stop the search
+                if length(candidates) >= min_required_results:  
+                    break  
+                
+                # Loosen the search parameters to find more products
+                refineSearch(search_features)  
+            
+            # Rank the candidates based on their eco-scores
+            ranked_candidates = []  
+            for candidate in candidates:  
+                score = computeFinalScore(candidate, product)  
+                ranked_candidates.append((candidate, score))  
+            
+            ranked_candidates.sortByScore()  
+            
+            return formatResponse(product, ranked_candidates)
+        ```
 
 ## 5. Contributions
-- ...
-- ...
-- ...
-- ...
+
+- Jason:  
+- Ethan:
+- Lemon:
+- Xavier: 
