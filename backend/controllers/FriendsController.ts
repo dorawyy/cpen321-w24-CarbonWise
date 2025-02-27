@@ -235,7 +235,7 @@ export class FriendsController {
     }
 
     async sendProductNotification(req: Request, res: Response, nextFunction: NextFunction) {
-        const { user_uuid: friend_uuid, product_id, message_type } = req.body;
+        const { user_uuid: friend_uuid, scan_uuid, message_type } = req.body;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
@@ -258,14 +258,18 @@ export class FriendsController {
         }
 
         const targetUser = await userCollection.findOne({ user_uuid: friend_uuid });
-        const userHistory = await historyCollection.findOne({ user_uuid: friend_uuid, products: { $elemMatch: { product_id: product_id } } });
+        const userHistory = await historyCollection.findOne({ user_uuid: friend_uuid, "products.scan_uuid": scan_uuid });
 
         if (!userHistory) {
             return res.status(404).send({message: "Product not found in user's history"});
         }
 
-        const productDetails = await fetchProductById(product_id);
-        const productName = productDetails?.product_name || "the product";
+        const productDetails = await fetchProductById(userHistory.products[0].product_id);
+
+        if (!productDetails || !productDetails.product_name) {
+            return res.status(404).send({message: "Product name not found"});
+        }
+        const productName = productDetails.product_name;
 
         let messageBody = "";
         if (message_type === "praise") {
