@@ -14,7 +14,7 @@ export class UsersController {
         const historyCollection = client.db("users_db").collection<History>("history");
 
         const product = await productCollection.findOne({ _id: product_id });
-        if (!product) {
+        if (!product || !product.product_name || !product.ecoscore_grade || !product.ecoscore_score || !product.ecoscore_data || !product.categories_tags || !product.categories_hierarchy) {
             return res.status(404).send({message: "Product not found"});
         }
 
