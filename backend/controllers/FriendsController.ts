@@ -56,7 +56,7 @@ export class FriendsController {
         if (userFriends?.incoming_requests?.some(request => request.user_uuid === friend_uuid)) {
             await friendsCollection.updateOne(
                 { user_uuid: user_uuid },
-                { $pull: { incoming_requests: { user_uuid: friend_uuid } }, $addToSet: { friends: { user_uuid: friend_uuid, user_name: friend?.name || "" } } }
+                { $pull: { incoming_requests: { user_uuid: friend_uuid } }, $addToSet: { friends: { user_uuid: friend_uuid, name: friend?.name || "" } } }
             );
 
             // Ensure the other user has a friends document
@@ -67,7 +67,7 @@ export class FriendsController {
 
             await friendsCollection.updateOne(
                 { user_uuid: friend_uuid },
-                { $addToSet: { friends: { user_uuid: user_uuid, user_name: user.name } } }
+                { $addToSet: { friends: { user_uuid: user_uuid, name: user.name } } }
             );
             res.status(200).send({message: "Friend request accepted"});
         } else {

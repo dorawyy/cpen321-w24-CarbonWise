@@ -15,7 +15,7 @@ export interface History {
 
 export interface Friends {
     user_uuid: string;
-    friends: { user_uuid: string, user_name: string }[];
+    friends: { user_uuid: string, name: string }[];
     incoming_requests: { user_uuid: string, name: string }[];
 }
 
