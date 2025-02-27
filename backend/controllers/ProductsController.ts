@@ -13,16 +13,19 @@ export class ProductsController {
             const { product_id } = req.params;
             const queryParams = req.query;
 
+            // Parse query parameters
             const requestedLanguages: string[] = queryParams.languages ? (queryParams.languages as string).split(",") : [];
             const includedCountries: string[] = queryParams.countries ? (queryParams.countries as string).split(",") : [];
             const excludedCountries: string[] = queryParams.exclude_countries ? (queryParams.exclude_countries as string).split(",") : [];
             const RESULT_LIMIT = parseInt(queryParams.num_recommendations as string) || 1;  
 
+            // Fetch product data
             const baseProduct = await fetchProductById(product_id);
             if (!baseProduct || !baseProduct.categories_hierarchy || !baseProduct.categories_tags) {
                 return res.status(404).json({ message: "Product not found or missing required fields." });
             }
 
+            // Fetch product image
             const baseProductImage = await fetchProductImageById(product_id);
 
             const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
@@ -30,6 +33,7 @@ export class ProductsController {
             let remainingTags = [...baseProduct.categories_hierarchy];
             let matchingProducts: Product[] = [];
 
+            // Find products with similar tags
             while (remainingTags.length > 0) {
                 const tagsToUse = remainingTags.filter(tag =>
                     requestedLanguages.length === 0 || requestedLanguages.some(lang => tag.startsWith(`${lang}:`))
@@ -69,6 +73,7 @@ export class ProductsController {
                 return new Set([...baseTags, ...productTags]).size - new Set(baseTags).size;
             }
 
+            // Sort products by tag difference
             matchingProducts = matchingProducts
                 .map(product => ({
                     ...product,
@@ -76,6 +81,7 @@ export class ProductsController {
                 }))
                 .sort((a, b) => a.categories_tags_difference - b.categories_tags_difference);  
 
+            // Fetch products and their images
             const recommendationsWithImages = await Promise.all(
                 matchingProducts.slice(0, RESULT_LIMIT).map(async (product) => {
                     const productImage = await fetchProductImageById(product._id);
@@ -97,8 +103,10 @@ export class ProductsController {
 export async function fetchProductById(product_id: string): Promise<Product | null> {
     const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
 
+    // Try to fetch product from the database
     let product = await collection.findOne({ _id: product_id });
 
+    // Fetch product data from OpenFoodFacts API if not found in the database
     if (!product) {
         const apiUrl = `${OPENFOODFACTS_API_URL}api/v2/product/${product_id}.json`;
 
@@ -126,7 +134,8 @@ export async function fetchProductById(product_id: string): Promise<Product | nu
             return null;
         }
     }
-
+    
+    // Check if product has required fields
     if (!product.product_name || !product.ecoscore_grade || !product.ecoscore_score || !product.ecoscore_data || !product.categories_tags || !product.categories_hierarchy) {
         return null;
     }
@@ -164,8 +173,10 @@ export async function fetchProductImageById(product_id: string): Promise<string 
 export async function fetchEcoscoresByProductId(product_id: string): Promise<{ ecoscore_grade: string, ecoscore_score: number } | null> {
     const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
 
+    // Try to fetch product from the database
     let product = await collection.findOne({ _id: product_id });
 
+    // Fetch product data from OpenFoodFacts API if not found in the database
     if (!product) {
         const apiUrl = `${OPENFOODFACTS_API_URL}api/v2/product/${product_id}.json`;
 
@@ -193,7 +204,8 @@ export async function fetchEcoscoresByProductId(product_id: string): Promise<{ e
             return null;
         }
     }
-
+    
+    // Check if product has required fields
     if (!product.ecoscore_grade || !product.ecoscore_score) {
         return null;
     }
