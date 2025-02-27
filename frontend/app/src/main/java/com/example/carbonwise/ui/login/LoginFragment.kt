@@ -131,7 +131,7 @@ class LoginFragment : Fragment() {
         val url = "https://api.cpen321-jelx.com/auth/google"
         val jsonBody = """
     {
-        "token": "$googleIdToken"
+        "google_id_token": "$googleIdToken"
     }
     """.trimIndent()
         val requestBody = RequestBody.create(MediaType.get("application/json"), jsonBody)

@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.carbonwise.databinding.ItemProductBinding
 import com.example.carbonwise.network.ProductDetails
 
-class HistoryAdapter : RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder>() {
+class HistoryAdapter(private val onProductClick: (String) -> Unit) : RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder>() {
 
     private var historyList: List<ProductDetails> = listOf()
 
@@ -17,6 +17,14 @@ class HistoryAdapter : RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder>() 
         fun bind(productDetails: ProductDetails) {
             binding.textProductName.text = productDetails.productName
             decodeBase64AndSetImage(productDetails.productImage)
+
+            // Set OnClickListener to open product info fragment
+            binding.root.setOnClickListener {
+                val upcCode = productDetails.productId ?: ""
+                if (upcCode.isNotEmpty()) {
+                    onProductClick(upcCode)
+                }
+            }
         }
 
         private fun decodeBase64AndSetImage(base64String: String?) {
@@ -48,7 +56,7 @@ class HistoryAdapter : RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder>() 
     }
 
     fun submitList(list: List<ProductDetails>) {
-        historyList = list.filter { !it.productName.isNullOrEmpty() }
+        historyList = list
         notifyDataSetChanged()
     }
 }

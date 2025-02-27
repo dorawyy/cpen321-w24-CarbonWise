@@ -32,6 +32,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.AddToHistoryRequest
 import com.example.carbonwise.MainActivity
+import com.example.carbonwise.ui.history.HistoryCacheManager
 
 class ScanFragment : Fragment() {
 
@@ -232,7 +233,7 @@ class ScanFragment : Fragment() {
             return
         }
 
-        val requestBody = AddToHistoryRequest(product_ids = listOf(barcode))
+        val requestBody = AddToHistoryRequest(barcode)
 
         // Initialize Retrofit instance
         val retrofit = Retrofit.Builder()
@@ -247,6 +248,7 @@ class ScanFragment : Fragment() {
         call.enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if (response.isSuccessful) {
+                    HistoryCacheManager.invalidateCache(requireContext())
                     Toast.makeText(requireContext(), "Item added to history", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(requireContext(), "Failed to add item to history", Toast.LENGTH_SHORT).show()

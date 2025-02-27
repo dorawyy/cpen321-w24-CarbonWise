@@ -12,12 +12,6 @@
         tools:layout="@layout/fragment_friends" />
 
     <fragment
-        android:id="@+id/navigation_recommendations"
-        android:name="com.example.carbonwise.ui.recommendations.RecommendationsFragment"
-        android:label="@string/title_recommendations"
-        tools:layout="@layout/fragment_recommendations" />
-
-    <fragment
         android:id="@+id/navigation_scan"
         android:name="com.example.carbonwise.ui.scan.ScanFragment"
         android:label="Scan"
@@ -46,5 +40,13 @@
         android:id="@+id/navigation_history"
         android:name="com.example.carbonwise.ui.history.HistoryFragment"
         android:label="History"
-        tools:layout="@layout/fragment_history" />
+        tools:layout="@layout/fragment_history">
+
+        <action
+            android:id="@+id/action_historyFragment_to_infoFragment"
+            app:destination="@id/navigation_info"
+            app:popUpTo="@id/navigation_history"
+            app:popUpToInclusive="false"/>
+    </fragment>
+
 </navigation>

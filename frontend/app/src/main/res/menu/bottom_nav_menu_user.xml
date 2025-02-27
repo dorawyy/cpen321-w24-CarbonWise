@@ -7,11 +7,6 @@
         android:title="@string/title_history" />
 
     <item
-        android:id="@+id/navigation_recommendations"
-        android:icon="@drawable/icon_recommend_24dp"
-        android:title="@string/title_recommendations" />
-
-    <item
         android:id="@+id/navigation_scan"
         android:icon="@drawable/icon_scan_24dp"
         android:title="@string/title_scan" />
