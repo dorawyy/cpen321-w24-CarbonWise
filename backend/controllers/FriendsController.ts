@@ -258,13 +258,19 @@ export class FriendsController {
         }
 
         const targetUser = await userCollection.findOne({ user_uuid: friend_uuid });
-        const userHistory = await historyCollection.findOne({ user_uuid: friend_uuid, "products.scan_uuid": scan_uuid });
-
+        const userHistory = await historyCollection.findOne({ user_uuid: friend_uuid });
+        
         if (!userHistory) {
+            return res.status(404).send({message: "User history not found"});
+        }
+
+        const productEntry = userHistory.products.find(product => product.scan_uuid === scan_uuid);
+
+        if (!productEntry) {
             return res.status(404).send({message: "Product not found in user's history"});
         }
 
-        const productDetails = await fetchProductById(userHistory.products[0].product_id);
+        const productDetails = await fetchProductById(productEntry.product_id);
 
         if (!productDetails || !productDetails.product_name) {
             return res.status(404).send({message: "Product name not found"});
