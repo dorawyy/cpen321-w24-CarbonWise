@@ -154,6 +154,37 @@ export class UsersController {
         res.status(200).send({ user_uuid });
     }
 
+    async getEcoscoreAverage(req: Request, res: Response, nextFunction: NextFunction) {
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+
+        const historyCollection = client.db("users_db").collection<History>("history");
+
+        const userHistory = await historyCollection.findOne({ user_uuid: user_uuid });
+        if (userHistory && userHistory.products.length > 0) {
+            const recentProducts = userHistory.products
+                .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                .slice(0, HISTORY_ECOSCORE_AVERAGE_COUNT);
+
+            // Fetch ecoscores for each product
+            const recentProductsWithEcoscores = await Promise.all(recentProducts.map(async (product) => {
+                const ecoscoreData = await fetchEcoscoresByProductId(product.product_id);
+                return {
+                    ...product,
+                    ecoscore_score: ecoscoreData?.ecoscore_score || 0
+                };
+            }));
+
+            const totalEcoscore = recentProductsWithEcoscores.reduce((acc, product) => acc + product.ecoscore_score, 0);
+            const productCount = recentProductsWithEcoscores.length;
+            const averageEcoscore = productCount > 0 ? totalEcoscore / productCount : 0;
+
+            res.status(200).send({ ecoscore_score: averageEcoscore });
+        } else {
+            res.status(404).send({message: "No history found for the user"});
+        }
+    }
+
 }
 
 export async function getHistoryByUserUUID(user_uuid: string, timestamp?: string) {
