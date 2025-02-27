@@ -42,7 +42,7 @@ jobs:
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}
-            GOOGLE_APPLICATION_CREDENTIALS=google-credentials.json
+            GOOGLE_APPLICATION_CREDENTIALS='google-credentials.json'
             EOF
 
             # Give .env and google-credentials.json permissions
