@@ -10,34 +10,27 @@ import { getHistoryByUserUUID } from "./UsersController";
 export class FriendsController {
     
     async sendFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
-        const { user_uuid: target_uuid } = req.body;
+        const { user_uuid: friend_uuid } = req.body;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        if (user_uuid === target_uuid) {
+        if (user_uuid === friend_uuid) {
             return res.status(400).send({message: "Cannot send friend request to yourself"});
         }
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
-        const userCollection = client.db("users_db").collection<User>("users");
 
         const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
-        const targetFriends = await friendsCollection.findOne({ user_uuid: target_uuid });
+        const targetFriends = await friendsCollection.findOne({ user_uuid: friend_uuid });
 
-        const userFromDb = await userCollection.findOne({ user_uuid: user_uuid });
-
-        if (!userFromDb) {
-            return res.status(404).send({message: "User not found"});
-        }
-
-        if (userFriends?.friends?.some(friend => friend.user_uuid === target_uuid) || targetFriends?.friends?.some(friend => friend.user_uuid === user_uuid)) {
+        if (userFriends?.friends?.some(friend => friend.user_uuid === friend_uuid) || targetFriends?.friends?.some(friend => friend.user_uuid === user_uuid)) {
             return res.status(400).send({message: "Already friends"});
         }
 
         if (!targetFriends?.incoming_requests?.some(request => request.user_uuid === user_uuid)) {
             await friendsCollection.updateOne(
-                { user_uuid: target_uuid },
-                { $addToSet: { incoming_requests: { user_uuid: user_uuid, name: userFromDb.name } } },
+                { user_uuid: friend_uuid },
+                { $addToSet: { incoming_requests: { user_uuid: user_uuid, name: user.name } } },
                 { upsert: true }
             );
             res.status(200).send({message: "Friend request sent"});
@@ -56,15 +49,9 @@ export class FriendsController {
         }
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
-        const userCollection = client.db("users_db").collection<User>("users");
 
         const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
-        const friend = await userCollection.findOne({ user_uuid: friend_uuid });
-        const userFromDb = await userCollection.findOne({ user_uuid: user_uuid });
-
-        if (!userFromDb) {
-            return res.status(404).send({message: "User not found"});
-        }
+        const friend = await client.db("users_db").collection<User>("users").findOne({ user_uuid: friend_uuid });
 
         if (userFriends?.incoming_requests?.some(request => request.user_uuid === friend_uuid)) {
             await friendsCollection.updateOne(
@@ -80,7 +67,7 @@ export class FriendsController {
 
             await friendsCollection.updateOne(
                 { user_uuid: friend_uuid },
-                { $addToSet: { friends: { user_uuid: user_uuid, name: userFromDb.name } } }
+                { $addToSet: { friends: { user_uuid: user_uuid, name: user.name } } }
             );
             res.status(200).send({message: "Friend request accepted"});
         } else {
@@ -248,11 +235,11 @@ export class FriendsController {
     }
 
     async sendProductNotification(req: Request, res: Response, nextFunction: NextFunction) {
-        const { user_uuid: target_uuid, product_id, message_type } = req.body;
+        const { user_uuid: friend_uuid, product_id, message_type } = req.body;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        if (user_uuid === target_uuid) {
+        if (user_uuid === friend_uuid) {
             return res.status(400).send({message: "Cannot send notification to yourself"});
         }
 
@@ -264,14 +251,14 @@ export class FriendsController {
         const historyCollection = client.db("users_db").collection<History>("history");
 
         const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
-        const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === target_uuid);
+        const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === friend_uuid);
 
         if (!friendRelationship) {
             return res.status(404).send({message: "User does not exist or is not a friend"});
         }
 
-        const targetUser = await userCollection.findOne({ user_uuid: target_uuid });
-        const userHistory = await historyCollection.findOne({ user_uuid: target_uuid, "products.product_id": product_id });
+        const targetUser = await userCollection.findOne({ user_uuid: friend_uuid });
+        const userHistory = await historyCollection.findOne({ user_uuid: friend_uuid, "products.product_id": product_id });
 
         if (!userHistory) {
             return res.status(404).send({message: "Product not found in user's history"});
