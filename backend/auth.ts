@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import { client } from "./services";
 import { Collection } from "mongodb";
 import { User } from "./types";
+import { JWT_EXPIRATION_TIME } from "./constants";
 
 dotenv.config();
 
@@ -69,7 +70,7 @@ router.get(
   passport.authenticate("google", { session: false }),
   (req, res) => {
     const user = req.user as User;
-    const token = jwt.sign(user, process.env.JWT_SECRET as string, { expiresIn: "1h" });
+    const token = jwt.sign(user, process.env.JWT_SECRET as string, { expiresIn: JWT_EXPIRATION_TIME });
 
     res.json({ token, user });
   }
@@ -108,7 +109,7 @@ router.post("/auth/google", async (req, res) => {
     const jwtToken = jwt.sign(
       user,
       process.env.JWT_SECRET as string,
-      { expiresIn: "1h" }
+      { expiresIn: JWT_EXPIRATION_TIME }
     );
 
     res.json({ token: jwtToken });
