@@ -1,9 +1,11 @@
 import express, { NextFunction, Request, Response } from 'express'
 import { client } from "./services";
-import { ProductRoutes } from './routes/ProductRoutes';
+import { ProductsRoutes } from './routes/ProductsRoutes';
+import { UsersRoutes } from './routes/UsersRoutes';
+import { FriendsRoutes } from './routes/FriendsRoutes';
 import { validationResult } from 'express-validator';
 import morgan from "morgan";
-import { UserRoutes } from './routes/UserRoutes';
+
 import passport from "passport";
 import session from "express-session";
 import dotenv from "dotenv";
@@ -22,7 +24,7 @@ app.use(passport.session());
 
 app.use(authRoutes);
 
-const Routes = [...ProductRoutes, ...UserRoutes]
+const Routes = [...ProductsRoutes, ...UsersRoutes, ...FriendsRoutes]
 
 Routes.forEach((route) => {
     (app as any)[route.method](
