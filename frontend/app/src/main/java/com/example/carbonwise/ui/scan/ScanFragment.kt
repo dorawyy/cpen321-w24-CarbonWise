@@ -33,6 +33,7 @@ import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.AddToHistoryRequest
 import com.example.carbonwise.MainActivity
 import com.example.carbonwise.ui.history.HistoryCacheManager
+import com.example.carbonwise.R
 
 class ScanFragment : Fragment() {
 
@@ -203,9 +204,10 @@ class ScanFragment : Fragment() {
 
                 isDialogDisplayed = false
                 isScanningLocked = false
-                val action = ScanFragmentDirections.actionScanFragmentToInfoFragment(barcode)
-                Log.d("ScanFragment", "Navigating to InfoFragment with barcode: $barcode")
-                findNavController().navigate(action)
+                if (findNavController().currentDestination?.id == R.id.navigation_scan) {
+                    val action = ScanFragmentDirections.actionScanFragmentToInfoFragment(barcode)
+                    findNavController().navigate(action)
+                }
             }
 
             builder.setNegativeButton("Cancel") { dialog, _ ->

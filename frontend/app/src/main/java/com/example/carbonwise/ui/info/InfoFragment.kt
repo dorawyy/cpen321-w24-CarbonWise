@@ -101,13 +101,15 @@ class InfoFragment : Fragment() {
                     }
 
                     val responseBody = response.body()?.string()
-                    Log.d("InfoFragment", "Raw API Response: $responseBody")  // <-- Log raw API response
+                    Log.d("InfoFragment", "Raw API Response: $responseBody")
 
                     if (responseBody != null) {
                         try {
                             val json = JSONObject(responseBody)
                             requireActivity().runOnUiThread {
-                                updateUI(json)
+                                if (isAdded && _binding != null) {
+                                    updateUI(json)
+                                }
                             }
                         } catch (e: Exception) {
                             Log.e("InfoFragment", "Error parsing JSON", e)

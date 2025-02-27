@@ -88,9 +88,11 @@ class HistoryFragment : Fragment() {
         call.enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if (response.isSuccessful) {
+                    HistoryCacheManager.removeFromCache(requireContext(), scanUuid)
                     Toast.makeText(requireContext(), "History item deleted", Toast.LENGTH_SHORT).show()
-                    HistoryCacheManager.invalidateCache(requireContext())
+                    fetchHistory() // Refresh the list
                 } else {
+                    HistoryCacheManager.removeFromCache(requireContext(), scanUuid)
                     Toast.makeText(requireContext(), "Failed to delete item", Toast.LENGTH_SHORT).show()
                 }
             }
