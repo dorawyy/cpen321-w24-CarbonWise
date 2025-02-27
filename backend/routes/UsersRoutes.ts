@@ -39,5 +39,12 @@ export const UsersRoutes = [
             body("fcm_registration_token").isString().withMessage("FCM Registration Token should be a string")
         ],
         protected: true
+    },
+    {
+        method: "get",
+        route: "/users/uuid",
+        action: controller.getUserUUID,
+        validation: [],
+        protected: true
     }
 ]

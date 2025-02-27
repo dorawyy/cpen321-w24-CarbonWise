@@ -140,6 +140,15 @@ export class UsersController {
             res.status(404).send({message: "No history found for the user"});
         }
     }
+
+    async getUserUUID(req: Request, res: Response, nextFunction: NextFunction) {
+        const user = req.user as User;
+        if (!user || !user.user_uuid) {
+            return res.status(400).send({ message: "User UUID not found" });
+        }
+        const user_uuid = user.user_uuid;
+        res.status(200).send({ user_uuid });
+    }
 }
 
 export async function getHistoryByUserUUID(user_uuid: string, timestamp?: string) {
