@@ -204,7 +204,7 @@ export async function fetchEcoscoresByProductId(product_id: string): Promise<{ e
             return null;
         }
     }
-    
+
     // Check if product has required fields
     if (!product.ecoscore_grade || !product.ecoscore_score) {
         return null;

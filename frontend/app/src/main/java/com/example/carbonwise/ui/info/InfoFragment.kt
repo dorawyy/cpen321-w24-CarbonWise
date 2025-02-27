@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.carbonwise.MainActivity
+import com.example.carbonwise.R
 import com.example.carbonwise.databinding.FragmentInfoBinding
 import okhttp3.*
 import org.json.JSONObject
@@ -101,13 +102,15 @@ class InfoFragment : Fragment() {
                     }
 
                     val responseBody = response.body()?.string()
-                    Log.d("InfoFragment", "Raw API Response: $responseBody")  // <-- Log raw API response
+                    Log.d("InfoFragment", "Raw API Response: $responseBody")
 
                     if (responseBody != null) {
                         try {
                             val json = JSONObject(responseBody)
                             requireActivity().runOnUiThread {
-                                updateUI(json)
+                                if (isAdded && _binding != null) {
+                                    updateUI(json)
+                                }
                             }
                         } catch (e: Exception) {
                             Log.e("InfoFragment", "Error parsing JSON", e)
@@ -195,7 +198,11 @@ class InfoFragment : Fragment() {
                 Log.e("InfoFragment", "Decoded bytes are empty.")
             } else {
                 val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-                binding.centerImage.setImageBitmap(bitmap)
+                if (bitmap != null) {
+                    binding.centerImage.setImageBitmap(bitmap)
+                } else {
+                    binding.centerImage.setImageResource(R.drawable.ic_placeholder)
+                }
             }
         } catch (e: IllegalArgumentException) {
             Log.e("InfoFragment", "Failed to decode base64 image", e)
