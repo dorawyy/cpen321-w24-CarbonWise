@@ -150,25 +150,6 @@ class FriendsViewModel(private val apiService: ApiService, private val token: St
         })
     }
 
-    // ✅ Fixed: Pass `ProductNotificationRequest` instead of Map
-    fun sendProductNotification(friendUuid: String, scanUuid: String, messageType: String) {
-        val requestBody = ProductNotificationRequest(friendUuid, scanUuid, messageType)
-
-        apiService.sendProductNotification(token, requestBody).enqueue(object : Callback<Void> {
-            override fun onResponse(call: Call<Void>, response: Response<Void>) {
-                if (response.isSuccessful) {
-                    _friendActions.value = "Notification sent!"
-                } else {
-                    _friendActions.value = "Failed to send notification"
-                }
-            }
-
-            override fun onFailure(call: Call<Void>, t: Throwable) {
-                _friendActions.value = "Error sending notification: ${t.message}"
-            }
-        })
-    }
-
     class Factory(private val apiService: ApiService, private val token: String) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(FriendsViewModel::class.java)) {

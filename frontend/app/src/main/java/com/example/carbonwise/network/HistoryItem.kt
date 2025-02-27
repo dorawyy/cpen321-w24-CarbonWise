@@ -13,7 +13,9 @@ data class ProductItem(
     val product_id: String?,
     val timestamp: String?,
     @SerializedName("product")
-    val product: ProductDetails
+    val product: ProductDetails,
+    @SerializedName("scan_uuid")
+    val scan_uuid: String?
 )
 
 data class ProductDetails(

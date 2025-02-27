@@ -12,6 +12,12 @@ import com.example.carbonwise.MainActivity
 import com.example.carbonwise.R
 import com.example.carbonwise.ui.info.InfoFragment
 import androidx.navigation.fragment.findNavController
+import com.example.carbonwise.network.ApiService
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class HistoryFragment : Fragment() {
 
@@ -31,9 +37,14 @@ class HistoryFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
 
         // Initialize the adapter and set the click listener for items
-        historyAdapter = HistoryAdapter { upcCode ->
-            openProductInfoFragment(upcCode)
-        }
+        historyAdapter = HistoryAdapter(
+            onProductClick = { productId ->
+                openProductInfoFragment(productId)
+            },
+            onDeleteClick = { scanUuid ->
+                deleteHistoryItem(scanUuid)
+            }
+        )
         recyclerView.adapter = historyAdapter
 
         // Fetch history data
@@ -50,23 +61,44 @@ class HistoryFragment : Fragment() {
         }
 
         if (HistoryCacheManager.isCacheValid(requireContext())) {
-            // Load from cache
-            HistoryCacheManager.loadHistoryFromCache(requireContext())?.let { historyItems ->
-                val allProducts = historyItems.flatMap { it.products }
-                    .sortedByDescending { it.timestamp } // Sort products by timestamp (most recent first)
-                    .map { it.product }
-
-                historyAdapter.submitList(allProducts)
-            }
+            val cachedHistory = HistoryCacheManager.loadHistoryFromCache(requireContext())
+            cachedHistory?.let { historyAdapter.submitList(it) } // Now correctly passing List<ProductItem>
         } else {
-            // Fetch in background
             HistoryCacheManager.fetchHistoryInBackground(requireContext())
         }
+
     }
 
     private fun openProductInfoFragment(upcCode: String) {
         val productInfoFragment = InfoFragment.newInstance(upcCode)
         findNavController().navigate(R.id.action_historyFragment_to_infoFragment, productInfoFragment.arguments)
+    }
+
+    private fun deleteHistoryItem(scanUuid: String) {
+        val token = MainActivity.getJWTToken(requireContext()) ?: return
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.cpen321-jelx.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val apiService = retrofit.create(ApiService::class.java)
+        val call = apiService.deleteFromHistory(token, scanUuid)
+
+        call.enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(requireContext(), "History item deleted", Toast.LENGTH_SHORT).show()
+                    HistoryCacheManager.invalidateCache(requireContext())
+                } else {
+                    Toast.makeText(requireContext(), "Failed to delete item", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     override fun onDestroyView() {

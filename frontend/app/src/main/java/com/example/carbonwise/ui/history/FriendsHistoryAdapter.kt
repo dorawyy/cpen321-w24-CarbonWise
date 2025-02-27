@@ -6,18 +6,22 @@ import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.carbonwise.databinding.ItemProductBinding
+import com.example.carbonwise.network.HistoryItem
 import com.example.carbonwise.network.ProductItem
 
-class HistoryAdapter(
+class FriendsHistoryAdapter(
     private val onProductClick: (String) -> Unit,
-    private val onDeleteClick: (String) -> Unit
-) : RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder>() {
+    private val onReactClick: (String, String) -> Unit
+) : RecyclerView.Adapter<FriendsHistoryAdapter.HistoryViewHolder>() {
 
-    private var productList: MutableList<ProductItem> = mutableListOf()
+    private var productList: List<ProductItem> = listOf()
 
-    inner class HistoryViewHolder(private val binding: ItemProductBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class HistoryViewHolder(private val binding: ItemProductBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
         fun bind(productItem: ProductItem) {
             val scanUuid = productItem.scan_uuid
             val productDetails = productItem.product
@@ -26,19 +30,29 @@ class HistoryAdapter(
             binding.textProductName.text = productDetails?.productName ?: "Unknown Product"
             decodeBase64AndSetImage(productDetails?.productImage)
 
-            // Open product info when clicked
             binding.root.setOnClickListener {
                 if (!productId.isNullOrEmpty()) {
                     onProductClick(productId)
                 }
             }
 
-            // Show delete button
-            binding.btnDelete.visibility = View.VISIBLE
-            binding.btnDelete.setOnClickListener {
+            binding.reactionButtonsContainer.visibility = View.VISIBLE
+
+            binding.btnPraise.setOnClickListener {
                 if (!scanUuid.isNullOrEmpty()) {
-                    onDeleteClick(scanUuid)
-                    removeItem(adapterPosition) // Remove item immediately
+                    onReactClick(scanUuid, "praise")
+                    showToast("Praised ${productDetails?.productName}")
+                } else {
+                    showToast("Error: Missing scan_uuid")
+                }
+            }
+
+            binding.btnShame.setOnClickListener {
+                if (!scanUuid.isNullOrEmpty()) {
+                    onReactClick(scanUuid, "shame")
+                    showToast("Shamed ${productDetails?.productName}")
+                } else {
+                    showToast("Error: Missing scan_uuid")
                 }
             }
         }
@@ -56,6 +70,10 @@ class HistoryAdapter(
                 }
             }
         }
+
+        private fun showToast(message: String) {
+            Toast.makeText(binding.root.context, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
@@ -69,16 +87,8 @@ class HistoryAdapter(
 
     override fun getItemCount(): Int = productList.size
 
-    fun submitList(products: List<ProductItem>) {
-        productList.clear()
-        productList.addAll(products)
+    fun submitList(historyItems: List<HistoryItem>) {
+        productList = historyItems.flatMap { it.products }
         notifyDataSetChanged()
-    }
-
-    fun removeItem(position: Int) {
-        if (position in productList.indices) {
-            productList.removeAt(position)
-            notifyItemRemoved(position)
-        }
     }
 }

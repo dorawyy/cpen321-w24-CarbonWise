@@ -13,15 +13,15 @@ import com.example.carbonwise.databinding.FragmentHistoryBinding
 import com.example.carbonwise.MainActivity
 import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.HistoryItem
+import com.example.carbonwise.network.ProductNotificationRequest
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
 
 class FriendsHistoryFragment : Fragment() {
 
-
     private var _binding: FragmentHistoryBinding? = null
     private val binding get() = _binding!!
-    private lateinit var historyAdapter: HistoryAdapter
+    private lateinit var historyAdapter: FriendsHistoryAdapter
     private var friendUuid: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,7 +37,6 @@ class FriendsHistoryFragment : Fragment() {
         }
     }
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -50,9 +49,10 @@ class FriendsHistoryFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
 
         // Initialize the adapter and set click listener
-        historyAdapter = HistoryAdapter { upcCode ->
-            openProductInfoFragment(upcCode)
-        }
+        historyAdapter = FriendsHistoryAdapter(
+            onProductClick = { upcCode -> openProductInfoFragment(upcCode) },
+            onReactClick = { scanUuid, reactionType -> sendReaction(scanUuid, reactionType) }
+        )
         recyclerView.adapter = historyAdapter
 
         // Fetch friend's history
@@ -86,18 +86,7 @@ class FriendsHistoryFragment : Fragment() {
                         Log.d("FriendsHistoryFragment", "API Response Successful: ${response.body()}")
 
                         response.body()?.let { historyItems ->
-                            historyItems.forEach { historyItem ->
-                                historyItem.products.forEach { productHistory ->
-                                    val product = productHistory.product
-                                    Log.d("FriendsHistoryFragment", "Product ID: ${product.productId}, Name: ${product.productName}")
-                                }
-                            }
-
-                            val allProducts = historyItems.flatMap { it.products }
-                                .sortedByDescending { it.timestamp }
-                                .map { it.product }
-
-                            historyAdapter.submitList(allProducts)
+                            historyAdapter.submitList(historyItems)
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()
@@ -117,6 +106,54 @@ class FriendsHistoryFragment : Fragment() {
         }
     }
 
+    private fun sendReaction(scan_uuid: String, reactionType: String) {
+        val token = MainActivity.getJWTToken(requireContext())
+
+        if (token.isNullOrEmpty()) {
+            Log.e("sendReaction", "No JWT token found.")
+            Toast.makeText(context, "No JWT token found", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        Log.d("sendReaction", "JWT Token retrieved successfully.")
+
+        friendUuid?.let { uuid ->
+            Log.d("sendReaction", "Friend UUID found: $uuid")
+
+            val request = ProductNotificationRequest(
+                user_uuid = uuid,
+                scan_uuid = scan_uuid,
+                message_type = reactionType
+            )
+
+            Log.d("sendReaction", "Created request: $request")
+
+            val apiService = Retrofit.Builder()
+                .baseUrl("https://api.cpen321-jelx.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(ApiService::class.java)
+
+            Log.d("sendReaction", "Sending request to API...")
+
+            apiService.sendProductNotification(token, request).enqueue(object : Callback<Void> {
+                override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(context, "Reaction sent!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Log.e("sendReaction", "Failed to send reaction: HTTP ${response.code()} - ${response.errorBody()?.string()}")
+                        Toast.makeText(context, "Failed to send reaction", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<Void>, t: Throwable) {
+                    Log.e("sendReaction", "Network error: ${t.message}", t)
+                    Toast.makeText(context, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+        } ?: Log.e("sendReaction", "Friend UUID is null, cannot send reaction.")
+    }
+
 
     private fun openProductInfoFragment(upcCode: String) {
         val action = FriendsHistoryFragmentDirections
@@ -129,9 +166,4 @@ class FriendsHistoryFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
-    companion object {
-        private const val ARG_FRIEND_UUID = "friendUuid"
-    }
-
 }

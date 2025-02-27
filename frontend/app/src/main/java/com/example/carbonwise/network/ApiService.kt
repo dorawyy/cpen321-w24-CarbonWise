@@ -88,4 +88,12 @@ interface ApiService {
         @Body request: FCMTokenRequest
     ): Call<Void>
 
+    // Delete an item from user history
+    @DELETE("users/history")
+    fun deleteFromHistory(
+        @Header("token") token: String,
+        @Query("scan_uuid") scanUuid: String
+    ): Call<Void>
+
+
 }
