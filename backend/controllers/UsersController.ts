@@ -1,8 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { client } from "../services";
-import { fetchProductById, fetchProductImageById } from "./ProductsController";
+import { fetchEcoscoresByProductId, fetchProductById, fetchProductImageById } from "./ProductsController";
 import { User, History } from "../types";
 import { v4 as uuidv4 } from 'uuid';
+import { HISTORY_ECOSCORE_AVERAGE_COUNT } from "../constants";
+
+
 
 export class UsersController {
     async addToHistory(req: Request, res: Response, nextFunction: NextFunction) {
@@ -29,11 +32,12 @@ export class UsersController {
         await historyCollection.updateOne(
             { user_uuid: user_uuid },
             { 
-                $set: { ecoscore_score: ecoscore }, 
                 $push: { products: historyEntry } 
             },
             { upsert: true }
         );
+
+        await updateEcoscoreAverage(user_uuid);
 
         res.status(200).json(historyEntry);
     }
@@ -81,14 +85,14 @@ export class UsersController {
             { $pull: { products: { scan_uuid: scan_uuid as string } } }
         );
 
-        console.log(result);
-
         if (result.modifiedCount > 0) {
+            await updateEcoscoreAverage(user_uuid);
             res.status(200).send({message: "History entry deleted"});
         } else {
             res.status(404).send({message: "History entry not found"});
         }
     }
+
     async setFCMRegistrationToken(req: Request, res: Response, nextFunction: NextFunction) {
         const { fcm_registration_token } = req.body;
         const user = req.user as User;
@@ -149,6 +153,7 @@ export class UsersController {
         const user_uuid = user.user_uuid;
         res.status(200).send({ user_uuid });
     }
+
 }
 
 export async function getHistoryByUserUUID(user_uuid: string, timestamp?: string) {
@@ -160,4 +165,33 @@ export async function getHistoryByUserUUID(user_uuid: string, timestamp?: string
     }
 
     return await historyCollection.find(query).toArray();
+}
+
+async function updateEcoscoreAverage(user_uuid: string) {
+    const historyCollection = client.db("users_db").collection<History>("history");
+
+    const userHistory = await historyCollection.findOne({ user_uuid: user_uuid });
+    if (userHistory && userHistory.products.length > 0) {
+        const recentProducts = userHistory.products
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .slice(0, HISTORY_ECOSCORE_AVERAGE_COUNT);
+
+        // Fetch ecoscores for each product
+        const recentProductsWithEcoscores = await Promise.all(recentProducts.map(async (product) => {
+            const ecoscoreData = await fetchEcoscoresByProductId(product.product_id);
+            return {
+                ...product,
+                ecoscore_score: ecoscoreData?.ecoscore_score || 0
+            };
+        }));
+
+        const totalEcoscore = recentProductsWithEcoscores.reduce((acc, product) => acc + product.ecoscore_score, 0);
+        const productCount = recentProductsWithEcoscores.length;
+        const averageEcoscore = productCount > 0 ? totalEcoscore / productCount : 0;
+
+        await historyCollection.updateOne(
+            { user_uuid: user_uuid },
+            { $set: { ecoscore_score: averageEcoscore } }
+        );
+    }
 }

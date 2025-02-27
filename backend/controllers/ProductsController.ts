@@ -159,3 +159,47 @@ export async function fetchProductImageById(product_id: string): Promise<string 
         return null;
     }
 }
+
+
+export async function fetchEcoscoresByProductId(product_id: string): Promise<{ ecoscore_grade: string, ecoscore_score: number } | null> {
+    const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
+
+    let product = await collection.findOne({ _id: product_id });
+
+    if (!product) {
+        const apiUrl = `${OPENFOODFACTS_API_URL}api/v2/product/${product_id}.json`;
+
+        try {
+            const response = await axios.get(apiUrl);
+            if (response.data?.status === 1 && response.data.product) {
+
+                const fetchedProduct = response.data.product;
+
+                if (!fetchedProduct.ecoscore_grade || !fetchedProduct.ecoscore_score) {
+                    return null;
+                }
+
+                const updatedProduct: Product = {
+                    _id: product_id,
+                    ...fetchedProduct,
+                };
+
+                await collection.insertOne(updatedProduct);
+                product = updatedProduct;
+            } else {
+                return null;
+            }
+        } catch (error) {
+            return null;
+        }
+    }
+
+    if (!product.ecoscore_grade || !product.ecoscore_score) {
+        return null;
+    }
+
+    return {
+        ecoscore_grade: product.ecoscore_grade,
+        ecoscore_score: product.ecoscore_score
+    };
+}
