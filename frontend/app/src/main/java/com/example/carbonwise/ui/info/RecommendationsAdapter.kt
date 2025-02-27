@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.carbonwise.R
 
@@ -24,13 +25,27 @@ class RecommendationsAdapter(private val recommendations: List<Recommendation>) 
         holder.productNameTextView.text = recommendation.productName
         holder.ecoScoreTextView.text = "Eco Score: ${recommendation.ecoScore}"
 
-        // Decode and set the image
+        val colorResId = when {
+            recommendation.ecoScore >= 75 -> android.R.color.holo_green_light
+            recommendation.ecoScore >= 50 -> android.R.color.holo_orange_light
+            else -> android.R.color.holo_red_light
+        }
+        val color = ContextCompat.getColor(holder.itemView.context, colorResId)
+
+        holder.ecoScoreTextView.setTextColor(color)
+
+        // Decode Base64 image or use placeholder
         if (recommendation.imageBase64.isNotEmpty()) {
             val decodedBytes = Base64.decode(recommendation.imageBase64, Base64.DEFAULT)
             val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-            holder.productImageView.setImageBitmap(bitmap)
+            if (bitmap != null) {
+                holder.productImageView.setImageBitmap(bitmap)
+            } else {
+                holder.productImageView.setImageResource(R.drawable.ic_placeholder)
+            }
         }
     }
+
 
     override fun getItemCount(): Int {
         return recommendations.size
