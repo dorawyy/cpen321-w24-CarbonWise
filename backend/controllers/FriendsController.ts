@@ -258,7 +258,7 @@ export class FriendsController {
         }
 
         const targetUser = await userCollection.findOne({ user_uuid: friend_uuid });
-        const userHistory = await historyCollection.findOne({ user_uuid: friend_uuid, "products.product_id": product_id });
+        const userHistory = await historyCollection.findOne({ user_uuid: friend_uuid, products: { $elemMatch: { product_id: product_id } } });
 
         if (!userHistory) {
             return res.status(404).send({message: "Product not found in user's history"});
