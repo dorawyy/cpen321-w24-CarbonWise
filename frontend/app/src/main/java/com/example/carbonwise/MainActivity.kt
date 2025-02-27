@@ -3,14 +3,21 @@ package com.example.carbonwise
 import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.carbonwise.databinding.ActivityMainBinding
+import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.ui.friends.FriendsViewModel
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var isUserLoggedIn = false
+
+    private lateinit var friendsViewModel: FriendsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,6 +27,17 @@ class MainActivity : AppCompatActivity() {
 
         val storedToken = getToken(this)
         isUserLoggedIn = !storedToken.isNullOrEmpty()
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.cpen321-jelx.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val apiService = retrofit.create(ApiService::class.java)
+        val token = getJWTToken(this) ?: ""
+
+        val factory = FriendsViewModel.Factory(apiService, token)
+        friendsViewModel = ViewModelProvider(this, factory)[FriendsViewModel::class.java]
 
         setupNavigation()
     }

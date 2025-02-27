@@ -9,7 +9,17 @@
         android:id="@+id/navigation_friends"
         android:name="com.example.carbonwise.ui.friends.FriendsFragment"
         android:label="@string/title_friends"
-        tools:layout="@layout/fragment_friends" />
+        tools:layout="@layout/fragment_friends">
+
+        <action
+            android:id="@+id/action_friendsFragment_to_friendsHistoryFragment"
+            app:destination="@id/navigation_friends_history">
+            <argument
+                android:name="friendUuid"
+                app:argType="string" />
+        </action>
+
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_scan"
@@ -47,6 +57,27 @@
             app:destination="@id/navigation_info"
             app:popUpTo="@id/navigation_history"
             app:popUpToInclusive="false"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_friends_history"
+        android:name="com.example.carbonwise.ui.history.FriendsHistoryFragment"
+        android:label="Friend's History"
+        tools:layout="@layout/fragment_history">
+
+        <argument
+            android:name="friendUuid"
+            app:argType="string"
+            android:defaultValue=""/>
+
+        <action
+            android:id="@+id/action_friendsHistoryFragment_to_infoFragment"
+            app:destination="@id/navigation_info">
+            <argument
+                android:name="upcCode"
+                app:argType="string"/>
+        </action>
+
     </fragment>
 
 </navigation>

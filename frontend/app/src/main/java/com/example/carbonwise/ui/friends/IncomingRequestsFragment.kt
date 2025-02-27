@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.carbonwise.databinding.FragmentIncomingRequestsBinding
 
@@ -14,7 +14,12 @@ class IncomingRequestsFragment : Fragment() {
     private var _binding: FragmentIncomingRequestsBinding? = null
     private val binding get() = _binding!!
 
-    private val friendsViewModel: FriendsViewModel by activityViewModels()
+    private lateinit var friendsViewModel: FriendsViewModel
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        friendsViewModel = ViewModelProvider(requireActivity())[FriendsViewModel::class.java]
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -30,8 +35,8 @@ class IncomingRequestsFragment : Fragment() {
 
         val adapter = IncomingRequestsAdapter(
             mutableListOf(),
-            onAccept = { friendCode -> friendsViewModel.acceptFriendRequest(friendCode) },
-            onReject = { friendCode -> friendsViewModel.rejectFriendRequest(friendCode) }
+            onAccept = { friendRequest -> friendsViewModel.acceptFriendRequest(friendRequest.user_uuid) },
+            onReject = { friendRequest -> friendsViewModel.rejectFriendRequest(friendRequest.user_uuid) }
         )
 
         binding.recyclerIncomingRequests.layoutManager = LinearLayoutManager(requireContext())
@@ -40,6 +45,13 @@ class IncomingRequestsFragment : Fragment() {
         friendsViewModel.incomingRequests.observe(viewLifecycleOwner) { updatedList ->
             adapter.updateRequests(updatedList)
         }
+
+        friendsViewModel.fetchFriendRequests()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        friendsViewModel.fetchFriendRequests()
     }
 
     override fun onDestroyView() {

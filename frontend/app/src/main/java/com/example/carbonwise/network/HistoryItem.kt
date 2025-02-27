@@ -24,3 +24,7 @@ data class ProductDetails(
     @SerializedName("image")
     val productImage: String?
 )
+
+data class AddToHistoryRequest(
+    val product_id: String
+)

@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
 import com.example.carbonwise.databinding.FragmentFriendsBinding
 import com.google.android.material.tabs.TabLayoutMediator
 
@@ -16,9 +16,12 @@ class FriendsFragment : Fragment() {
     private var _binding: FragmentFriendsBinding? = null
     private val binding get() = _binding!!
 
-    private val friendsViewModel: FriendsViewModel by activityViewModels()
+    private lateinit var friendsViewModel: FriendsViewModel
 
-    private var userFriendCode = "ABC123" // Dummy friend code
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        friendsViewModel = ViewModelProvider(requireActivity())[FriendsViewModel::class.java]
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,6 +37,7 @@ class FriendsFragment : Fragment() {
 
         setupViewPager()
         setupUI()
+
     }
 
     private fun setupViewPager() {
@@ -49,7 +53,9 @@ class FriendsFragment : Fragment() {
     }
 
     private fun setupUI() {
-        binding.textFriendCode.text = "Your Friend Code: $userFriendCode"
+        friendsViewModel.userFriendCode.observe(viewLifecycleOwner) { friendCode ->
+            binding.textFriendCode.text = "Your Friend Code: $friendCode"
+        }
 
         binding.buttonAddFriend.setOnClickListener {
             val friendCode = binding.editFriendCode.text.toString().trim()

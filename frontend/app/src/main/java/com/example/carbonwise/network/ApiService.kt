@@ -1,12 +1,7 @@
 package com.example.carbonwise.network
 
 import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.Headers
-import retrofit2.http.POST
-import retrofit2.http.Query
+import retrofit2.http.*
 
 interface ApiService {
     @GET("users/history")
@@ -21,4 +16,68 @@ interface ApiService {
         @Header("token") token: String,
         @Body requestBody: AddToHistoryRequest
     ): Call<Void>
+
+    // Get own uuid
+    @GET("users/uuid")
+    fun getUUID(
+        @Header("token") token: String
+    ): Call<UUIDResponse>
+
+    // Get friend list
+    @GET("friends")
+    fun getFriends(
+        @Header("token") token: String
+    ): Call<List<Friend>>
+
+    // Get friend requests
+    @GET("friends/requests")
+    fun getFriendRequests(
+        @Header("token") token: String
+    ): Call<List<FriendRequest>>
+
+    // Send a friend request
+    @POST("friends/requests")
+    @Headers("Content-Type: application/json")
+    fun sendFriendRequest(
+        @Header("token") token: String,
+        @Body request: FriendRequestBody
+    ): Call<Void>
+
+    // Accept a friend request
+    @POST("friends/requests/accept")
+    @Headers("Content-Type: application/json")
+    fun acceptFriendRequest(
+        @Header("token") token: String,
+        @Body request: FriendRequestBody
+    ): Call<Void>
+
+    // Remove a friend
+    @DELETE("friends")
+    fun removeFriend(
+        @Header("token") token: String,
+        @Query("user_uuid") userUuid: String
+    ): Call<Void>
+
+    // Reject a friend request
+    @DELETE("friends/requests")
+    fun rejectFriendRequest(
+        @Header("token") token: String,
+        @Query("user_uuid") userUuid: String
+    ): Call<Void>
+
+    // Send product notification to a friend
+    @POST("friends/notifications")
+    @Headers("Content-Type: application/json")
+    fun sendProductNotification(
+        @Header("token") token: String,
+        @Body request: ProductNotificationRequest
+    ): Call<Void>
+
+    @GET("friends/history/{user_uuid}")
+    fun getFriendHistoryByUUID(
+        @Header("token") token: String,
+        @Path("user_uuid") friendUuid: String,
+        @Query("timestamp") timestamp: String? = null,
+        @Query("fetch_product_details") fetchProductDetails: Boolean = true
+    ): Call<List<HistoryItem>>
 }
