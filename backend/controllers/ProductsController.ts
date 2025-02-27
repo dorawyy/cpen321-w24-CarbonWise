@@ -19,7 +19,7 @@ export class ProductsController {
             const requestedLanguages: string[] = queryParams.languages ? (queryParams.languages as string).split(",") : [];
             const includedCountries: string[] = queryParams.countries ? (queryParams.countries as string).split(",") : [];
             const excludedCountries: string[] = queryParams.exclude_countries ? (queryParams.exclude_countries as string).split(",") : [];
-            const RESULT_LIMIT = parseInt(queryParams.recommendations as string) || 1;  
+            const RESULT_LIMIT = parseInt(queryParams.num_recommendations as string) || 1;  
 
             const baseProduct = await fetchProductById(product_id);
             if (!baseProduct || !baseProduct.categories_hierarchy || !baseProduct.categories_tags) {
