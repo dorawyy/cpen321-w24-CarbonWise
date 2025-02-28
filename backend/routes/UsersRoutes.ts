@@ -46,5 +46,12 @@ export const UsersRoutes = [
         action: controller.getUserUUID,
         validation: [],
         protected: true
+    },
+    {
+        method: "get",
+        route: "/users/ecoscore_score",
+        action: controller.getEcoscoreAverage,
+        validation: [],
+        protected: true
     }
 ]

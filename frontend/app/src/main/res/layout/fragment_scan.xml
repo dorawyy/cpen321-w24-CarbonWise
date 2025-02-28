@@ -11,6 +11,19 @@
         android:layout_height="match_parent"
         android:contentDescription="@string/camera_preview" />
 
+    <!-- text view to display error messages -->
+    <TextView
+        android:id="@+id/textScan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Camera permission is required to scan barcodes. Please enable it in Settings."
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_gravity="center"
+        android:layout_margin="16dp"/>
+
     <!-- detected barcode bounding boxes -->
     <com.example.carbonwise.ui.scan.BarcodeOverlayView
         android:id="@+id/barcodeOverlay"

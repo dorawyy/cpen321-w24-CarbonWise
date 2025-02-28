@@ -14,6 +14,7 @@ export class FriendsController {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
+        // Check if user is trying to send a friend request to themselves
         if (user_uuid === friend_uuid) {
             return res.status(400).send({message: "Cannot send friend request to yourself"});
         }
@@ -23,16 +24,22 @@ export class FriendsController {
         const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
         const targetFriends = await friendsCollection.findOne({ user_uuid: friend_uuid });
 
+        // Check if users are already friends
         if (userFriends?.friends?.some(friend => friend.user_uuid === friend_uuid) || targetFriends?.friends?.some(friend => friend.user_uuid === user_uuid)) {
             return res.status(400).send({message: "Already friends"});
         }
 
+        // Check if friend request has already been sent
         if (!targetFriends?.incoming_requests?.some(request => request.user_uuid === user_uuid)) {
             await friendsCollection.updateOne(
                 { user_uuid: friend_uuid },
                 { $addToSet: { incoming_requests: { user_uuid: user_uuid, name: user.name } } },
                 { upsert: true }
             );
+
+            // Send notification to the target user
+            sendNotification(friend_uuid, `${user.name} has sent you a friend request`);
+
             res.status(200).send({message: "Friend request sent"});
         } else {
             res.status(400).send({message: "Friend request already sent"});
@@ -44,6 +51,7 @@ export class FriendsController {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
+        // Check if user is trying to accept a friend request from themselves
         if (user_uuid === friend_uuid) {
             return res.status(400).send({message: "Cannot accept friend request from yourself"});
         }
@@ -53,6 +61,7 @@ export class FriendsController {
         const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
         const friend = await client.db("users_db").collection<User>("users").findOne({ user_uuid: friend_uuid });
 
+        // Check if friend request exists
         if (userFriends?.incoming_requests?.some(request => request.user_uuid === friend_uuid)) {
             await friendsCollection.updateOne(
                 { user_uuid: user_uuid },
@@ -69,6 +78,10 @@ export class FriendsController {
                 { user_uuid: friend_uuid },
                 { $addToSet: { friends: { user_uuid: user_uuid, name: user.name } } }
             );
+
+            // Send notification to the target user
+            sendNotification(friend_uuid, `${user.name} has accepted your friend request`);
+
             res.status(200).send({message: "Friend request accepted"});
         } else {
             res.status(400).send({message: "No such friend request"});
@@ -80,6 +93,7 @@ export class FriendsController {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
+        // Check if user is trying to remove themselves as a friend
         if (user_uuid === friend_uuid) {
             return res.status(400).send({message: "Cannot remove yourself as a friend"});
         }
@@ -108,6 +122,7 @@ export class FriendsController {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
+        //  Check if user is trying to reject a friend request from themselves
         if (friend_uuid === user_uuid) {
             return res.status(400).send({message: "Cannot reject friend request from yourself"});
         }
@@ -135,6 +150,7 @@ export class FriendsController {
 
         const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
 
+        // Fetch history for each friend
         if (userFriends?.friends) {
             const historyMap: Record<string, any[]> = {};
             for (const friend of userFriends.friends) {
@@ -207,12 +223,14 @@ export class FriendsController {
         const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
         const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === friend_uuid);
 
+        // Check if user is already friends with the target user
         if (!friendRelationship) {
             return res.status(404).send({message: "User does not exist or is not a friend"});
         }
 
         const friendHistory = await getHistoryByUserUUID(friend_uuid, timestamp as string);
 
+        // Fetch detailed product information for each product
         const detailedHistory = await Promise.all(friendHistory.map(async (entry) => {
             const detailedProducts = await Promise.all(entry.products.map(async (product) => {
                 const productDetails = await fetchProductById(product.product_id);
@@ -253,6 +271,7 @@ export class FriendsController {
         const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
         const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === friend_uuid);
 
+        // Check if user is already friends with the target user
         if (!friendRelationship) {
             return res.status(404).send({message: "User does not exist or is not a friend"});
         }
@@ -277,6 +296,7 @@ export class FriendsController {
         }
         const productName = productDetails.product_name;
 
+        // Check message type and create message body
         let messageBody = "";
         if (message_type === "praise") {
             messageBody = `${user.name} has praised you for buying ${productName}`;
@@ -298,6 +318,7 @@ export class FriendsController {
             token: targetUser?.fcm_registration_token
         };
 
+        // Send notification to target user
         getMessaging().send(message as TokenMessage)
             .then((response: string) => {
                 res.status(200).send({message: "Notification sent"});
@@ -306,4 +327,54 @@ export class FriendsController {
                 res.status(500).send({message: "Error sending notification"});
             });
     }
+
+    async getFriendEcoscore(req: Request, res: Response, nextFunction: NextFunction) {
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+        const { user_uuid: friend_uuid } = req.params;
+
+        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+
+        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === friend_uuid);
+
+        // Check if user is already friends with the target user
+        if (!friendRelationship) {
+            return res.status(404).send({message: "User does not exist or is not a friend"});
+        }
+
+        const historyCollection = client.db("users_db").collection<History>("history");
+        const friendHistory = await historyCollection.findOne({ user_uuid: friend_uuid });
+
+        if (!friendHistory) {
+            return res.status(404).send({message: "No history found for the friend"});
+        }
+
+        res.status(200).send({ ecoscore_score: friendHistory.ecoscore_score });
+    }
+}
+
+async function sendNotification(user_uuid: string, messageBody: string) {
+    // Ensure firebase app is initialized
+    getFirebaseApp();
+
+    const userCollection = client.db("users_db").collection<User>("users");
+    const targetUser = await userCollection.findOne({ user_uuid: user_uuid });
+
+    if (!targetUser?.fcm_registration_token) {
+        return;
+    }
+
+    const message = {
+        notification: {
+            title: 'CarbonWise',
+            body: messageBody
+        },
+        token: targetUser?.fcm_registration_token
+    };
+
+    getMessaging().send(message as TokenMessage)
+        .catch((error: any) => {
+            console.error("Error sending notification:", error);
+        });
 }

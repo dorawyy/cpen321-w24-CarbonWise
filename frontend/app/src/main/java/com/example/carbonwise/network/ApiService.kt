@@ -95,5 +95,10 @@ interface ApiService {
         @Query("scan_uuid") scanUuid: String
     ): Call<Void>
 
+    @GET("users/ecoscore_score")
+    fun getScore(
+        @Header("token") token: String
+    ): Call<EcoscoreResponse>
+
 
 }

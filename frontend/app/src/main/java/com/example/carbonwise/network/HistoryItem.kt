@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class HistoryItem(
     val _id: String?,
     val uuid: String?,
-    val ecoscore_score: Int?,
+    val ecoscore_score: Double?,
     val products: List<ProductItem>
 )
 
@@ -29,4 +29,8 @@ data class ProductDetails(
 
 data class AddToHistoryRequest(
     val product_id: String
+)
+
+data class EcoscoreResponse(
+    @SerializedName("ecoscore_score") val ecoscoreScore: Double
 )

@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.carbonwise.BuildConfig
 import com.example.carbonwise.MainActivity
 import com.example.carbonwise.databinding.FragmentLoginBinding
@@ -16,14 +17,12 @@ import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.gms.auth.api.identity.SignInCredential
 import com.google.android.gms.common.api.ApiException
-import okhttp3.*
-import java.io.IOException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.*
 import org.json.JSONObject
-
+import java.io.IOException
 
 class LoginFragment : Fragment() {
 
@@ -50,27 +49,35 @@ class LoginFragment : Fragment() {
                 BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
                     .setSupported(true)
                     .setServerClientId(BuildConfig.GOOGLE_AUTH_KEY)
-                    .setFilterByAuthorizedAccounts(true)
+                    .setFilterByAuthorizedAccounts(false)
                     .build()
             )
             .build()
 
         binding.loginButton.setOnClickListener {
-            oneTapClient.beginSignIn(signInRequest)
-                .addOnSuccessListener(requireActivity()) { result ->
-                    startIntentSenderForResult(
-                        result.pendingIntent.intentSender,
-                        REQ_ONE_TAP,
-                        null,
-                        0,
-                        0,
-                        0,
-                        null
-                    )
-                }
-                .addOnFailureListener(requireActivity()) { e ->
-                    Log.e(TAG, "Google Sign-In failed", e)
-                }
+            activity?.let { activity ->
+                oneTapClient.beginSignIn(signInRequest)
+                    .addOnSuccessListener(activity) { result ->
+                        if (isAdded) {
+                            try {
+                                startIntentSenderForResult(
+                                    result.pendingIntent.intentSender,
+                                    REQ_ONE_TAP,
+                                    null,
+                                    0,
+                                    0,
+                                    0,
+                                    null
+                                )
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Error starting IntentSender", e)
+                            }
+                        }
+                    }
+                    .addOnFailureListener(activity) { e ->
+                        Log.e(TAG, "Google Sign-In failed", e)
+                    }
+            }
         }
     }
 
@@ -84,14 +91,14 @@ class LoginFragment : Fragment() {
                     Log.d(TAG, "Google ID Token: $idToken")
                     saveToken(requireContext(), idToken)
 
-                    // Use MainScope to launch a coroutine to call getJWT and update the UI
-                    MainScope().launch {
+                    // Use lifecycleScope instead of MainScope to avoid leaks
+                    viewLifecycleOwner.lifecycleScope.launch {
                         val jwtToken = getJWT(idToken)
                         if (jwtToken != null) {
-                            // Save JWT token
                             saveJWTToken(requireContext(), jwtToken)
-                            // Switch to logged-in mode on the main thread
-                            (activity as? MainActivity)?.switchToLoggedInMode()
+                            if (isAdded) {
+                                (activity as? MainActivity)?.switchToLoggedInMode()
+                            }
                         } else {
                             Log.e(TAG, "Failed to obtain JWT token.")
                         }
@@ -107,7 +114,13 @@ class LoginFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.loginButton.setOnClickListener(null) // Remove listener to prevent leaks
         _binding = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        oneTapClient.signOut() // Ensure no lingering login sessions
     }
 
     private fun saveToken(context: Context, token: String) {
@@ -120,7 +133,7 @@ class LoginFragment : Fragment() {
 
     private fun saveJWTToken(context: Context, jwtToken: String) {
         val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        Log.e(TAG, "Got JWT Token: ${jwtToken}")
+        Log.e(TAG, "Got JWT Token: $jwtToken")
         with(sharedPref.edit()) {
             putString("jwt_token", jwtToken)
             apply()
@@ -130,10 +143,10 @@ class LoginFragment : Fragment() {
     private suspend fun getJWT(googleIdToken: String): String? {
         val url = "https://api.cpen321-jelx.com/auth/google"
         val jsonBody = """
-    {
-        "google_id_token": "$googleIdToken"
-    }
-    """.trimIndent()
+        {
+            "google_id_token": "$googleIdToken"
+        }
+        """.trimIndent()
         val requestBody = RequestBody.create(MediaType.get("application/json"), jsonBody)
         val request = Request.Builder()
             .url(url)
@@ -147,8 +160,7 @@ class LoginFragment : Fragment() {
                 if (response.isSuccessful) {
                     val responseBody = response.body()?.string()
                     val jsonObject = JSONObject(responseBody)
-                    val token = jsonObject.optString("token")
-                    return@withContext token
+                    return@withContext jsonObject.optString("token")
                 } else {
                     Log.e(TAG, "Request failed with code: ${response.code()}")
                     return@withContext null
