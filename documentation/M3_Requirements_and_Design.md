@@ -105,8 +105,9 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
             - **Main success scenario**:  
                 1. User navigates to the friends tab.  
                 2. User enters the friend’s unique friend code and sends the friend request.  
-                3. The system sends a friend request notification to the recipient.  
-                4. The system informs the user the friend request was successfully sent.
+                3. The system updates the recipient's list of incoming friend requests.
+                4. The system sends a friend request notification to the recipient.  
+                5. The system informs the user the friend request was successfully sent.
 
             - **Failure scenario(s)**:  
                 - 3a. The entered friend code does not match any existing user.  
@@ -119,6 +120,8 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                     - 3d1. The system informs the user that they cannot send a friend request to themselves.
                 - 3e. The friend request could not be sent due to a server error.  
                     - 3e1. The system informs the user that the request could not be sent and displays the relevant server error.
+                - 4a. The system fails to send a friend request notification as the recipient does not have notifications enabled.
+                    - 4a1. The system continues the friend request sending process without sending a notification.
 
         2. **Accept a friend request**  
             - **Description**: Users can accept incoming friend requests to add friends to their friend list.  
@@ -128,7 +131,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 2. User views pending friend requests.  
                 3. User selects a pending request and accepts it.  
                 4. The system updates both users' friend lists.  
-                5. The system informs the user that sent the request that the friend request has been accepted.
+                5. The system sends a notification to the user that sent the request that the friend request has been accepted.
             - **Failure scenario(s)**:  
                 - 3a. The friend request is no longer valid.  
                     - 3a1. The system informs the user that the request is no longer valid.  
@@ -137,6 +140,8 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                     - 3b1. The system informs the user that the friend request was not accepted and displays the relevant server error.
                 - 3c. The user is trying to accept a friend request from themselves.  
                     - 3c1. The system informs the user that they cannot accept a friend request from themselves.
+                - 5a. The system fails to send a notification to the user that sent the request as they do not have notifications enabled.
+                    - 5a1. The system continues the friend request accepting process without sending a notification.
 
         3. **Reject a friend request**  
             - **Description**: Users can decline incoming friend requests.  
