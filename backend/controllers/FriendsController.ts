@@ -36,6 +36,10 @@ export class FriendsController {
                 { $addToSet: { incoming_requests: { user_uuid: user_uuid, name: user.name } } },
                 { upsert: true }
             );
+
+            // Send notification to the target user
+            sendNotification(friend_uuid, `${user.name} has sent you a friend request`);
+
             res.status(200).send({message: "Friend request sent"});
         } else {
             res.status(400).send({message: "Friend request already sent"});
@@ -74,6 +78,10 @@ export class FriendsController {
                 { user_uuid: friend_uuid },
                 { $addToSet: { friends: { user_uuid: user_uuid, name: user.name } } }
             );
+
+            // Send notification to the target user
+            sendNotification(friend_uuid, `${user.name} has accepted your friend request`);
+
             res.status(200).send({message: "Friend request accepted"});
         } else {
             res.status(400).send({message: "No such friend request"});
@@ -319,4 +327,29 @@ export class FriendsController {
                 res.status(500).send({message: "Error sending notification"});
             });
     }
+}
+
+async function sendNotification(user_uuid: string, messageBody: string) {
+    // Ensure firebase app is initialized
+    getFirebaseApp();
+
+    const userCollection = client.db("users_db").collection<User>("users");
+    const targetUser = await userCollection.findOne({ user_uuid: user_uuid });
+
+    if (!targetUser?.fcm_registration_token) {
+        return;
+    }
+
+    const message = {
+        notification: {
+            title: 'CarbonWise',
+            body: messageBody
+        },
+        token: targetUser?.fcm_registration_token
+    };
+
+    getMessaging().send(message as TokenMessage)
+        .catch((error: any) => {
+            console.error("Error sending notification:", error);
+        });
 }
