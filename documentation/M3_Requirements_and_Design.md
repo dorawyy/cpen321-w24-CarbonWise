@@ -82,9 +82,9 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 - 4a. The Google OAuth token is invalid or expired.  
                     - 4a1. The system informs the guest user that their Google OAuth token has expired or is invalid.
                     - 4a2. The system returns the guest user to the login tab.
-                - 4b. The system fails to transition the guest user to a user due to a server error.  
-                    - 4b1. The system informs the guest user that login could not be completed due to a server error.  
-                    - 4b2. The system returns the guest user to the login tab.
+                - 5b. The system fails to transition the guest user to a user due to a server error.  
+                    - 5b1. The system informs the guest user that login could not be completed due to a server error.  
+                    - 5b2. The system returns the guest user to the login tab.
 
 <a name="fr3"></a>
 
