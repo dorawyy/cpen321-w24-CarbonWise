@@ -251,9 +251,6 @@ class ScanFragment : Fragment() {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if (response.isSuccessful) {
                     HistoryCacheManager.invalidateCache(requireContext())
-                    Toast.makeText(requireContext(), "Item added to history", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(requireContext(), "Failed to add item to history", Toast.LENGTH_SHORT).show()
                 }
             }
 

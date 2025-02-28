@@ -65,7 +65,7 @@ class InfoFragment : Fragment() {
         return binding.root
     }
 
-    private fun fetchProductInfo(upcCode: String, retryCount: Int = 3) {
+    private fun fetchProductInfo(upcCode: String, retryCount: Int = 1) {
         val jwtToken = MainActivity.getJWTToken(requireContext())
 
         val url = if (jwtToken.isNullOrBlank()) {
@@ -98,6 +98,13 @@ class InfoFragment : Fragment() {
                 response.use {
                     if (!response.isSuccessful) {
                         Log.e("InfoFragment", "Unexpected response: ${response.code()}")
+                        requireActivity().runOnUiThread {
+                            if (isAdded && _binding != null) {
+                                binding.progressBar.visibility = View.GONE
+                                binding.errorText.visibility = View.VISIBLE
+                                binding.errorText.text = "Failed to load product info."
+                            }
+                        }
                         return
                     }
 
@@ -114,6 +121,11 @@ class InfoFragment : Fragment() {
                             }
                         } catch (e: Exception) {
                             Log.e("InfoFragment", "Error parsing JSON", e)
+                            requireActivity().runOnUiThread {
+                                binding.progressBar.visibility = View.GONE
+                                binding.errorText.visibility = View.VISIBLE
+                                binding.errorText.text = "Error processing product data."
+                            }
                         }
                     }
                 }

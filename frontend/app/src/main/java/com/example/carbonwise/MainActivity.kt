@@ -16,6 +16,7 @@ import com.example.carbonwise.databinding.ActivityMainBinding
 import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.FCMTokenManager
 import com.example.carbonwise.ui.friends.FriendsViewModel
+import com.example.carbonwise.ui.history.HistoryCacheManager
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.google.firebase.messaging.FirebaseMessaging
@@ -50,6 +51,17 @@ class MainActivity : AppCompatActivity() {
         setupNavigation()
         askNotificationPermission()
         retrieveFCMToken()
+
+        if (isUserLoggedIn) {
+            HistoryCacheManager.fetchHistoryInBackground(this)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (isUserLoggedIn) {
+            HistoryCacheManager.fetchHistoryInBackground(this)
+        }
     }
 
     private fun setupNavigation() {

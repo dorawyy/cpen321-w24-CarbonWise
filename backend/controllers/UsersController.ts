@@ -16,6 +16,7 @@ export class UsersController {
         const productCollection = client.db("products_db").collection("products");
         const historyCollection = client.db("users_db").collection<History>("history");
 
+        // Check if product exists and has required fields
         const product = await productCollection.findOne({ _id: product_id });
         if (!product || !product.product_name || !product.ecoscore_grade || !product.ecoscore_score || !product.ecoscore_data || !product.categories_tags || !product.categories_hierarchy) {
             return res.status(404).send({message: "Product not found"});
@@ -49,6 +50,7 @@ export class UsersController {
 
         const userHistory = await getHistoryByUserUUID(user_uuid, timestamp as string);
 
+        // Fetch product details for each product in the history
         if (userHistory.length > 0) {
             const detailedHistory = await Promise.all(userHistory.map(async (entry) => {
                 const detailedProducts = await Promise.all(entry.products.map(async (product) => {
@@ -93,6 +95,8 @@ export class UsersController {
         }
     }
 
+
+    // Update the Firebase Cloud Messaging (FCM) registration token for the user
     async setFCMRegistrationToken(req: Request, res: Response, nextFunction: NextFunction) {
         const { fcm_registration_token } = req.body;
         const user = req.user as User;
@@ -124,6 +128,7 @@ export class UsersController {
             { user_uuid: user_uuid, "products.scan_uuid": scan_uuid }
         );
 
+        // Fetch product details for the product with the given scan UUID
         if (userHistory) {
             const product = userHistory.products.find(p => p.scan_uuid === scan_uuid);
             if (product) {
@@ -187,6 +192,7 @@ export class UsersController {
 
 }
 
+// Helper function to fetch history entries for a user
 export async function getHistoryByUserUUID(user_uuid: string, timestamp?: string) {
     const historyCollection = client.db("users_db").collection<History>("history");
 
@@ -198,6 +204,8 @@ export async function getHistoryByUserUUID(user_uuid: string, timestamp?: string
     return await historyCollection.find(query).toArray();
 }
 
+
+// Helper function to update the average ecoscore for a user
 async function updateEcoscoreAverage(user_uuid: string) {
     const historyCollection = client.db("users_db").collection<History>("history");
 

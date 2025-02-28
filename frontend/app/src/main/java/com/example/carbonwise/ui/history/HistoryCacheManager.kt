@@ -1,6 +1,7 @@
 package com.example.carbonwise.ui.history
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.util.Log
 import com.example.carbonwise.MainActivity
 import com.example.carbonwise.network.ApiService
@@ -10,6 +11,10 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
+
+import android.graphics.Bitmap
+import android.util.Base64
+import java.io.ByteArrayOutputStream
 
 object HistoryCacheManager {
     private const val CACHE_PREFS = "history_cache"
@@ -23,7 +28,7 @@ object HistoryCacheManager {
         fetchHistoryInBackground(context)
     }
 
-    fun fetchHistoryInBackground(context: Context) {
+    fun fetchHistoryInBackground(context: Context, onFetched: (() -> Unit)? = null) {
         val token = MainActivity.getJWTToken(context)
         if (token.isNullOrEmpty()) return
 
@@ -41,6 +46,7 @@ object HistoryCacheManager {
                     response.body()?.let {
                         val flattenedHistory = flattenHistoryItems(it)
                         saveHistoryToCache(context, flattenedHistory)
+                        onFetched?.invoke()
                     }
                 }
             }
@@ -71,7 +77,32 @@ object HistoryCacheManager {
     }
 
     private fun flattenHistoryItems(historyItems: List<HistoryItem>): List<ProductItem> {
-        return historyItems.flatMap { it.products }
+        return historyItems.flatMap { historyItem ->
+            historyItem.products.map { productItem ->
+                productItem.copy(
+                    product = productItem.product.copy(
+                        productImage = downscaleBase64Image(productItem.product.productImage)
+                    )
+                )
+            }
+        }
+    }
+
+    private fun downscaleBase64Image(base64String: String?, targetSize: Int = 100): String? {
+        if (base64String.isNullOrEmpty()) return null
+
+        return try {
+            val decodedBytes = Base64.decode(base64String, Base64.DEFAULT)
+            val originalBitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+            val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, targetSize, targetSize, true)
+            val outputStream = ByteArrayOutputStream()
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 30, outputStream)
+            val byteArray = outputStream.toByteArray()
+            Base64.encodeToString(byteArray, Base64.DEFAULT)
+        } catch (e: Exception) {
+            Log.e("HistoryCacheManager", "Image processing failed: ${e.message}")
+            null
+        }
     }
 
     fun removeFromCache(context: Context, scanUuid: String) {
