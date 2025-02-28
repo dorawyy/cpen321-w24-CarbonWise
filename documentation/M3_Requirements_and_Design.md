@@ -534,7 +534,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
             
             recommendations.sortByScore()   
             
-            return recommendations
+            return recommendations  
         ```
 
 ## 5. Contributions
