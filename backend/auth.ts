@@ -20,9 +20,9 @@ const oauthClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 passport.use(
   new GoogleStrategy(
     {
-      clientID: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      callbackURL: process.env.GOOGLE_REDIRECT_URI as string,
+      clientID: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      callbackURL: process.env.GOOGLE_REDIRECT_URI!,
     },
     async (_accessToken, _refreshToken, profile, done) => {
       const userCollection: Collection<User> = client.db("users_db").collection("users");
@@ -38,7 +38,7 @@ passport.use(
           google_id: profile.id,
           email: profile.emails?.[0].value || "",
           name: profile.displayName,
-          user_uuid: user_uuid,
+          user_uuid,
           fcm_registration_token: "",
         };
         await userCollection.insertOne(user);
@@ -70,7 +70,7 @@ router.get(
   passport.authenticate("google", { session: false }),
   (req, res) => {
     const user = req.user as User;
-    const token = jwt.sign(user, process.env.JWT_SECRET as string, { expiresIn: JWT_EXPIRATION_TIME });
+    const token = jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: JWT_EXPIRATION_TIME });
 
     res.json({ token, user });
   }
@@ -100,7 +100,7 @@ router.post("/auth/google", async (req, res) => {
         google_id: payload.sub,
         email: payload.email || "",
         name: payload.name || "",
-        user_uuid: user_uuid,
+        user_uuid,
         fcm_registration_token: "",
       };
       await userCollection.insertOne(user);
