@@ -190,6 +190,47 @@ export class UsersController {
         }
     }
 
+    async getFriendEcoscore(req: Request, res: Response, nextFunction: NextFunction) {
+        const { friend_uuid } = req.query;
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+
+        const friendsCollection = client.db("users_db").collection("friends");
+        const historyCollection = client.db("users_db").collection<History>("history");
+
+        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const friendRelationship = userFriends?.friends?.find((friend: { user_uuid: string }) => friend.user_uuid === friend_uuid);
+
+        // Check if user is friends with the target user
+        if (!friendRelationship) {
+            return res.status(404).send({message: "User does not exist or is not a friend"});
+        }
+
+        const friendHistory = await historyCollection.findOne({ user_uuid: friend_uuid });
+        if (friendHistory && friendHistory.products.length > 0) {
+            const recentProducts = friendHistory.products
+                .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                .slice(0, HISTORY_ECOSCORE_AVERAGE_COUNT);
+
+            // Fetch ecoscores for each product
+            const recentProductsWithEcoscores = await Promise.all(recentProducts.map(async (product) => {
+                const ecoscoreData = await fetchEcoscoresByProductId(product.product_id);
+                return {
+                    ...product,
+                    ecoscore_score: ecoscoreData?.ecoscore_score || 0
+                };
+            }));
+
+            const totalEcoscore = recentProductsWithEcoscores.reduce((acc, product) => acc + product.ecoscore_score, 0);
+            const productCount = recentProductsWithEcoscores.length;
+            const averageEcoscore = productCount > 0 ? totalEcoscore / productCount : 0;
+
+            res.status(200).send({ ecoscore_score: averageEcoscore });
+        } else {
+            res.status(404).send({message: "No history found for the friend"});
+        }
+    }
+
 }
 
 // Helper function to fetch history entries for a user
