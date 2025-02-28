@@ -83,5 +83,14 @@ export const FriendsRoutes = [
             body("message_type").isIn(["praise", "shame"]).withMessage("Message type should be either 'praise' or 'shame'")
         ],
         protected: true
+    },
+    {
+        method: "get",
+        route: "/friends/ecoscore_score/:user_uuid",
+        action: controller.getFriendEcoscore,
+        validation: [
+            param("user_uuid").isString().withMessage("User UUID should be a string")
+        ],
+        protected: true
     }
 ]
