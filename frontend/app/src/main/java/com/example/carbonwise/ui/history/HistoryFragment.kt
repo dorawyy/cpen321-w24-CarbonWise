@@ -1,11 +1,13 @@
 package com.example.carbonwise.ui.history
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.carbonwise.databinding.FragmentHistoryBinding
 import com.example.carbonwise.MainActivity
@@ -13,6 +15,10 @@ import com.example.carbonwise.R
 import com.example.carbonwise.ui.info.InfoFragment
 import androidx.navigation.fragment.findNavController
 import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.network.EcoscoreResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -32,11 +38,9 @@ class HistoryFragment : Fragment() {
         _binding = FragmentHistoryBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        // Set up RecyclerView
         val recyclerView = binding.recyclerViewHistory
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        // Initialize the adapter and set the click listener for items
         historyAdapter = HistoryAdapter(
             onProductClick = { productId ->
                 openProductInfoFragment(productId)
@@ -47,7 +51,6 @@ class HistoryFragment : Fragment() {
         )
         recyclerView.adapter = historyAdapter
 
-        // Fetch history data
         fetchHistory()
 
         return root
@@ -60,14 +63,71 @@ class HistoryFragment : Fragment() {
             return
         }
 
-        if (HistoryCacheManager.isCacheValid(requireContext())) {
-            val cachedHistory = HistoryCacheManager.loadHistoryFromCache(requireContext())
-            cachedHistory?.let { historyAdapter.submitList(it) } // Now correctly passing List<ProductItem>
-        } else {
-            HistoryCacheManager.fetchHistoryInBackground(requireContext())
-        }
+        lifecycleScope.launch(Dispatchers.IO) { // Load in the background
+            val cachedHistory = if (HistoryCacheManager.isCacheValid(requireContext())) {
+                HistoryCacheManager.loadHistoryFromCache(requireContext())
+            } else {
+                HistoryCacheManager.fetchHistoryInBackground(requireContext()) // Fetch and update cache
+                HistoryCacheManager.loadHistoryFromCache(requireContext())
+            }
 
+            withContext(Dispatchers.Main) {
+                cachedHistory?.let { historyAdapter.submitList(it) }
+
+                // Only fetch ecoscore if history exists
+                if (!cachedHistory.isNullOrEmpty()) {
+                    fetchEcoscore()
+                } else {
+                    binding.textViewEcoscore.visibility = View.GONE
+                }
+
+                binding.textViewEmptyHistory.visibility = if (cachedHistory.isNullOrEmpty()) View.VISIBLE else View.GONE
+            }
+        }
     }
+
+    private fun fetchEcoscore() {
+        if (_binding == null) return
+
+        val token = MainActivity.getJWTToken(requireContext())
+        if (token.isNullOrEmpty()) return
+
+        Log.d("HistoryFragment", "Fetching ecoscore...")
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.cpen321-jelx.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val apiService = retrofit.create(ApiService::class.java)
+        val call = apiService.getScore(token)
+
+        call.enqueue(object : Callback<EcoscoreResponse> {
+            override fun onResponse(call: Call<EcoscoreResponse>, response: Response<EcoscoreResponse>) {
+                if (_binding == null) return
+
+                if (response.isSuccessful) {
+                    val ecoscore = response.body()?.ecoscoreScore
+
+                    if (ecoscore != null && ecoscore > 0) {
+                        Log.d("HistoryFragment", "Ecoscore fetched: $ecoscore")
+
+                        val formattedEcoscore = "Ecoscore: ${String.format("%.1f", ecoscore)}"
+
+                        // Only update UI if the value is different to prevent unnecessary flicker
+                        if (binding.textViewEcoscore.text != formattedEcoscore) {
+                            binding.textViewEcoscore.text = formattedEcoscore
+                        }
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<EcoscoreResponse>, t: Throwable) {
+                Log.e("HistoryFragment", "Network error: ${t.message}")
+            }
+        })
+    }
+
 
     private fun openProductInfoFragment(upcCode: String) {
         val productInfoFragment = InfoFragment.newInstance(upcCode)
