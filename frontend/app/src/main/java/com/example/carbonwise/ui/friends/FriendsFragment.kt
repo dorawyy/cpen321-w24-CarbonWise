@@ -4,8 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.carbonwise.databinding.FragmentFriendsBinding
@@ -36,8 +34,12 @@ class FriendsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupViewPager()
-        setupUI()
+        //setupUI()
 
+        binding.fabAddFriend.setOnClickListener {
+            val dialog = AddFriendDialogFragment()
+            dialog.show(childFragmentManager, "AddFriendDialog")
+        }
     }
 
     private fun setupViewPager() {
@@ -52,29 +54,29 @@ class FriendsFragment : Fragment() {
         }.attach()
     }
 
-    private fun setupUI() {
-        friendsViewModel.userFriendCode.observe(viewLifecycleOwner) { friendCode ->
-            binding.textFriendCode.text = "Your Friend Code: $friendCode"
-        }
+//    private fun setupUI() {
+//        friendsViewModel.userFriendCode.observe(viewLifecycleOwner) { friendCode ->
+//            binding.textFriendCode.text = "Your Friend Code: $friendCode"
+//        }
+//
+//        binding.buttonAddFriend.setOnClickListener {
+//            val friendCode = binding.editFriendCode.text.toString().trim()
+//            if (friendCode.isNotEmpty()) {
+//                friendsViewModel.sendFriendRequest(friendCode)
+//                hideKeyboardAndClearFocus()
+//                binding.editFriendCode.text.clear()
+//                Toast.makeText(requireContext(), "Friend request sent!", Toast.LENGTH_SHORT).show()
+//            } else {
+//                Toast.makeText(requireContext(), "Enter a valid friend code", Toast.LENGTH_SHORT).show()
+//            }
+//        }
+//    }
 
-        binding.buttonAddFriend.setOnClickListener {
-            val friendCode = binding.editFriendCode.text.toString().trim()
-            if (friendCode.isNotEmpty()) {
-                friendsViewModel.sendFriendRequest(friendCode)
-                hideKeyboardAndClearFocus()
-                binding.editFriendCode.text.clear()
-                Toast.makeText(requireContext(), "Friend request sent!", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "Enter a valid friend code", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun hideKeyboardAndClearFocus() {
-        val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(binding.editFriendCode.windowToken, 0)
-        binding.editFriendCode.clearFocus()
-    }
+//    private fun hideKeyboardAndClearFocus() {
+//        val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
+//        imm.hideSoftInputFromWindow(binding.editFriendCode.windowToken, 0)
+//        binding.editFriendCode.clearFocus()
+//    }
 
     override fun onDestroyView() {
         super.onDestroyView()
