@@ -6,7 +6,7 @@ None (Plan B)
 
 ## 2. Project Description
 
-CarbonWise empowers consumers to make more sustainable choices by providing clear and accessible information about the environmental impact of their purchases. Whether users are new to sustainability or already committed to eco-conscious shopping, the app delivers reliable insights to support informed decision-making. Additionally, CarbonWise encourages accountability by allowing users to connect with friends, compare sustainability scores, and share progress, fostering a community-driven approach to responsible consumption.
+CarbonWise empowers consumers to make more sustainable choices by providing clear and accessible information about the environmental impact of their purchases. With CarbonWise, users can simply scan a product's barcode while shopping to receive an eco-score, sustainability details, and recommendations for greener alternatives. Additionally, CarbonWise encourages accountability by allowing users to connect with friends, compare sustainability scores, and share progress, fostering a community-driven approach to responsible consumption.
 
 ## 3. Requirements Specification
 
@@ -16,8 +16,8 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 
 ### **3.2. Actors Description**
 
-1. **User**: User that is authenticated and has access to all functionality.
-2. **Guest User**: Guest user who is not authenticated and has limited access.
+1. **User**: A user that is authenticated and has access to all functionality.
+2. **Guest User**: An unauthenticated guest user who can scan products but cannot access history or features.
 
 ### **3.3. Functional Requirements**
 <a name="fr1"></a>
@@ -31,29 +31,28 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
     - **Detailed Flow for Each Independent Scenario**:  
        
         1. **Scanning a product**  
-            - **Description**: Users and Guest Users can scan a product’s barcode to retrieve an eco-score, sustainability information, and product recommendations.  
+            - **Description**: Users and guest users can scan a product’s barcode to retrieve an eco-score, sustainability information, and product recommendations.  
             - **Primary actor(s)**: User, Guest User  
             - **Main success scenario**:  
-                1. User or Guest User navigates to the scan tab.  
+                1. User or guest user navigates to the scan tab.  
                 2. The system requests camera permissions if not previously granted.  
-                3. User or Guest User grants camera permissions if requested.  
-                4. User or Guest User scans a barcode using the device camera.  
+                3. User or guest user grants camera permissions if requested.  
+                4. User or guest user scans a barcode using the device camera.  
                 5. The system retrieves and displays an eco-score, sustainability information, and product recommendations for the scanned product.  
-                6. The system adds the scanned product to the User’s history if the User is authenticated.
+                6. The system adds the scanned product to the user’s history if the user is authenticated.
             - **Failure scenario(s)**:  
                 - 3a. User denies camera permissions.  
-                    - 3a1. The system informs the User or Guest User that camera access is required to scan products.  
-                    - 3a2. The system displays instructions on the scan tab to enable camera permissions in settings.  
+                    - 3a1. The system returns the user to the scan tab and displays a message that camera permissions are required for scanning.
                 - 4a. The barcode is unreadable due to camera quality.  
                     - 4a1. The system waits on the scan tab until it is provided with a readable barcode.  
-                - 5a. The system is unable to retrieve an eco-score or sustainability information for the product.  
-                    - 5a1. The system informs the User or Guest User  that information for the product is not available.  
-                    - 5a2. The system returns the User or Guest User to the scan tab.  
-                - 5b. The system is unable to retrieve product data due to a server error.  
-                    - 5b1. The system informs the User or Guest User  that product information could not be retrieved and displays the relevant server error.  
-                    - 5b2. The system returns the User or Guest User to the scan tab.  
-                - 6a. The system is unable to add the scanned product to the User’s history due to a server error.  
-                    - 6a1. The system informs the User the scanned product could not be added to history and displays the relevant server error.
+                - 5a. The system is unable to retrieve information for a product because it does not exists or is missing required fields.  
+                    - 5a1. The system informs the user or guest user that information for the product is not available.  
+                    - 5a2. The system returns the user or guest user to the scan tab.  
+                - 5b. The system is unable to retrieve product data due to a server error.
+                    - 5b1. The system informs the user or guest user that product information could not be retrieved and displays the relevant server error.
+                    - 5b2. The system returns the user or guest user to the scan tab.
+                - 6a. The system is unable to add the scanned product to the user’s history due to a server error.  
+                    - 6a1. The system informs the user or guest user that the scanned product could not be added to history and displays the relevant server error.
 
 <a name="fr2"></a>
 
@@ -61,32 +60,31 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
      
     - **Overview**:
 
-        1. Authenticate Guest User with Google OAuth
+        1. Authenticate a guest user with Google OAuth
 
     - **Detailed Flow for Each Independent Scenario**:  
        
-        1. **Authenticate Guest User with Google OAuth**  
-            - **Description**: A Guest User can log in using a Google account. If an existing account is linked to the Google account, they are logged in. If no account exists, the system automatically creates an account and logs the Guest User in. Once authenticated, the Guest User becomes a User with full access.  
+        1. **Authenticate a guest user with Google OAuth**  
+            - **Description**: Sign in a guest user using their Google account. If an existing account is linked to the Google account, they are logged in. If no account exists, the system automatically creates an account and logs the guest user in. Once authenticated, the guest user becomes a user with full access.  
             - **Primary actor(s)**: Guest User  
             - **Main success scenario**:  
-                1. Guest User navigates to the login tab.  
-                2. The system prompts the Guest User with the Google OAuth authentication screen.  
-                3. Guest User selects a Google account and grants permission for the system to access profile details.  
+                1. Guest user navigates to the login tab.  
+                2. The system prompts the guest user with the Google OAuth authentication screen.  
+                3. Guest user selects a Google account and grants permission for the system to access profile details.
                 4. The system verifies authentication with Google OAuth.  
-                5. The system logs the Guest User in, transitioning them to a User with full access.
+                5. The system logs the guest user in, transitioning them to a user with full access.
             - **Failure scenario(s)**:  
-                - 2a. An error occurs with Google OAuth service  
-                    - 2a1. The system informs the Guest User that authentication failed due to a Google OAuth service issue.  
-                    - 2a2. The system returns the Guest User to the login tab.  
-                - 3a. The Guest User declines to continue with Google OAuth.  
-                    - 3a1. The system informs the Guest User that authentication is required to log in.  
-                    - 3a2. The system returns the Guest User to the login tab.  
+                - 2a. An error occurs with the Google OAuth service.  
+                    - 2a1. The system informs the guest user that authentication failed due to a Google OAuth service issue.  
+                    - 2a2. The system returns the guest user to the login tab.  
+                - 3a. The guest user declines to continue with Google OAuth.  
+                    - 3a1. The system returns the guest user to the login tab.  
                 - 4a. The Google OAuth token is invalid or expired.  
-                    - 4a1. The system informs the Guest User that authentication has expired or is invalid.  
-                    - 4a2. The system returns the Guest User to the login tab.  
-                - 4b. The system fails to transition the Guest User to a User due to a server error.  
-                    - 4b1. The system informs the Guest User that login could not be completed due to a server error.  
-                    - 4b2. The system returns the Guest User to the login tab.
+                    - 4a1. The system informs the guest user that their Google OAuth token has expired or is invalid.
+                    - 4a2. The system returns the guest user to the login tab.
+                - 4b. The system fails to transition the guest user to a user due to a server error.  
+                    - 4b1. The system informs the guest user that login could not be completed due to a server error.  
+                    - 4b2. The system returns the guest user to the login tab.
 
 <a name="fr3"></a>
 
@@ -108,15 +106,19 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 1. User navigates to the friends tab.  
                 2. User enters the friend’s unique friend code and sends the friend request.  
                 3. The system sends a friend request notification to the recipient.  
-                4. The system informs the User the friend request was successfully sent.
+                4. The system informs the user the friend request was successfully sent.
 
             - **Failure scenario(s)**:  
-                - 2a. The entered friend code does not match any existing User.  
-                    - 2a1. The system informs the User that the friend code is invalid.  
-                - 2b. The friend code belongs to a User who is already a friend.  
-                    - 2b1. The system informs the User that the friend has already been added.  
-                - 2c. The friend request could not be sent due to a server error.  
-                    - 2c1. The system informs the User that the request could not be sent due to a server error and prompts them to try again.
+                - 3a. The entered friend code does not match any existing user.  
+                    - 3a1. The system informs the user that the friend code is invalid.  
+                - 3b. The friend code belongs to a user who is already a friend.  
+                    - 3b1. The system informs the user that the friend has already been added.
+                - 3c. The user already has a pending friend request sent to the recipient.  
+                    - 3c1. The system informs the user that there is already a pending friend request.
+                - 3d. The user is trying to send a friend request to themselves.  
+                    - 3d1. The system informs the user that they cannot send a friend request to themselves.
+                - 3e. The friend request could not be sent due to a server error.  
+                    - 3e1. The system informs the user that the request could not be sent and displays the relevant server error.
 
         2. **Accept a friend request**  
             - **Description**: Users can accept incoming friend requests to add friends to their friend list.  
@@ -125,14 +127,16 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 1. User navigates to the friends tab.  
                 2. User views pending friend requests.  
                 3. User selects a pending request and accepts it.  
-                4. The system updates both Users' friend lists.  
-                5. The system informs the User that the friend request has been accepted.
+                4. The system updates both users' friend lists.  
+                5. The system informs the user that sent the request that the friend request has been accepted.
             - **Failure scenario(s)**:  
                 - 3a. The friend request is no longer valid.  
-                    - 3a1. The system informs the User that the request is no longer valid.  
+                    - 3a1. The system informs the user that the request is no longer valid.  
+                    - 3a2. The system refreshes the friends tab.
                 - 3b. The friend request could not be accepted due to a server error.  
-                    - 3b1. The system informs the User that the friend request was not accepted and displays the relevant server error.  
-                    - 3b2. The system prompts the User to try again later.
+                    - 3b1. The system informs the user that the friend request was not accepted and displays the relevant server error.
+                - 3c. The user is trying to accept a friend request from themselves.  
+                    - 3c1. The system informs the user that they cannot accept a friend request from themselves.
 
         3. **Reject a friend request**  
             - **Description**: Users can decline incoming friend requests.  
@@ -142,11 +146,15 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 2. User views pending friend requests.  
                 3. User selects a pending request and rejects it.  
                 4. The system removes the pending request.  
-                5. The system informs the User that the request has been rejected.
+                5. The system informs the user that the request has been rejected.
             - **Failure scenario(s)**:  
+                - 4a. The friend request is no longer valid. 
+                    - 4a1. The system informs the user that the request is no longer valid.
+                    - 4a2. The system refreshes the friends tab.
                 - 4b. The friend request could not be rejected due to a server error.  
-                    - 4b1. The system informs the User that the friend request was not rejected and displays the relevant server error.  
-                    - 4b2. The system prompts the User to try again later.
+                    - 4b1. The system informs the user that the friend request was not rejected and displays the relevant server error. 
+                - 4c. The user is trying to reject a friend request from themselves.  
+                    - 4c1. The system informs the user that they cannot reject a friend request from themselves.
 
         4. **Remove a friend**  
             - **Description**: Users can remove a friend from their friends list.  
@@ -154,18 +162,19 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
             - **Main success scenario**:  
                 1. User navigates to the friends tab.  
                 2. User selects a friend from their list to remove.  
-                3. The system prompts the User to confirm the removal.  
+                3. The system prompts the user to confirm the removal.  
                 4. User confirms the removal.  
-                5. The system removes the friend from both Users’ friend lists.  
-                6. The system informs the User that the friend has been removed.
+                5. The system removes the friend from both users’ friend lists.  
+                6. The system informs the user that the friend has been removed.
             - **Failure scenario(s)**:
                 - 4a. User does not confirm the removal of the friend.
-                    - 4a1. The system returns the User to the friends tab.   
-                - 5a. The friend has already been removed or no longer exists.  
-                    - 5a1. The system informs the User that the friend has already been removed.  
-                - 5b. The friend request could not be removed due to a server error.  
-                    - 5b1. The system informs the User that the friend was not removed and displays the relevant server error.  
-                    - 5b2. The system prompts the User to try again later.
+                    - 4a1. The system returns the user to the friends tab.
+                - 5a. The user is not friends with the selected friend, the friend has already been removed, or the friend no longer exists.  
+                    - 5a1. The system informs the user that the friend has already been removed.  
+                - 5b. The friend could not be removed due to a server error.  
+                    - 5b1. The system informs the user that the friend was not removed and displays the relevant server error.
+                - 5c. The user is trying to remove themselves as a friend.  
+                    - 5c1. The system informs the user that they cannot remove themselves as a friend.
 
 <a name="fr4"></a>
 
@@ -183,20 +192,20 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
             - **Main success scenario**:  
                 1. User navigates to the friends tab.  
                 2. User selects a friend from their friend list.  
-                3. User views the friend's product history.  
+                3. User views their friend's product history.  
                 4. User selects a predefined reaction to a product in the selected friend's history.  
                 5. The system sends a notification to the selected friend with the chosen reaction and associated product details.  
-                6. The system informs the User that the reaction has been sent successfully.
+                6. The system informs the user that the reaction has been sent successfully.
 
             - **Failure scenario(s)**:  
-                - 4a. The selected product is no longer available in the friend’s history.  
-                    - 4a1. The system informs the User that the product is not part of their friend’s product history.  
-                    - 4a2. The system refreshes the friend’s product history.  
-                - 4b. The selected friend is no longer a friend.  
-                    - 4b1. The system informs the User that the selected friend is no longer their friend.  
-                - 5a. The system fails to send the reaction due to a server error.  
-                    - 5a1. The system informs the User that the reaction could not be sent due to a server error and displays the relevant error message.  
-                    - 5a2. The system prompts the User to try again later.
+                - 5a. The selected product is no longer available in the friend’s history.  
+                    - 5a1. The system informs the user that the product is not part of their friend’s product history.  
+                    - 5a2. The system refreshes the friend’s product history.  
+                - 5b. The selected friend is no longer a friend.  
+                    - 5b1. The system informs the user that the selected friend is no longer their friend.  
+                    - 5b2. The system returns the user to the friends tab and refreshes their friend list.
+                - 5c. The system fails to send the reaction due to a server error.  
+                    - 5c1. The system informs the user that the reaction could not be sent due to a server error and displays the relevant error message.
 
 <a name="fr5"></a>
 
@@ -214,19 +223,18 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
             - **Main success scenario**:  
                 1. User navigates to the history tab.  
                 2. User presses the delete button for a product in their history.  
-                3. The system prompts the User to confirm the deletion.  
+                3. The system prompts the user to confirm the deletion.  
                 4. User confirms the deletion.  
-                5. The system removes the selected product from the User’s history.  
-                6. The system informs the User that the product has been successfully deleted.
+                5. The system removes the selected product from the user’s history.  
+                6. The system informs the user that the product has been successfully deleted.
             - **Failure scenario(s)**:  
                 - 4a. User does not confirm the deletion.  
-                    - 4a1. The system cancels the deletion process and returns the User to the history tab.  
-                - 5a. The selected product does not exist in the User’s history.  
-                    - 5a1. The system informs the User that the product is not present in their history.  
+                    - 4a1. The system cancels the deletion process and returns the user to the history tab.  
+                - 5a. The selected product does not exist in the user’s history.  
+                    - 5a1. The system informs the user that the product is not present in their history.  
                     - 5a2. The system refreshes the history tab.  
                 - 5b. The system fails to delete the product due to a server error.  
-                    - 5b1. The system informs the User that the product could not be deleted due to a server error and displays the relevant error message.  
-                    - 5b2. The system prompts the User to try again later.
+                    - 5b1. The system informs the user that the product could not be deleted due to a server error and displays the relevant error message.
 
 ### **3.4. Screen Mockups**
 
@@ -238,20 +246,20 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 
 1. **Product Database Size**  
    - **Description**: The app should be able to recognize and retrieve eco-scores for at least 100,000 distinct products.  
-   - **Justification**: A large product database is crucial so that users can receive eco-scores and sustainability information from scanned products. A large product database also improves the quality of product recommendations by allowing comparisons across more products with eco-scores.  
+   - **Justification**: A large product database is essential for providing users with accurate eco-scores and sustainability information for scanned products. Additionally, it enhances the quality of product recommendations by enabling comparisons across a broader range of products with eco-scores.  
 
 <a name="nfr2"></a>
 
 2. **Product Information Response Time**  
-   - **Description**: Product details, including eco-scores, sustainability information, and recommendations, should be displayed within five seconds of scanning.  
-   - **Justification**: Quick retrieval of product information is important to allow users to make informed purchase decisions in real time.
+   - **Description**: Product details, including eco-scores, sustainability information, and recommendations, should be displayed within five seconds of scanning.
+   - **Justification**: Quick retrieval of product information is important to allow users to make informed purchase decisions in real time and provide recommendations for more eco-friendly products.
 
 ## 4. Designs Specification	
 
 ### **4.1. Main Components**
 
 1. **Products**  
-    - **Purpose**: The Products component is responsible for managing product data, including retrieval, storage, and recommendation generation based on eco-scores and categories. It integrates with MongoDB for caching and the OpenFoodFacts API for missing product details.   
+    - **Purpose**: The products component is responsible for managing product data, including retrieval, storage, and recommendation generation based on eco-scores and categories. It integrates with MongoDB for caching and the OpenFoodFacts API for missing product details.   
     - **Interfaces**:   
         1. **`Product fetchProductById(String product_id)`**  
             - **Purpose:** Retrieves product details and recommendations from the products database for a product with the specified ID. If the product is not found locally, it queries the OpenFoodFacts API, updates the product database with the retrieved information, and returns the result.  
