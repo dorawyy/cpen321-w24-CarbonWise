@@ -18,7 +18,7 @@ const app = express();
 app.use(express.json());
 app.use(morgan('tiny'));
 
-app.use(session({ secret: process.env.JWT_SECRET as string, resave: false, saveUninitialized: false }));
+app.use(session({ secret: process.env.JWT_SECRET!, resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -53,11 +53,8 @@ Routes.forEach((route) => {
 
 client.connect().then(() => {
     console.log("MongoDB Client Connected");
-
-    app.listen(process.env.PORT, () => {
-        console.log("Listening on port " + process.env.PORT);
-    });
+    app.listen(process.env.PORT);
+    
 }).catch(err => {
-    console.error(err);
     client.close();
 })

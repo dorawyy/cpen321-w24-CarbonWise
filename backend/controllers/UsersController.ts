@@ -18,7 +18,7 @@ export class UsersController {
 
         // Check if product exists and has required fields
         const product = await productCollection.findOne({ _id: product_id });
-        if (!product || !product.product_name || !product.ecoscore_grade || !product.ecoscore_score || !product.ecoscore_data || !product.categories_tags || !product.categories_hierarchy) {
+        if (!product?.product_name || !product.ecoscore_grade || !product.ecoscore_score || !product.ecoscore_data || !product.categories_tags || !product.categories_hierarchy) {
             return res.status(404).send({message: "Product not found"});
         }
 
@@ -31,7 +31,7 @@ export class UsersController {
         };
 
         await historyCollection.updateOne(
-            { user_uuid: user_uuid },
+            { user_uuid },
             { 
                 $push: { products: historyEntry } 
             },
@@ -83,7 +83,7 @@ export class UsersController {
         const historyCollection = client.db("users_db").collection<History>("history");
 
         const result = await historyCollection.updateOne(
-            { user_uuid: user_uuid },
+            { user_uuid },
             { $pull: { products: { scan_uuid: scan_uuid as string } } }
         );
 
@@ -105,8 +105,8 @@ export class UsersController {
         const userCollection = client.db("users_db").collection<User>("users");
 
         const result = await userCollection.updateOne(
-            { user_uuid: user_uuid },
-            { $set: { fcm_registration_token: fcm_registration_token } },
+            { user_uuid },
+            { $set: { fcm_registration_token } },
             { upsert: true }
         );
         
@@ -165,7 +165,7 @@ export class UsersController {
 
         const historyCollection = client.db("users_db").collection<History>("history");
 
-        const userHistory = await historyCollection.findOne({ user_uuid: user_uuid });
+        const userHistory = await historyCollection.findOne({ user_uuid });
         if (userHistory && userHistory.products.length > 0) {
             const recentProducts = userHistory.products
                 .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -196,7 +196,7 @@ export class UsersController {
 export async function getHistoryByUserUUID(user_uuid: string, timestamp?: string) {
     const historyCollection = client.db("users_db").collection<History>("history");
 
-    const query: any = { user_uuid: user_uuid };
+    const query: any = { user_uuid };
     if (timestamp) {
         query["products.timestamp"] = { $gt: new Date(timestamp) };
     }
@@ -209,7 +209,7 @@ export async function getHistoryByUserUUID(user_uuid: string, timestamp?: string
 async function updateEcoscoreAverage(user_uuid: string) {
     const historyCollection = client.db("users_db").collection<History>("history");
 
-    const userHistory = await historyCollection.findOne({ user_uuid: user_uuid });
+    const userHistory = await historyCollection.findOne({ user_uuid });
     if (userHistory && userHistory.products.length > 0) {
         const recentProducts = userHistory.products
             .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -229,7 +229,7 @@ async function updateEcoscoreAverage(user_uuid: string) {
         const averageEcoscore = productCount > 0 ? totalEcoscore / productCount : 0;
 
         await historyCollection.updateOne(
-            { user_uuid: user_uuid },
+            { user_uuid },
             { $set: { ecoscore_score: averageEcoscore } }
         );
     }

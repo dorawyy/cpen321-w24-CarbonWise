@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { client } from "../services";
-import { Collection } from "mongodb";
+import { Collection, Filter } from "mongodb";
 import axios from "axios";
 import { Buffer } from "buffer";
 import { Product } from "../types";
@@ -21,7 +21,7 @@ export class ProductsController {
 
             // Fetch product data
             const baseProduct = await fetchProductById(product_id);
-            if (!baseProduct || !baseProduct.categories_hierarchy || !baseProduct.categories_tags) {
+            if (!baseProduct?.categories_hierarchy || !baseProduct.categories_tags) {
                 return res.status(404).json({ message: "Product not found or missing required fields." });
             }
 
@@ -39,7 +39,7 @@ export class ProductsController {
                     requestedLanguages.length === 0 || requestedLanguages.some(lang => tag.startsWith(`${lang}:`))
                 );
 
-                let query: any = {
+                let query: Filter<Product> = {
                     _id: { $ne: product_id },
                     categories_tags: { $all: tagsToUse },
                     ecoscore_score: { $exists: true },
@@ -85,12 +85,12 @@ export class ProductsController {
             const recommendationsWithImages = await Promise.all(
                 matchingProducts.slice(0, RESULT_LIMIT).map(async (product) => {
                     const productImage = await fetchProductImageById(product._id);
-                    return { ...product, image: productImage || null };
+                    return { ...product, image: productImage ?? null };
                 })
             );
 
             return res.status(200).json({
-                product: { ...baseProduct, image: baseProductImage || null },
+                product: { ...baseProduct, image: baseProductImage ?? null },
                 recommendations: recommendationsWithImages
             });
         } catch (error) {
