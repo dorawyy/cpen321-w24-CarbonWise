@@ -88,8 +88,10 @@ class InfoFragment : Fragment() {
                     fetchProductInfo(upcCode, retryCount - 1)
                 } else {
                     Log.e("InfoFragment", "API request failed after retries", e)
-                    requireActivity().runOnUiThread {
-                        binding.progressBar.visibility = View.GONE
+                    activity?.runOnUiThread {
+                        if (isAdded && _binding != null) {
+                            binding.progressBar.visibility = View.GONE
+                        }
                     }
                 }
             }
@@ -98,7 +100,7 @@ class InfoFragment : Fragment() {
                 response.use {
                     if (!response.isSuccessful) {
                         Log.e("InfoFragment", "Unexpected response: ${response.code()}")
-                        requireActivity().runOnUiThread {
+                        activity?.runOnUiThread {
                             if (isAdded && _binding != null) {
                                 binding.progressBar.visibility = View.GONE
                                 binding.errorText.visibility = View.VISIBLE
@@ -114,17 +116,19 @@ class InfoFragment : Fragment() {
                     if (responseBody != null) {
                         try {
                             val json = JSONObject(responseBody)
-                            requireActivity().runOnUiThread {
+                            activity?.runOnUiThread {
                                 if (isAdded && _binding != null) {
                                     updateUI(json)
                                 }
                             }
                         } catch (e: Exception) {
                             Log.e("InfoFragment", "Error parsing JSON", e)
-                            requireActivity().runOnUiThread {
-                                binding.progressBar.visibility = View.GONE
-                                binding.errorText.visibility = View.VISIBLE
-                                binding.errorText.text = "Error processing product data."
+                            activity?.runOnUiThread {
+                                if (isAdded && _binding != null) {
+                                    binding.progressBar.visibility = View.GONE
+                                    binding.errorText.visibility = View.VISIBLE
+                                    binding.errorText.text = "Error processing product data."
+                                }
                             }
                         }
                     }

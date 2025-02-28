@@ -16,4 +16,9 @@
         android:icon="@drawable/icon_friends_24dp"
         android:title="@string/title_friends" />
 
+    <item
+        android:id="@+id/navigation_logout"
+        android:title="Log Out"
+        android:icon="@drawable/icon_login_24dp"/>
+
 </menu>

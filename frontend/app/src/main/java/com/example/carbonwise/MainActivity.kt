@@ -76,7 +76,6 @@ class MainActivity : AppCompatActivity() {
         val navGraph = navInflater.inflate(navGraphResId)
         navController.graph = navGraph
 
-        // Setup bottom navigation based on login state
         binding.navView.menu.clear()
         val bottomMenuResId = if (isUserLoggedIn) {
             R.menu.bottom_nav_menu_user
@@ -84,23 +83,10 @@ class MainActivity : AppCompatActivity() {
             R.menu.bottom_nav_menu_guest
         }
         binding.navView.inflateMenu(bottomMenuResId)
-        binding.navView.setupWithNavController(navController)
 
-        binding.navView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_scan -> {
-                    val navController = findNavController(R.id.nav_host_fragment_activity_main)
-                    navController.popBackStack(R.id.navigation_scan, true)
-                    navController.navigate(R.id.navigation_scan)
-                    true
-                }
-                else -> {
-                    navController.navigate(item.itemId)
-                    true
-                }
-            }
-        }
+        binding.navView.setupWithNavController(navController)
     }
+
 
     fun switchToLoggedInMode() {
         isUserLoggedIn = true
@@ -115,6 +101,47 @@ class MainActivity : AppCompatActivity() {
         binding.navView.menu.clear()
         binding.navView.inflateMenu(R.menu.bottom_nav_menu_user)
         binding.navView.setupWithNavController(navController)
+    }
+
+    fun logout() {
+        isUserLoggedIn = false
+        clearToken(this)
+
+        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        val navInflater = navController.navInflater
+        val navGraph = navInflater.inflate(R.navigation.mobile_navigation_guest)
+        navController.graph = navGraph
+
+        binding.navView.menu.clear()
+        binding.navView.inflateMenu(R.menu.bottom_nav_menu_guest)
+        binding.navView.setupWithNavController(navController)
+
+        binding.navView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_logout -> {
+                    showLogoutConfirmationDialog()
+                    true
+                }
+                else -> {
+                    navController.navigate(item.itemId)
+                    true
+                }
+            }
+        }
+    }
+
+
+    private fun showLogoutConfirmationDialog() {
+        val builder = android.app.AlertDialog.Builder(this)
+        builder.setTitle("Log Out")
+        builder.setMessage("Are you sure you want to log out?")
+        builder.setPositiveButton("Yes") { _, _ ->
+            logout()
+        }
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.dismiss()
+        }
+        builder.show()
     }
 
     companion object {
@@ -145,9 +172,11 @@ class MainActivity : AppCompatActivity() {
             val sharedPref = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             with(sharedPref.edit()) {
                 remove(TOKEN_KEY)
+                remove(JWT_TOKEN_KEY)
                 apply()
             }
         }
+
     }
 
     private val requestPermissionLauncher = registerForActivityResult(
