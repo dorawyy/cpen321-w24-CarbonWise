@@ -80,4 +80,10 @@
 
     </fragment>
 
+    <fragment
+        android:id="@+id/navigation_logout"
+        android:name="com.example.carbonwise.ui.login.LogoutFragment"
+        android:label="Logging Out"
+        tools:layout="@layout/fragment_logout" />
+
 </navigation>

@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.carbonwise.MainActivity
+import com.example.carbonwise.R
 import com.example.carbonwise.databinding.FragmentInfoBinding
 import okhttp3.*
 import org.json.JSONObject
@@ -64,7 +65,7 @@ class InfoFragment : Fragment() {
         return binding.root
     }
 
-    private fun fetchProductInfo(upcCode: String, retryCount: Int = 3) {
+    private fun fetchProductInfo(upcCode: String, retryCount: Int = 1) {
         val jwtToken = MainActivity.getJWTToken(requireContext())
 
         val url = if (jwtToken.isNullOrBlank()) {
@@ -87,8 +88,10 @@ class InfoFragment : Fragment() {
                     fetchProductInfo(upcCode, retryCount - 1)
                 } else {
                     Log.e("InfoFragment", "API request failed after retries", e)
-                    requireActivity().runOnUiThread {
-                        binding.progressBar.visibility = View.GONE
+                    activity?.runOnUiThread {
+                        if (isAdded && _binding != null) {
+                            binding.progressBar.visibility = View.GONE
+                        }
                     }
                 }
             }
@@ -97,20 +100,36 @@ class InfoFragment : Fragment() {
                 response.use {
                     if (!response.isSuccessful) {
                         Log.e("InfoFragment", "Unexpected response: ${response.code()}")
+                        activity?.runOnUiThread {
+                            if (isAdded && _binding != null) {
+                                binding.progressBar.visibility = View.GONE
+                                binding.errorText.visibility = View.VISIBLE
+                                binding.errorText.text = "Failed to load product info."
+                            }
+                        }
                         return
                     }
 
                     val responseBody = response.body()?.string()
-                    Log.d("InfoFragment", "Raw API Response: $responseBody")  // <-- Log raw API response
+                    Log.d("InfoFragment", "Raw API Response: $responseBody")
 
                     if (responseBody != null) {
                         try {
                             val json = JSONObject(responseBody)
-                            requireActivity().runOnUiThread {
-                                updateUI(json)
+                            activity?.runOnUiThread {
+                                if (isAdded && _binding != null) {
+                                    updateUI(json)
+                                }
                             }
                         } catch (e: Exception) {
                             Log.e("InfoFragment", "Error parsing JSON", e)
+                            activity?.runOnUiThread {
+                                if (isAdded && _binding != null) {
+                                    binding.progressBar.visibility = View.GONE
+                                    binding.errorText.visibility = View.VISIBLE
+                                    binding.errorText.text = "Error processing product data."
+                                }
+                            }
                         }
                     }
                 }
@@ -195,7 +214,11 @@ class InfoFragment : Fragment() {
                 Log.e("InfoFragment", "Decoded bytes are empty.")
             } else {
                 val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-                binding.centerImage.setImageBitmap(bitmap)
+                if (bitmap != null) {
+                    binding.centerImage.setImageBitmap(bitmap)
+                } else {
+                    binding.centerImage.setImageResource(R.drawable.ic_placeholder)
+                }
             }
         } catch (e: IllegalArgumentException) {
             Log.e("InfoFragment", "Failed to decode base64 image", e)

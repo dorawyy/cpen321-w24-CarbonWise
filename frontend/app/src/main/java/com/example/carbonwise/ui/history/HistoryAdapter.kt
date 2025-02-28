@@ -1,12 +1,12 @@
 package com.example.carbonwise.ui.history
 
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.carbonwise.R
 import com.example.carbonwise.databinding.ItemProductBinding
 import com.example.carbonwise.network.ProductItem
 
@@ -49,8 +49,12 @@ class HistoryAdapter(
             } else {
                 try {
                     val decodedBytes = Base64.decode(base64String, Base64.DEFAULT)
-                    val bitmap: Bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-                    binding.imageProduct.setImageBitmap(bitmap)
+                    val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+                    if (bitmap != null) {
+                        binding.imageProduct.setImageBitmap(bitmap)
+                    } else {
+                        binding.imageProduct.setImageResource(R.drawable.ic_placeholder)
+                    }
                 } catch (e: IllegalArgumentException) {
                     binding.imageProduct.setImageResource(android.R.drawable.ic_menu_report_image)
                 }

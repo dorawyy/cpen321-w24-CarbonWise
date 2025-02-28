@@ -33,6 +33,7 @@ import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.AddToHistoryRequest
 import com.example.carbonwise.MainActivity
 import com.example.carbonwise.ui.history.HistoryCacheManager
+import com.example.carbonwise.R
 
 class ScanFragment : Fragment() {
 
@@ -76,7 +77,6 @@ class ScanFragment : Fragment() {
         lastScannedResult = null
         isDialogDisplayed = false
         isScanningLocked = false
-        binding.textScan.text = "Waiting for scan..."
     }
 
     private fun requestCameraPermission() {
@@ -86,7 +86,7 @@ class ScanFragment : Fragment() {
             if (isGranted) {
                 startCamera()
             } else {
-                Toast.makeText(requireContext(), "Camera permission denied", Toast.LENGTH_SHORT).show()
+                showPermissionDeniedMessage()
             }
         }
 
@@ -97,6 +97,17 @@ class ScanFragment : Fragment() {
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
+
+    private fun showPermissionDeniedMessage() {
+        binding.previewView.visibility = View.GONE
+        binding.barcodeOverlay.visibility = View.GONE
+        binding.barcodeBox.visibility = View.GONE
+        binding.buttonFlash.visibility = View.GONE
+        binding.textScan.visibility = View.VISIBLE
+        binding.textScan.text = "Camera permission is required to scan barcodes. Please enable it in Settings."
+    }
+
+
 
     private fun startCamera() {
         val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
@@ -158,11 +169,10 @@ class ScanFragment : Fragment() {
         val mediaImage = imageProxy.image ?: return
         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
 
-        // Check for null binding safely
-        val binding = binding ?: return // If binding is null, return early
-
         barcodeScanner.process(image)
             .addOnSuccessListener { barcodes ->
+                if (!isAdded) return@addOnSuccessListener
+
                 for (barcode in barcodes) {
                     var rawValue = barcode.rawValue
                     if (rawValue != null) {
@@ -170,10 +180,14 @@ class ScanFragment : Fragment() {
                             rawValue = "0$rawValue"
                         }
 
-                        if (rawValue != lastScannedResult) {
+                        if (rawValue != lastScannedResult && !isScanningLocked) {
+                            isScanningLocked = true
                             lastScannedResult = rawValue
-                            binding.textScan.text = "Scanned: $rawValue"
-                            showConfirmationDialog(rawValue)
+
+                            binding?.let {
+                                it.textScan.text = "Scanned: $rawValue"
+                                showConfirmationDialog(rawValue)
+                            }
                         }
                     }
                 }
@@ -186,9 +200,8 @@ class ScanFragment : Fragment() {
             }
     }
 
-
     private fun showConfirmationDialog(barcode: String) {
-        if (isDialogDisplayed) return
+        if (!isAdded || isDialogDisplayed) return  // 🔹 Prevent crashes if fragment is destroyed
 
         isDialogDisplayed = true
 
@@ -198,14 +211,17 @@ class ScanFragment : Fragment() {
             builder.setMessage("Scan result: $barcode\nDo you want to proceed?")
 
             builder.setPositiveButton("Accept") { _, _ ->
-                // Add the barcode to history here
                 addToHistory(barcode)
+
+                binding?.let {
+                    if (findNavController().currentDestination?.id == R.id.navigation_scan) {
+                        val action = ScanFragmentDirections.actionScanFragmentToInfoFragment(barcode)
+                        findNavController().navigate(action)
+                    }
+                } ?: Log.w("ScanFragment", "Binding is null, skipping navigation")
 
                 isDialogDisplayed = false
                 isScanningLocked = false
-                val action = ScanFragmentDirections.actionScanFragmentToInfoFragment(barcode)
-                Log.d("ScanFragment", "Navigating to InfoFragment with barcode: $barcode")
-                findNavController().navigate(action)
             }
 
             builder.setNegativeButton("Cancel") { dialog, _ ->
@@ -229,7 +245,6 @@ class ScanFragment : Fragment() {
     private fun addToHistory(barcode: String) {
         val token = MainActivity.getJWTToken(requireContext())
         if (token.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "No token found", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -249,9 +264,6 @@ class ScanFragment : Fragment() {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if (response.isSuccessful) {
                     HistoryCacheManager.invalidateCache(requireContext())
-                    Toast.makeText(requireContext(), "Item added to history", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(requireContext(), "Failed to add item to history", Toast.LENGTH_SHORT).show()
                 }
             }
 
