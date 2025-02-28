@@ -262,23 +262,29 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
     - **Purpose**: The products component is responsible for managing product data, including retrieval, storage, and recommendation generation based on eco-scores and categories. It integrates with MongoDB for caching and the OpenFoodFacts API for missing product details.   
     - **Interfaces**:   
         1. **`Product fetchProductById(String product_id)`**  
-            - **Purpose:** Retrieves product details and recommendations from the products database for a product with the specified ID. If the product is not found locally, it queries the OpenFoodFacts API, updates the product database with the retrieved information, and returns the result.  
+            - **Purpose:** Retrieves product details and recommendations from the products database for a product with the specified ID. If the product is not found in the product database, the server queries the OpenFoodFacts API, updates the product database with the retrieved information, and returns the result.  
             - **Parameters:**  
                 - `product_id` (String): The barcode of the product  
             - **Returns:**   
-                - The retrieved product data or `null` if not found.  
+                - The retrieved product data or an error if not found.  
         2. **`String fetchProductImageById(String product_id)`**  
             - **Purpose:** Fetches a product image from the OpenFoodFacts API given a product identifier.  
             - **Parameters:**  
                 - `product_id` (String): The barcode of the product.  
             - **Returns:**   
-                - A base64-encoded version of the product image or `null` if not found.  
-        3. **`GET /products/{product\_id}`**  
+                - A base64-encoded version of the product image or an error if not found.  
+        3. **`Pair<String, int> fetchEcoscoresByProductId(product_id: string)`**  
+            - **Purpose:** Retrieves a product’s eco-score and eco-grade.   
+            - **Parameters:**  
+                - `product_id` (String): The barcode of the product.  
+            - **Returns:**   
+                - The eco-score and eco-grade on success, or an error message on failure.
+        4. **`GET /products/{product\_id}`**  
             - **Purpose:** Retrieves a product’s eco-score, sustainability information, image, and recommendations.   
             - **Parameters:**  
-            - `product_id` (String): The barcode of the product.  
+                - `product_id` (String): The barcode of the product.  
             - **Returns:**   
-            - Product information, recommendations, and base64-encoded images on success; an error message on failure.
+                - Product information, recommendations, and base64-encoded images on success, or an error message on failure.
 
 2. **Users**  
     - **Purpose**: The Users component manages user authentication, Firebase Cloud Messaging (FCM) registration tokens, and product history tracking.
@@ -298,35 +304,44 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 - A JWT token containing user details on success, an error message on failure.  
         3. **`POST /users/history`**  
             - **Purpose:** Add a scanned product to a user’s history.  
+            - **Requires:** 
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.   
             - **Parameters:**  
                 - `product_id` (String): The barcode of the product.  
-                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**   
                 - The unique identifier of the added product in the user’s history.  
         4. **`GET /users/history`**  
             - **Purpose:** Retrieves a user’s product history.  
-            - **Parameters:**  
+            - **Requires:** 
                 - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**   
                 - Product details, scan timestamps, and scan unique identifiers on success; an error message on failure.  
         5. **`DELETE /users/history`**  
             - **Purpose:** Removes a scanned product from a user’s history.  
+            - **Requires:** 
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Parameters:**  
                 - `scan_uuid` (String): The unique identifier of the scan entry to be removed.  
-                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
-            - **Returns:**   
+            - **Returns:**    
                 - Confirmation message or an error response.  
         6. **`GET /users/uuid`**  
             - **Purpose:** Retrieves the UUID of the authenticated user, enabling other users to send friend requests.  
-            - **Parameters:**  
+            - **Requires:**  
                 - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**   
                 - The authenticated user's UUID on success, an error response on failure.  
-        7. **`POST /users/fcm_registration_token`**  
+        7. **`GET /users/ecoscore_score`**  
+            - **Purpose:** Retrieves the average eco-score of the user's recent products.  
+            - **Requires:**  
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**
+                - The average eco-score of the user's recent products on success, or an error response on failure.
+        8. **`POST /users/fcm_registration_token`**  
             - **Purpose:** Updates the Firebase Cloud Messaging (FCM) registration token for push notifications.  
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Parameters:**  
                 - `fcm_registration_token` (String): The new FCM registration token.  
-                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**   
                 - Confirmation message or an error response.
 
@@ -335,92 +350,98 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
     - **Interfaces**:   
         1. **`POST /friends/requests`**  
             - **Purpose:** Sends a friend request to another user.  
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Parameters:**  
                 - `user_uuid` (String): The UUID of the user to send a friend request to.  
-                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**   
                 - Confirmation message or an error response.  
         2. **`POST /friends/requests/accept`**  
             - **Purpose:** Accepts an incoming friend request.  
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Parameters:**  
                 - `user_uuid` (String): The UUID of the user whose friend request is being accepted.  
-                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**   
                 - Confirmation message or an error response.  
         3. **`DELETE /friends`**  
             - **Purpose:** Removes a friend from the user's friend list.  
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Parameters:**  
                 - `user_uuid` (String): The UUID of the friend to be removed.  
-                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**   
                 - Confirmation message or an error response.  
         4. **`DELETE /friends/requests`**  
             - **Purpose:** Rejects a pending friend request.  
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Parameters:**  
                 - `user_uuid` (String): The UUID of the user whose request is being rejected.  
-                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**   
                 - Confirmation message or an error response.  
-        5. **`GET /friends/history`**  
+        5. **`GET /friends/requests`**  
+            - **Purpose:** Retrieves a user's pending friend requests.  
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**      
+                - A list of pending friend requests on success, or an error message on failure.  
+        6. **`GET /friends/history`**  
             - **Purpose:** Retrieves product history for all friends.  
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Parameters:**  
                 - `timestamp` (String, optional): ISO 8601 formatted timestamp to filter history entries.  
-                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**   
                 - Friends product histories and product details on success, or an error message on failure.  
-        6. **`GET /friends/history/{user_uuid}`**  
-            - **Purpose:** Retrieves product history for a specific friend.  
-            - **Parameters:**  
-                - `user_uuid` (String): The UUID of the friend whose history is being retrieved.  
-                - `timestamp` (String, optional): ISO 8601 formatted timestamp to filter history entries.  
-                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
-            - **Returns:**   
-                - Friend product history and product details on success, or an error message on failure.  
         7. **`GET /friends/history/{user_uuid}`**  
-        - **Purpose:** Retrieves product history for a specific friend.  
+            - **Purpose:** Retrieves product history for a specific friend.  
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Parameters:**  
                 - `user_uuid` (String): The UUID of the friend whose history is being retrieved.  
                 - `timestamp` (String, optional): ISO 8601 formatted timestamp to filter history entries.  
-                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**   
                 - Friend product history and product details on success, or an error message on failure.  
         8. **`GET /friends`**  
             - **Purpose:** Retrieves the list of current friends.  
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Parameters:**  
                 - `user_uuid` (String): The UUID of the friend whose history is being retrieved.  
                 - `timestamp` (String, optional): ISO 8601 formatted timestamp to filter history entries.  
-                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**   
                 - List of a user’s friends including their names and user unique identifiers.  
         9. **`POST /friends/notifications`**  
             - **Purpose:** Sends a Firebase Cloud Messaging (FCM) notification to a friend about a product.  
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Parameters:**  
                 - `user_uuid` (String): The UUID of the friend to notify.  
                 - `scan_uuid` (String): The unique identifier of the scanned product in history.  
                 - `message_type` (String): Either "praise" or "shame".  
-                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**   
                 - Confirmation message or an error response.
 
 ### **4.2. Databases**
 
 1. **User Database (MongoDB)**  
-   - **Purpose:** Stores user information, authentication details, and friend connections. It also manages user product history, Firebase Cloud Messaging (FCM) registration tokens, and interaction tracking.  
-   - Collections:  
-     - **`users`** – Contains user profiles, authentication credentials, and FCM tokens.  
-     - **`history`** – Stores scanned product entries for each user, including timestamps and eco-score data.  
-     - **`friends`** – Tracks friend relationships, incoming friend requests, and user interactions.  
+    - **Purpose:** Stores user information, authentication details, and friend connections, manages user product history, and Firebase Cloud Messaging (FCM) registration tokens.
+    - Collections:  
+        - **`users`** – Contains user profiles, authentication credentials, and FCM tokens.  
+        - **`history`** – Stores scanned product IDs and timestamps for each user.  
+        - **`friends`** – Tracks friend relationships, incoming friend requests, and user interactions.  
 2. **Product Database (MongoDB)**  
-    - **Purpose:** Maintains product data, including eco-scores, sustainability insights, and recommendations. It integrates with the OpenFoodFacts API to fetch missing product information.  
+    - **Purpose:** Stores product data, including eco-scores and sustainability insights. It integrates with the OpenFoodFacts API to fetch missing product information. Recommendations are done on this database, but it does not store recommendations.
     - Collections:  
         - **`products`** – Stores product details such as names, categories, eco-scores, and images.
 
 ### **4.3. External Modules**
 
 1. **Open Food Facts API**  
-   - **Purpose**: Provides access to product information, including eco-scores and sustainability data, through barcode-based lookups. The Open Food Facts API offers a MongoDB data dump for initial database population and is then queried dynamically to ensure products are up-to-date in our MongoDB database.  
+   - **Purpose**: Provides access to product information, including eco-scores and sustainability data, through barcode-based lookups. The Open Food Facts API offers a MongoDB data dump for initial database population and is then queried dynamically to ensure products are up-to-date in our MongoDB database.
 2. **Google OAuth API**  
-    - **Purpose**: Enables secure authentication by validating user identities with Google ID tokens. These tokens are exchanged for JWTs that contain a unique identifier for the user in the users database allowing for us to verify their identity and authenticate them.
+    - **Purpose**: Enables authentication by validating user identities with Google ID tokens. These tokens are exchanged for JWTs that contain a unique identifier for the user in the users database allowing to verify their identity and authenticate them.
 
 ### **4.4. Frameworks**
 
@@ -457,7 +478,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 ### **4.7. Non-Functional Requirements Design**
 
 1. [**Product Database Size**](#nfr1)
-   - **Validation:** The app will maintain a large product catalog by integrating the Open Food Facts MongoDB dump for initial population and querying their API for updates. Testing will verify that at least 100,000 products fit the criteria and have all required eco-scores and sustainability information.  
+   - **Validation:** The app will maintain a large product catalog by integrating the Open Food Facts MongoDB dump for initial population and querying the OpenFoodFacts API for updates. Testing will verify that at least 100,000 products fit the criteria and have all required eco-scores and sustainability information.  
 2. [**Product Information Response Time**](#nfr2)
    - **Validation:** The backend will use MongoDB indexing to speed up database retrievals and optimize product queries for recommendations. Testing will measure the time taken to retrieve and display product details after scanning, ensuring responses are consistently delivered within five seconds under normal network conditions.
 
@@ -465,7 +486,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 
 1. **Product Recommendation Algorithm**
     - **Description**: Our recommendation algorithm suggests sustainable alternatives when a user scans a product. It identifies similar products and ranks them based on their eco-scores while considering user preferences such as language and country.  
-    - **Why complex?**: The challenge lies in defining product similarity, as products may differ in characteristics, branding, or ingredients but serve the same purpose. Additionally, the system must prioritize eco-friendly choices while ensuring performance remains fast enough for real-time recommendations despite a database of millions of products.  
+    - **Why complex?**: The challenge lies in defining product similarity, as products may differ in characteristics, branding, or ingredients but serve the same purpose. Additionally, the system must prioritize eco-friendly choices while ensuring performance remains fast enough for real-time recommendations despite a database of hundreds of thousands of products.  
     - **Design**:  
         - **Input**: A product ID (barcode number).  
         - **Output**: A ranked list of recommended products and their information.  
@@ -506,14 +527,14 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 refineSearch(search_features)  
             
             # Rank the candidates based on their eco-scores
-            ranked_candidates = []  
+            recommendations = []  
             for candidate in candidates:  
                 score = computeFinalScore(candidate, product)  
-                ranked_candidates.append((candidate, score))  
+                recommendations.append((candidate, score))  
             
-            ranked_candidates.sortByScore()  
+            recommendations.sortByScore()   
             
-            return formatResponse(product, ranked_candidates)
+            return recommendations
         ```
 
 ## 5. Contributions
