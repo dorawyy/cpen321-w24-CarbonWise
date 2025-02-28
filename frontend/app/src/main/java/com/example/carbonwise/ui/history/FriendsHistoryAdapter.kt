@@ -88,7 +88,9 @@ class FriendsHistoryAdapter(
     override fun getItemCount(): Int = productList.size
 
     fun submitList(historyItems: List<HistoryItem>) {
-        productList = historyItems.flatMap { it.products }
+        productList = historyItems
+            .flatMap { it.products }
+            .sortedByDescending { it.timestamp }
         notifyDataSetChanged()
     }
 }

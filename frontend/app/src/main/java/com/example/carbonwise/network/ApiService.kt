@@ -100,5 +100,11 @@ interface ApiService {
         @Header("token") token: String
     ): Call<EcoscoreResponse>
 
+    @GET("friends/ecoscore_score/{user_uuid}")
+    fun getFriendEcoscore(
+        @Header("token") token: String,
+        @Path("user_uuid") friendUuid: String,
+        ): Call<EcoscoreResponse>
+
 
 }

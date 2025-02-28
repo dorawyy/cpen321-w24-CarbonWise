@@ -17,9 +17,12 @@ import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.FCMTokenManager
 import com.example.carbonwise.ui.friends.FriendsViewModel
 import com.example.carbonwise.ui.history.HistoryCacheManager
+import okhttp3.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.google.firebase.messaging.FirebaseMessaging
+import org.json.JSONObject
+import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
@@ -53,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         retrieveFCMToken()
 
         if (isUserLoggedIn) {
+            refreshJWTToken(token)
             HistoryCacheManager.fetchHistoryInBackground(this)
         }
     }
@@ -90,7 +94,6 @@ class MainActivity : AppCompatActivity() {
 
     fun switchToLoggedInMode() {
         isUserLoggedIn = true
-        saveToken(this, "dummy_token")
 
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
         val navInflater = navController.navInflater
@@ -229,6 +232,54 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun refreshJWTToken(googleIdToken: String) {
+        val url = "https://api.cpen321-jelx.com/auth/google"
+        val jsonBody = """
+    {
+        "google_id_token": "$googleIdToken"
+    }
+    """.trimIndent()
+
+        val requestBody = RequestBody.create(MediaType.get("application/json"), jsonBody)
+        val request = Request.Builder()
+            .url(url)
+            .post(requestBody)
+            .build()
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("MainActivity", "JWT refresh failed: ${e.message}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (it.isSuccessful) {
+                        val responseBody = it.body()?.string()
+                        val jsonObject = JSONObject(responseBody ?: "")
+                        val newJwtToken = jsonObject.optString("token")
+
+                        if (newJwtToken.isNotEmpty()) {
+                            saveJWTToken(this@MainActivity, newJwtToken)
+                            Log.d("MainActivity", "JWT Token refreshed successfully")
+                        } else {
+                            Log.e("MainActivity", "Failed to extract JWT token from response")
+                        }
+                    } else {
+                        Log.e("MainActivity", "JWT refresh request failed with code: ${it.code()}")
+                    }
+                }
+            }
+        })
+    }
+
+    private fun saveJWTToken(context: Context, jwtToken: String) {
+        val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("jwt_token", jwtToken)
+            apply()
+        }
+    }
 
 
 }
