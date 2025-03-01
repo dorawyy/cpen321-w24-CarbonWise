@@ -38,7 +38,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 2. The system requests camera permissions if not previously granted.  
                 3. User or guest user grants camera permissions if requested.  
                 4. User or guest user scans a barcode using the device camera.  
-                5. The system retrieves and displays the eco-score and sustainability information for the scanned product, with product recommendations shown only for Users.
+                5. The system retrieves and displays an eco-score, sustainability information, and product recommendations for the scanned product.
                 6. The system adds the scanned product to the user’s history if the user is authenticated.
             - **Failure scenario(s)**:  
                 - 3a. User denies camera permissions.  
