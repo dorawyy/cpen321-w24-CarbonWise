@@ -1,9 +1,12 @@
 package com.example.carbonwise
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.pm.PackageManager
 import android.os.Build
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
@@ -64,8 +67,16 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (isUserLoggedIn) {
+            registerReceiver(broadcastReceiver, IntentFilter("UPDATE_FRIENDS"),
+                RECEIVER_NOT_EXPORTED
+            )
             HistoryCacheManager.fetchHistoryInBackground(this)
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(broadcastReceiver)
     }
 
     private fun setupNavigation() {
@@ -89,11 +100,30 @@ class MainActivity : AppCompatActivity() {
         binding.navView.inflateMenu(bottomMenuResId)
 
         binding.navView.setupWithNavController(navController)
+
+        // Ensure correct navigation behavior for bottom nav bar clicks
+        binding.navView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_history -> {
+                    if (navController.currentDestination?.id != R.id.navigation_history) {
+                        navController.navigate(R.id.navigation_history)
+                    }
+                    true
+                }
+                else -> {
+                    navController.navigate(item.itemId)
+                    true
+                }
+            }
+        }
     }
+
 
 
     fun switchToLoggedInMode() {
         isUserLoggedIn = true
+
+        retrieveFCMToken()
 
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
         val navInflater = navController.navInflater
@@ -219,15 +249,12 @@ class MainActivity : AppCompatActivity() {
             Log.d("FCM", "FCM Token: $newToken")
 
             val sharedPref = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            val savedToken = sharedPref.getString("fcm_token", null)
 
-            if (savedToken != newToken) {  // Only send if token is different
-                FCMTokenManager.sendFCMTokenToBackend(this, newToken)
+            FCMTokenManager.sendFCMTokenToBackend(this, newToken)
 
-                with(sharedPref.edit()) {
-                    putString("fcm_token", newToken)
-                    apply()
-                }
+            with(sharedPref.edit()) {
+                putString("fcm_token", newToken)
+                apply()
             }
         }
     }
@@ -281,5 +308,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "UPDATE_FRIENDS") {
+                friendsViewModel.fetchFriends()
+                friendsViewModel.fetchFriendRequests()
+            }
+        }
+    }
 
 }
