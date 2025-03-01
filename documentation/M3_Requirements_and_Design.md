@@ -494,10 +494,10 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 2. [**Authenticate User**](#fr2)\
 ![Authenticate User Sequence Diagram](/documentation/images/authenticate_user_sequence_diagram.jpg)
 3. [**Manage Product History**](#fr3)\
-![Manage Product History Sequence Diagram](/documentation/images/manage_product_history_sequence_diagram.jpg)  
-4. [**React to a Friend**](#fr4)\
+![Manage Product History Sequence Diagram](/documentation/images/manage_product_history_sequence_diagram.jpg)
+5. [**React to a Friend**](#fr4)\
 ![React to a Friend Sequence Diagram](/documentation/images/react_to_a_friend_sequence_diagram.jpg)  
-5. [**Manage Friends**](#fr5)\
+6. [**Manage Friends**](#fr5)\
 ![Manage Friends Sequence Diagram](/documentation/images/manage_friends_sequence_diagram.jpg)
 
 ### **4.7. Non-Functional Requirements Design**
