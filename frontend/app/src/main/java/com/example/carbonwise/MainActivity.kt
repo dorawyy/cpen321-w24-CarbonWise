@@ -31,6 +31,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var isUserLoggedIn = false
+    private var isReceiverRegistered = false
+
 
     private lateinit var friendsViewModel: FriendsViewModel
 
@@ -66,18 +68,27 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (isUserLoggedIn) {
+        if (isUserLoggedIn && !isReceiverRegistered) {
+            val token = getToken(this)
+            if (token != null) {
+                refreshJWTToken(token)
+            }
             registerReceiver(broadcastReceiver, IntentFilter("UPDATE_FRIENDS"),
                 RECEIVER_NOT_EXPORTED
             )
+            isReceiverRegistered = true
             HistoryCacheManager.fetchHistoryInBackground(this)
         }
     }
 
     override fun onPause() {
         super.onPause()
-        unregisterReceiver(broadcastReceiver)
+        if (isReceiverRegistered) {
+            unregisterReceiver(broadcastReceiver)
+            isReceiverRegistered = false
+        }
     }
+
 
     private fun setupNavigation() {
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
@@ -306,6 +317,7 @@ class MainActivity : AppCompatActivity() {
             putString("jwt_token", jwtToken)
             apply()
         }
+        friendsViewModel.updateToken(jwtToken)
     }
 
     private val broadcastReceiver = object : BroadcastReceiver() {
