@@ -18,6 +18,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d("FCM", "From: ${remoteMessage.from}")
 
+        val intent = Intent("UPDATE_FRIENDS")
+        sendBroadcast(intent)
+
         remoteMessage.notification?.let {
             Log.d("FCM", "Notification Message: ${it.body}")
             showNotification(it.title, it.body)

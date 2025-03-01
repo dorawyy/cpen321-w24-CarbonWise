@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <!-- Title or Info -->
+    <TextView
+        android:id="@+id/textFriendCodeTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Your Friend Code"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <!-- Friend Code Text -->
+    <TextView
+        android:id="@+id/textFriendCode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Loading..."
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/textFriendCodeTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Copy Icon -->
+    <ImageView
+        android:id="@+id/imageClipboard"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="Copy to Clipboard"
+        android:src="@drawable/ic_copy"
+        app:layout_constraintTop_toTopOf="@+id/textFriendCode"
+        app:layout_constraintBottom_toBottomOf="@+id/textFriendCode"
+        app:layout_constraintStart_toEndOf="@+id/textFriendCode" />
+
+    <!-- Friend Code Input Field -->
+    <EditText
+        android:id="@+id/editFriendCode"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Enter Friend Code"
+        android:maxLines="1"
+        android:inputType="text"
+        app:layout_constraintTop_toBottomOf="@id/textFriendCode"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        android:minHeight="48dp"
+        />
+
+    <!-- Send Request Button -->
+    <Button
+        android:id="@+id/buttonAddFriend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Send Request"
+        app:layout_constraintTop_toBottomOf="@id/editFriendCode"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,9 +1,12 @@
 package com.example.carbonwise
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.pm.PackageManager
 import android.os.Build
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
@@ -17,9 +20,12 @@ import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.FCMTokenManager
 import com.example.carbonwise.ui.friends.FriendsViewModel
 import com.example.carbonwise.ui.history.HistoryCacheManager
+import okhttp3.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.google.firebase.messaging.FirebaseMessaging
+import org.json.JSONObject
+import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
@@ -53,6 +59,7 @@ class MainActivity : AppCompatActivity() {
         retrieveFCMToken()
 
         if (isUserLoggedIn) {
+            refreshJWTToken(token)
             HistoryCacheManager.fetchHistoryInBackground(this)
         }
     }
@@ -60,8 +67,16 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (isUserLoggedIn) {
+            registerReceiver(broadcastReceiver, IntentFilter("UPDATE_FRIENDS"),
+                RECEIVER_NOT_EXPORTED
+            )
             HistoryCacheManager.fetchHistoryInBackground(this)
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(broadcastReceiver)
     }
 
     private fun setupNavigation() {
@@ -85,12 +100,30 @@ class MainActivity : AppCompatActivity() {
         binding.navView.inflateMenu(bottomMenuResId)
 
         binding.navView.setupWithNavController(navController)
+
+        // Ensure correct navigation behavior for bottom nav bar clicks
+        binding.navView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_history -> {
+                    if (navController.currentDestination?.id != R.id.navigation_history) {
+                        navController.navigate(R.id.navigation_history)
+                    }
+                    true
+                }
+                else -> {
+                    navController.navigate(item.itemId)
+                    true
+                }
+            }
+        }
     }
+
 
 
     fun switchToLoggedInMode() {
         isUserLoggedIn = true
-        saveToken(this, "dummy_token")
+
+        retrieveFCMToken()
 
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
         val navInflater = navController.navInflater
@@ -216,19 +249,72 @@ class MainActivity : AppCompatActivity() {
             Log.d("FCM", "FCM Token: $newToken")
 
             val sharedPref = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            val savedToken = sharedPref.getString("fcm_token", null)
 
-            if (savedToken != newToken) {  // Only send if token is different
-                FCMTokenManager.sendFCMTokenToBackend(this, newToken)
+            FCMTokenManager.sendFCMTokenToBackend(this, newToken)
 
-                with(sharedPref.edit()) {
-                    putString("fcm_token", newToken)
-                    apply()
-                }
+            with(sharedPref.edit()) {
+                putString("fcm_token", newToken)
+                apply()
             }
         }
     }
 
+    private fun refreshJWTToken(googleIdToken: String) {
+        val url = "https://api.cpen321-jelx.com/auth/google"
+        val jsonBody = """
+    {
+        "google_id_token": "$googleIdToken"
+    }
+    """.trimIndent()
 
+        val requestBody = RequestBody.create(MediaType.get("application/json"), jsonBody)
+        val request = Request.Builder()
+            .url(url)
+            .post(requestBody)
+            .build()
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("MainActivity", "JWT refresh failed: ${e.message}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (it.isSuccessful) {
+                        val responseBody = it.body()?.string()
+                        val jsonObject = JSONObject(responseBody ?: "")
+                        val newJwtToken = jsonObject.optString("token")
+
+                        if (newJwtToken.isNotEmpty()) {
+                            saveJWTToken(this@MainActivity, newJwtToken)
+                            Log.d("MainActivity", "JWT Token refreshed successfully")
+                        } else {
+                            Log.e("MainActivity", "Failed to extract JWT token from response")
+                        }
+                    } else {
+                        Log.e("MainActivity", "JWT refresh request failed with code: ${it.code()}")
+                    }
+                }
+            }
+        })
+    }
+
+    private fun saveJWTToken(context: Context, jwtToken: String) {
+        val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("jwt_token", jwtToken)
+            apply()
+        }
+    }
+
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "UPDATE_FRIENDS") {
+                friendsViewModel.fetchFriends()
+                friendsViewModel.fetchFriendRequests()
+            }
+        }
+    }
 
 }

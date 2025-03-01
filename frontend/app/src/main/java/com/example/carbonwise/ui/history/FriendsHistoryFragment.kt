@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.carbonwise.databinding.FragmentHistoryBinding
 import com.example.carbonwise.MainActivity
 import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.network.EcoscoreResponse
 import com.example.carbonwise.network.HistoryItem
 import com.example.carbonwise.network.ProductNotificationRequest
 import retrofit2.*
@@ -55,8 +56,9 @@ class FriendsHistoryFragment : Fragment() {
         )
         recyclerView.adapter = historyAdapter
 
-        // Fetch friend's history
+        // Fetch friend's history and score
         fetchFriendHistory()
+        fetchFriendEcoscore()
 
         return root
     }
@@ -105,6 +107,50 @@ class FriendsHistoryFragment : Fragment() {
             Toast.makeText(context, "No friend UUID provided", Toast.LENGTH_SHORT).show()
         }
     }
+
+    private fun fetchFriendEcoscore() {
+        val token = MainActivity.getJWTToken(requireContext())
+        if (token.isNullOrEmpty() || friendUuid.isNullOrEmpty()) {
+            binding.textViewEcoscore.visibility = View.GONE
+            return
+        }
+
+        Log.d("FriendsHistoryFragment", "Fetching ecoscore for friend: $friendUuid")
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.cpen321-jelx.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val apiService = retrofit.create(ApiService::class.java)
+        val call = apiService.getFriendEcoscore(token, friendUuid!!)
+
+        call.enqueue(object : Callback<EcoscoreResponse> {
+            override fun onResponse(call: Call<EcoscoreResponse>, response: Response<EcoscoreResponse>) {
+                if (response.isSuccessful) {
+                    val ecoscore = response.body()?.ecoscoreScore
+                    if (ecoscore != null && ecoscore > 0) {
+                        Log.d("FriendsHistoryFragment", "Friend's Ecoscore fetched successfully: $ecoscore")
+                        binding.textViewEcoscore.text = "Friend's Ecoscore: $ecoscore"
+                        binding.textViewEcoscore.visibility = View.VISIBLE
+                    } else {
+                        Log.d("FriendsHistoryFragment", "No ecoscore available for friend")
+                        binding.textViewEcoscore.visibility = View.GONE
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("FriendsHistoryFragment", "API Error: ${response.code()}, Body: $errorBody")
+                    binding.textViewEcoscore.visibility = View.GONE
+                }
+            }
+
+            override fun onFailure(call: Call<EcoscoreResponse>, t: Throwable) {
+                Log.e("FriendsHistoryFragment", "Network error: ${t.message}")
+                binding.textViewEcoscore.visibility = View.GONE
+            }
+        })
+    }
+
 
     private fun sendReaction(scan_uuid: String, reactionType: String) {
         val token = MainActivity.getJWTToken(requireContext())
