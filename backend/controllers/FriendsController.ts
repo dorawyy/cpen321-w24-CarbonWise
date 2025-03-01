@@ -327,6 +327,31 @@ export class FriendsController {
                 res.status(500).send({message: "Error sending notification"});
             });
     }
+
+    async getFriendEcoscore(req: Request, res: Response, nextFunction: NextFunction) {
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+        const { user_uuid: friend_uuid } = req.params;
+
+        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+
+        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === friend_uuid);
+
+        // Check if user is already friends with the target user
+        if (!friendRelationship) {
+            return res.status(404).send({message: "User does not exist or is not a friend"});
+        }
+
+        const historyCollection = client.db("users_db").collection<History>("history");
+        const friendHistory = await historyCollection.findOne({ user_uuid: friend_uuid });
+
+        if (!friendHistory) {
+            return res.status(404).send({message: "No history found for the friend"});
+        }
+
+        res.status(200).send({ ecoscore_score: friendHistory.ecoscore_score });
+    }
 }
 
 async function sendNotification(user_uuid: string, messageBody: string) {
