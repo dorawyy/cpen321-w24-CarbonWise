@@ -11,7 +11,8 @@ import com.example.carbonwise.network.Friend
 class FriendsAdapter(
     private var friends: MutableList<Friend>,
     private val onRemoveFriend: (Friend) -> Unit,
-    private val onViewHistory: (Friend) -> Unit
+    private val onViewHistory: (Friend) -> Unit,
+    private var friendEcoscores: Map<String, Double> = emptyMap()
 ) : RecyclerView.Adapter<FriendsAdapter.FriendViewHolder>() {
 
     class FriendViewHolder(val binding: ItemFriendBinding) : RecyclerView.ViewHolder(binding.root)
@@ -23,17 +24,24 @@ class FriendsAdapter(
 
     override fun onBindViewHolder(holder: FriendViewHolder, position: Int) {
         val friend = friends[position]
-        holder.binding.textFriendName.text = friend.name ?: "Unknown Friend"
+        val name = friend.name ?: "Unknown Friend"
+        val ecoscoreDouble = friendEcoscores[friend.user_uuid] ?: 0.0
+        val ecoscoreInt = ecoscoreDouble.toInt()
+
+        // Circular progress
+        holder.binding.progressEcoscore.progress = ecoscoreInt.coerceIn(0, 100)
+
+        holder.binding.textFriendName.text = "$name (Eco: $ecoscoreInt)"
+
+        holder.binding.textFriendName.setOnClickListener {
+            onViewHistory(friend)
+        }
 
         holder.binding.buttonOptions.setOnClickListener { view ->
             val popupMenu = PopupMenu(view.context, view)
             popupMenu.inflate(R.menu.friend_options_menu)
             popupMenu.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.menu_view_history -> {
-                        onViewHistory(friend)
-                        true
-                    }
                     R.id.menu_remove_friend -> {
                         onRemoveFriend(friend)
                         true
@@ -50,6 +58,11 @@ class FriendsAdapter(
     fun updateFriends(newFriends: List<Friend>) {
         friends.clear()
         friends.addAll(newFriends)
+        notifyDataSetChanged()
+    }
+
+    fun updateFriendEcoscores(newEcoscores: Map<String, Double>) {
+        friendEcoscores = newEcoscores
         notifyDataSetChanged()
     }
 }

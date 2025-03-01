@@ -5,7 +5,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.carbonwise.network.*
+import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.network.EcoscoreResponse
+import com.example.carbonwise.network.Friend
+import com.example.carbonwise.network.FriendRequest
+import com.example.carbonwise.network.FriendRequestBody
+import com.example.carbonwise.network.UUIDResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -29,6 +34,29 @@ class FriendsViewModel(private val apiService: ApiService, private val token: St
     private val _userFriendCode = MutableLiveData<String>()
     val userFriendCode: LiveData<String> get() = _userFriendCode
 
+    private val _friendEcoscores = MutableLiveData<Map<String, Double>>()
+    val friendEcoscores: LiveData<Map<String, Double>> get() = _friendEcoscores
+
+    fun fetchAllFriendEcoscores(friendList: List<Friend>) {
+        val ecoscoreMap = mutableMapOf<String, Double>()
+        for (friend in friendList) {
+            apiService.getFriendEcoscore(token, friend.user_uuid).enqueue(object : Callback<EcoscoreResponse> {
+                override fun onResponse(call: Call<EcoscoreResponse>, response: Response<EcoscoreResponse>) {
+                    if (response.isSuccessful) {
+                        response.body()?.ecoscoreScore?.let { score ->
+                            ecoscoreMap[friend.user_uuid] = score
+                            _friendEcoscores.postValue(ecoscoreMap)
+                        }
+                    }
+                }
+                override fun onFailure(call: Call<EcoscoreResponse>, t: Throwable) {
+                    // Log failure if necessary
+                }
+            })
+        }
+    }
+
+
     fun fetchUserFriendCode() {
         apiService.getUUID(token).enqueue(object : Callback<UUIDResponse> {
             override fun onResponse(call: Call<UUIDResponse>, response: Response<UUIDResponse>) {
@@ -49,7 +77,9 @@ class FriendsViewModel(private val apiService: ApiService, private val token: St
         apiService.getFriends(token).enqueue(object : Callback<List<Friend>> {
             override fun onResponse(call: Call<List<Friend>>, response: Response<List<Friend>>) {
                 if (response.isSuccessful) {
-                    _friendsList.value = response.body() ?: emptyList()
+                    val friendList = response.body() ?: emptyList()
+                    _friendsList.value = friendList
+                    fetchAllFriendEcoscores(friendList)
                     Log.e("HAHA", response.body().toString())
                 } else {
                     _friendActions.value = "Failed to load friends"
