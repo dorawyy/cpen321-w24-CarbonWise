@@ -92,6 +92,7 @@ class FriendsHistoryFragment : Fragment() {
 
                         response.body()?.let { historyItems ->
                             historyAdapter.submitList(historyItems)
+                            binding.textViewEmptyHistory.visibility = if (historyItems.isNullOrEmpty()) View.VISIBLE else View.GONE
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()

@@ -52,6 +52,7 @@ class IncomingRequestsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         friendsViewModel.fetchFriendRequests()
+        friendsViewModel.fetchUserFriendCode()
     }
 
     override fun onDestroyView() {

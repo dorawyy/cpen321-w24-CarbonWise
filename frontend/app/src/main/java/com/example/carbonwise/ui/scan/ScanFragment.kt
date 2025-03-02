@@ -110,6 +110,8 @@ class ScanFragment : Fragment() {
 
 
     private fun startCamera() {
+        if (_binding == null) return
+
         val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
             ProcessCameraProvider.getInstance(requireContext())
 
@@ -166,6 +168,7 @@ class ScanFragment : Fragment() {
 
     @OptIn(ExperimentalGetImage::class)
     private fun processImageProxy(imageProxy: ImageProxy) {
+        if (!isAdded || _binding == null) return
         val mediaImage = imageProxy.image ?: return
         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
 
@@ -201,7 +204,7 @@ class ScanFragment : Fragment() {
     }
 
     private fun showConfirmationDialog(barcode: String) {
-        if (!isAdded || isDialogDisplayed) return  // 🔹 Prevent crashes if fragment is destroyed
+        if (!isAdded || isDialogDisplayed || _binding == null) return
 
         isDialogDisplayed = true
 
