@@ -9,13 +9,16 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.carbonwise.databinding.FragmentHistoryBinding
 import com.example.carbonwise.MainActivity
+import com.example.carbonwise.databinding.FragmentHistoryBinding
 import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.EcoscoreResponse
 import com.example.carbonwise.network.HistoryItem
 import com.example.carbonwise.network.ProductNotificationRequest
-import retrofit2.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class FriendsHistoryFragment : Fragment() {
@@ -111,7 +114,7 @@ class FriendsHistoryFragment : Fragment() {
     private fun fetchFriendEcoscore() {
         val token = MainActivity.getJWTToken(requireContext())
         if (token.isNullOrEmpty() || friendUuid.isNullOrEmpty()) {
-            binding.textViewEcoscore.visibility = View.GONE
+            binding.circularContainer.visibility = View.GONE
             return
         }
 
@@ -131,22 +134,25 @@ class FriendsHistoryFragment : Fragment() {
                     val ecoscore = response.body()?.ecoscoreScore
                     if (ecoscore != null && ecoscore > 0) {
                         Log.d("FriendsHistoryFragment", "Friend's Ecoscore fetched successfully: $ecoscore")
-                        binding.textViewEcoscore.text = "Friend's Ecoscore: $ecoscore"
-                        binding.textViewEcoscore.visibility = View.VISIBLE
+                        binding.labelEcoscore.text = "Friend's Ecoscore"
+                        binding.labelEcoscore.visibility = View.VISIBLE
+
+                        binding.progressEcoscore.setProgressCompat(ecoscore.toInt(), false)
+                        binding.textEcoscoreValue.text = ecoscore.toInt().toString()
                     } else {
                         Log.d("FriendsHistoryFragment", "No ecoscore available for friend")
-                        binding.textViewEcoscore.visibility = View.GONE
+                        binding.circularContainer.visibility = View.GONE
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Log.e("FriendsHistoryFragment", "API Error: ${response.code()}, Body: $errorBody")
-                    binding.textViewEcoscore.visibility = View.GONE
+                    binding.circularContainer.visibility = View.GONE
                 }
             }
 
             override fun onFailure(call: Call<EcoscoreResponse>, t: Throwable) {
                 Log.e("FriendsHistoryFragment", "Network error: ${t.message}")
-                binding.textViewEcoscore.visibility = View.GONE
+                binding.circularContainer.visibility = View.GONE
             }
         })
     }
