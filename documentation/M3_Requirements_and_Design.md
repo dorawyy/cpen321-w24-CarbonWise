@@ -82,9 +82,9 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 - 4a. The Google OAuth token is invalid or expired.  
                     - 4a1. The system informs the guest user that their Google OAuth token has expired or is invalid.
                     - 4a2. The system returns the guest user to the login tab.
-                - 4b. The system fails to transition the guest user to a user due to a server error.  
-                    - 4b1. The system informs the guest user that login could not be completed due to a server error.  
-                    - 4b2. The system returns the guest user to the login tab.
+                - 5b. The system fails to transition the guest user to a user due to a server error.  
+                    - 5b1. The system informs the guest user that login could not be completed due to a server error.  
+                    - 5b2. The system returns the guest user to the login tab.
 
 <a name="fr3"></a>
 
@@ -219,6 +219,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
     - **Overview**:
 
         1. Delete product from history
+        2. Fetch friend history
 
     - **Detailed Flow for Each Independent Scenario**:  
        
@@ -240,6 +241,25 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                     - 5a2. The system refreshes the history tab.  
                 - 5b. The system fails to delete the product due to a server error.  
                     - 5b1. The system informs the user that the product could not be deleted due to a server error and displays the relevant error message.
+
+        2. **Fetch friend history**  
+            - **Description**:  Users can fetch and view the product history of their friends.  
+            - **Primary actor(s)**: User  
+            - **Main success scenario**:  
+                1. User navigates to the friends tab.  
+                2. User selects a friend from their friends list.
+                3. The system fetches and displays the selected friend’s product history.
+                4. The user can browse through the friend’s product history.
+            - **Failure scenario(s)**:
+                - 2a. The selected friend does not exist in the user’s friends list.
+                    - 2a1. The system informs the user that the selected friend does not exist in their friends list.
+                    - 2a2. The system returns the user to the friends tab.
+                - 3a. The system fails to fetch the friend’s product history due to a server error.  
+                    - 3a1. The system informs the user that the friend’s product history could not be fetched due to a server error and displays the relevant error message.
+                    - 3a2. The system returns the user to the friends tab.
+                - 3b. The selected friend is no longer a friend.
+                    - 3b1. The system informs the user that the selected friend is no longer a friend.
+                    - 3b2. The system returns the user to the friends tab.
 
 ### **3.4. Screen Mockups**
 
@@ -284,7 +304,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 - `product_id` (String): The barcode of the product.  
             - **Returns:**   
                 - The eco-score and eco-grade on success, or an error message on failure.
-        4. **`GET /products/{product\_id}`**  
+        4. **`GET /products/{product_id}`**  
             - **Purpose:** Retrieves a product’s eco-score, sustainability information, image, and recommendations.   
             - **Parameters:**  
                 - `product_id` (String): The barcode of the product.  

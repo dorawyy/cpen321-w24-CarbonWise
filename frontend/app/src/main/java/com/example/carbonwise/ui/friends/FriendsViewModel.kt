@@ -15,7 +15,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class FriendsViewModel(private val apiService: ApiService, private val token: String) : ViewModel() {
+class FriendsViewModel(private val apiService: ApiService, private var token: String) : ViewModel() {
 
     init {
         fetchUserFriendCode()
@@ -33,6 +33,11 @@ class FriendsViewModel(private val apiService: ApiService, private val token: St
 
     private val _userFriendCode = MutableLiveData<String>()
     val userFriendCode: LiveData<String> get() = _userFriendCode
+
+    fun updateToken(newToken: String) {
+        Log.d("FriendsViewModel", "Updating token: $newToken")
+        token = newToken
+    }
 
     private val _friendEcoscores = MutableLiveData<Map<String, Double>>()
     val friendEcoscores: LiveData<Map<String, Double>> get() = _friendEcoscores

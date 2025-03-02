@@ -29,7 +29,7 @@ class FriendsAdapter(
         val ecoscoreInt = ecoscoreDouble.toInt()
 
         // Circular progress
-        holder.binding.progressEcoscore.progress = ecoscoreInt.coerceIn(0, 100)
+        holder.binding.progressEcoscore.setProgressCompat(ecoscoreInt, true)
 
         holder.binding.textFriendName.text = "$name (Eco: $ecoscoreInt)"
 

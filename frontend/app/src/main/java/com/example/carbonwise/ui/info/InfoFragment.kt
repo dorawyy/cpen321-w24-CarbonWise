@@ -158,29 +158,22 @@ class InfoFragment : Fragment() {
         updateIngredientList(categories)
         updateProductImage(imageBase64)
 
-        val jwtToken = MainActivity.getJWTToken(requireContext())
-
-        // Only show recommendations if user is logged in
-        if (!jwtToken.isNullOrBlank()) {
-            val recommendations = json.optJSONArray("recommendations")
-            if (recommendations != null) {
-                val recommendationList = mutableListOf<Recommendation>()
-                for (i in 0 until recommendations.length()) {
-                    val recommendationObj = recommendations.getJSONObject(i)
-                    val name = recommendationObj.optString("product_name", "Unknown Product")
-                    val score = recommendationObj.optInt("ecoscore_score", -1)
-                    val image = recommendationObj.optString("image", "")
-                    recommendationList.add(Recommendation(name, score, image))
-                }
-
-                val recommendationsAdapter = RecommendationsAdapter(recommendationList)
-                binding.recommendationsRecyclerView.layoutManager =
-                    LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-                binding.recommendationsRecyclerView.adapter = recommendationsAdapter
-                binding.recommendationsWrapper.visibility = View.VISIBLE
-            } else {
-                binding.recommendationsWrapper.visibility = View.GONE
+        val recommendations = json.optJSONArray("recommendations")
+        if (recommendations != null) {
+            val recommendationList = mutableListOf<Recommendation>()
+            for (i in 0 until recommendations.length()) {
+                val recommendationObj = recommendations.getJSONObject(i)
+                val name = recommendationObj.optString("product_name", "Unknown Product")
+                val score = recommendationObj.optInt("ecoscore_score", -1)
+                val image = recommendationObj.optString("image", "")
+                recommendationList.add(Recommendation(name, score, image))
             }
+
+            val recommendationsAdapter = RecommendationsAdapter(recommendationList)
+            binding.recommendationsRecyclerView.layoutManager =
+                LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            binding.recommendationsRecyclerView.adapter = recommendationsAdapter
+            binding.recommendationsWrapper.visibility = View.VISIBLE
         } else {
             binding.recommendationsWrapper.visibility = View.GONE
         }
