@@ -80,6 +80,7 @@ class FriendsListFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        friendsViewModel.fetchUserFriendCode()
         friendsViewModel.fetchFriends()
     }
 

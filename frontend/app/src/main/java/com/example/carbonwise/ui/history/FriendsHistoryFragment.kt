@@ -89,6 +89,7 @@ class FriendsHistoryFragment : Fragment() {
 
                         response.body()?.let { historyItems ->
                             historyAdapter.submitList(historyItems)
+                            binding.textViewEmptyHistory.visibility = if (historyItems.isNullOrEmpty()) View.VISIBLE else View.GONE
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()
@@ -131,7 +132,7 @@ class FriendsHistoryFragment : Fragment() {
                     val ecoscore = response.body()?.ecoscoreScore
                     if (ecoscore != null && ecoscore > 0) {
                         Log.d("FriendsHistoryFragment", "Friend's Ecoscore fetched successfully: $ecoscore")
-                        binding.textViewEcoscore.text = "Friend's Ecoscore: $ecoscore"
+                        binding.textViewEcoscore.text = "Friend's Ecoscore: ${ecoscore.toInt()}"
                         binding.textViewEcoscore.visibility = View.VISIBLE
                     } else {
                         Log.d("FriendsHistoryFragment", "No ecoscore available for friend")

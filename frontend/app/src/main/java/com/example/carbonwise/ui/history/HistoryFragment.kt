@@ -56,6 +56,11 @@ class HistoryFragment : Fragment() {
         return root
     }
 
+    override fun onResume() {
+        super.onResume()
+        fetchHistory()
+    }
+
     private fun fetchHistory() {
         val token = MainActivity.getJWTToken(requireContext())
         if (token.isNullOrEmpty()) {
@@ -63,28 +68,29 @@ class HistoryFragment : Fragment() {
             return
         }
 
-        lifecycleScope.launch(Dispatchers.IO) { // Load in the background
-            val cachedHistory = if (HistoryCacheManager.isCacheValid(requireContext())) {
-                HistoryCacheManager.loadHistoryFromCache(requireContext())
-            } else {
-                HistoryCacheManager.fetchHistoryInBackground(requireContext()) // Fetch and update cache
-                HistoryCacheManager.loadHistoryFromCache(requireContext())
-            }
+        lifecycleScope.launch(Dispatchers.IO) {
+            var cachedHistory = HistoryCacheManager.loadHistoryFromCache(requireContext())
 
             withContext(Dispatchers.Main) {
                 cachedHistory?.let { historyAdapter.submitList(it) }
-
-                // Only fetch ecoscore if history exists
-                if (!cachedHistory.isNullOrEmpty()) {
-                    fetchEcoscore()
-                } else {
-                    binding.textViewEcoscore.visibility = View.GONE
-                }
-
                 binding.textViewEmptyHistory.visibility = if (cachedHistory.isNullOrEmpty()) View.VISIBLE else View.GONE
+                if (!cachedHistory.isNullOrEmpty()) fetchEcoscore()
+            }
+
+            // Fetch fresh history in the background
+            if (!HistoryCacheManager.isCacheValid(requireContext())) {
+                HistoryCacheManager.fetchHistoryInBackground(requireContext())
+                cachedHistory = HistoryCacheManager.loadHistoryFromCache(requireContext())
+
+                withContext(Dispatchers.Main) {
+                    cachedHistory?.let { historyAdapter.submitList(it) }
+                    binding.textViewEmptyHistory.visibility = if (cachedHistory.isNullOrEmpty()) View.VISIBLE else View.GONE
+                    if (!cachedHistory.isNullOrEmpty()) fetchEcoscore()
+                }
             }
         }
     }
+
 
     private fun fetchEcoscore() {
         if (_binding == null) return

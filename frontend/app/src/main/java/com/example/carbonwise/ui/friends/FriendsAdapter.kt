@@ -35,7 +35,7 @@ class FriendsAdapter(
 
         holder.binding.textEcoscoreValue.text = ecoscoreInt.toString()
 
-        holder.binding.textFriendName.setOnClickListener {
+        holder.binding.friendItem.setOnClickListener {
             onViewHistory(friend)
         }
 
