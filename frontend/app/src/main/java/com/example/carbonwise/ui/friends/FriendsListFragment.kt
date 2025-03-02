@@ -20,7 +20,7 @@ class FriendsListFragment : Fragment() {
 
     private lateinit var friendsViewModel: FriendsViewModel
 
-    private var currentFriendList: List<Friend> = emptyList()
+    private var qcurrentFriendList: List<Friend> = emptyList()
     private var currentEcoscores: Map<String, Double> = emptyMap()
 
     override fun onCreate(savedInstanceState: Bundle?) {
