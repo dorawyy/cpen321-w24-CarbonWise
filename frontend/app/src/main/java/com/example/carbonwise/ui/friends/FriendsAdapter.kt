@@ -29,9 +29,11 @@ class FriendsAdapter(
         val ecoscoreInt = ecoscoreDouble.toInt()
 
         // Circular progress
-        holder.binding.progressEcoscore.setProgressCompat(ecoscoreInt, true)
+        holder.binding.progressEcoscore.setProgressCompat(ecoscoreInt, false)
 
-        holder.binding.textFriendName.text = "$name (Eco: $ecoscoreInt)"
+        holder.binding.textFriendName.text = "$name"
+
+        holder.binding.textEcoscoreValue.text = ecoscoreInt.toString()
 
         holder.binding.textFriendName.setOnClickListener {
             onViewHistory(friend)
