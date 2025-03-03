@@ -258,6 +258,15 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 
 ### **3.4. Screen Mockups**
 
+<p align="center">
+  <img src="./images/product_information_screen_mockup.jpg" width="45%" alt="Product Information Screen Mockup">
+  <img src="./images/product_recommendations_screen_mockup.jpg" width="45%" alt="Product Recommendations Screen Mockup">
+  <img src="./images/friends_screen_mockup.jpg" width="45%" alt="Friend List Screen Mockup">
+  <img src="./images/friend_code_screen_mockup.jpg" width="45%" alt="Friend Code Screen Mockup">
+  <img src="./images/friend_history_screen_mockup.jpg" width="45%" alt="Friend History Screen Mockup">
+  <img src="./images/scan_screen_mockup.jpg" width="45%" alt="Scan Screen Mockup">
+  <img src="./images/login_screen_mockup.jpg" width="45%" alt="Login Screen Mockup">
+</p>
 
 
 ### **3.5. Non-Functional Requirements**
@@ -559,7 +568,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 
 ## 5. Contributions
 
-- Jason:  
-- Ethan:
-- Lemon:
-- Xavier: 
+- Jason: Helped develop the front-end components like Friends and Scan, debugging problems, as well as making adjustments to the overall layout and look. I also worked on sequence diagrams and documentation. Worked for ~30 hours in total.
+- Ethan: Worked on developing the product recommendation system and friends system on the back-end. Built the EC2 deployment pipeline and helped write documentation and reflection. Worked for ~55 hours in total.
+- Lemon: Worked on developing front-end components, namely the history, auth, and scanning systems. Also assisted in writing documentation and reflection. Worked for ~50 hours in total.
+- Xavier: Worked on the backend to set up and build the authentication system and user database for secure user management. Contributed to writing documentation, sequence diagrams, and code reviews. Worked for ~30 hours in total.
