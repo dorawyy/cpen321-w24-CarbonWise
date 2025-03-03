@@ -17,7 +17,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 ### **3.2. Actors Description**
 
 1. **User**: A user that is authenticated and has access to all functionality.
-2. **Guest User**: An unauthenticated guest user who can scan products but cannot access history or features.
+2. **Guest User**: An unauthenticated guest user who can scan products but cannot access history or friend features.
 
 ### **3.3. Functional Requirements**
 <a name="fr1"></a>
@@ -41,18 +41,18 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 5. The system retrieves and displays an eco-score, sustainability information, and product recommendations for the scanned product.
                 6. The system adds the scanned product to the user’s history if the user is authenticated.
             - **Failure scenario(s)**:  
-                - 3a. User denies camera permissions.  
-                    - 3a1. The system returns the user to the scan tab and displays a message that camera permissions are required for scanning.
-                - 4a. The barcode is unreadable due to camera quality.  
+                - 3a. User or guest user denies camera permissions.  
+                    - 3a1. The system returns the user or guest user to the scan tab and displays a message that camera permissions are required for scanning.
+                - 4a. The barcode is unreadable due to camera quality. 
                     - 4a1. The system waits on the scan tab until it is provided with a readable barcode.  
-                - 5a. The system is unable to retrieve information for a product because it does not exists or is missing required fields.  
+                - 5a. The system is unable to retrieve information for a product because it does not exist or is missing required fields.  
                     - 5a1. The system informs the user or guest user that information for the product is not available.  
                     - 5a2. The system returns the user or guest user to the scan tab.  
                 - 5b. The system is unable to retrieve product data due to a server error.
                     - 5b1. The system informs the user or guest user that product information could not be retrieved and displays the relevant server error.
                     - 5b2. The system returns the user or guest user to the scan tab.
                 - 6a. The system is unable to add the scanned product to the user’s history due to a server error.  
-                    - 6a1. The system informs the user or guest user that the scanned product could not be added to history and displays the relevant server error.
+                    - 6a1. The system informs the user that the scanned product could not be added to history and displays the relevant server error.
 
 <a name="fr2"></a>
 
@@ -158,8 +158,6 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                     - 4a2. The system refreshes the friends tab.
                 - 4b. The friend request could not be rejected due to a server error.  
                     - 4b1. The system informs the user that the friend request was not rejected and displays the relevant server error. 
-                - 4c. The user is trying to reject a friend request from themselves.  
-                    - 4c1. The system informs the user that they cannot reject a friend request from themselves.
 
         4. **Remove a friend**  
             - **Description**: Users can remove a friend from their friends list.  
@@ -374,7 +372,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 - Confirmation message or an error response.
 
 3. **Friends**  
-   - **Purpose**: The Friends component allows users to manage their social connections within the system. It enables sending and accepting friend requests, viewing friends' product histories, and sending notifications about product choices.  
+   - **Purpose**: The Friends component allows users to manage their friends within the system. It enables sending, accepting, and rejecting friend requests, viewing friends' product histories, removing friends, and sending product reaction notifications.  
     - **Interfaces**:   
         1. **`POST /friends/requests`**  
             - **Purpose:** Sends a friend request to another user.  
@@ -477,7 +475,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 1. **Open Food Facts API**  
    - **Purpose**: Provides access to product information, including eco-scores and sustainability data, through barcode-based lookups. The Open Food Facts API offers a MongoDB data dump for initial database population and is then queried dynamically to ensure products are up-to-date in our MongoDB database.
 2. **Google OAuth API**  
-    - **Purpose**: Enables authentication by validating user identities with Google ID tokens. These tokens are exchanged for JWTs that contain a unique identifier for the user in the users database allowing to verify their identity and authenticate them.
+    - **Purpose**: Enables authentication by validating user identities with Google ID tokens. These tokens are exchanged for JWTs that contain a unique identifier for the user in the users database allowing the system to verify their identity and authenticate them.
 
 ### **4.4. Frameworks**
 
