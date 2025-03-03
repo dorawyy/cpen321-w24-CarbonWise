@@ -450,6 +450,14 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 - `message_type` (String): Either "praise" or "shame".  
             - **Returns:**   
                 - Confirmation message or an error response.
+        10. **`GET /friends/ecoscore_score/{user_uuid}`**  
+            - **Purpose:** Retrieves the average ecoscore of a friend's past scanned products. 
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Parameters:**  
+                - `user_uuid` (String): The UUID of the friend whose average ecoscore is being retrieved.
+            - **Returns:**   
+                - The friend's average ecoscore or an error response.
 
 ### **4.2. Databases**
 
