@@ -75,7 +75,7 @@ class HistoryAdapter(
 
     fun submitList(products: List<ProductItem>) {
         productList.clear()
-        productList.addAll(products)
+        productList.addAll(products.sortedByDescending { it.timestamp })
         notifyDataSetChanged()
     }
 
