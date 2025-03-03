@@ -12,12 +12,12 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 
 ### **3.1. Use-Case Diagram**
 
-![Use-Case Diagram](/documentation/images/use_case_diagram.jpg)
+![Use-Case Diagram](./images/use_case_diagram.jpg)
 
 ### **3.2. Actors Description**
 
 1. **User**: A user that is authenticated and has access to all functionality.
-2. **Guest User**: An unauthenticated guest user who can scan products but cannot access history or features.
+2. **Guest User**: An unauthenticated guest user who can scan products but cannot access history or friend features.
 
 ### **3.3. Functional Requirements**
 <a name="fr1"></a>
@@ -41,18 +41,18 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 5. The system retrieves and displays an eco-score, sustainability information, and product recommendations for the scanned product.
                 6. The system adds the scanned product to the user’s history if the user is authenticated.
             - **Failure scenario(s)**:  
-                - 3a. User denies camera permissions.  
-                    - 3a1. The system returns the user to the scan tab and displays a message that camera permissions are required for scanning.
-                - 4a. The barcode is unreadable due to camera quality.  
+                - 3a. User or guest user denies camera permissions.  
+                    - 3a1. The system returns the user or guest user to the scan tab and displays a message that camera permissions are required for scanning.
+                - 4a. The barcode is unreadable due to camera quality. 
                     - 4a1. The system waits on the scan tab until it is provided with a readable barcode.  
-                - 5a. The system is unable to retrieve information for a product because it does not exists or is missing required fields.  
+                - 5a. The system is unable to retrieve information for a product because it does not exist or is missing required fields.  
                     - 5a1. The system informs the user or guest user that information for the product is not available.  
                     - 5a2. The system returns the user or guest user to the scan tab.  
                 - 5b. The system is unable to retrieve product data due to a server error.
                     - 5b1. The system informs the user or guest user that product information could not be retrieved and displays the relevant server error.
                     - 5b2. The system returns the user or guest user to the scan tab.
                 - 6a. The system is unable to add the scanned product to the user’s history due to a server error.  
-                    - 6a1. The system informs the user or guest user that the scanned product could not be added to history and displays the relevant server error.
+                    - 6a1. The system informs the user that the scanned product could not be added to history and displays the relevant server error.
 
 <a name="fr2"></a>
 
@@ -158,8 +158,6 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                     - 4a2. The system refreshes the friends tab.
                 - 4b. The friend request could not be rejected due to a server error.  
                     - 4b1. The system informs the user that the friend request was not rejected and displays the relevant server error. 
-                - 4c. The user is trying to reject a friend request from themselves.  
-                    - 4c1. The system informs the user that they cannot reject a friend request from themselves.
 
         4. **Remove a friend**  
             - **Description**: Users can remove a friend from their friends list.  
@@ -259,13 +257,12 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 ### **3.4. Screen Mockups**
 
 <p align="center">
-  <img src="./images/product_information_screen_mockup.jpg" width="45%" alt="Product Information Screen Mockup">
-  <img src="./images/product_recommendations_screen_mockup.jpg" width="45%" alt="Product Recommendations Screen Mockup">
-  <img src="./images/friends_screen_mockup.jpg" width="45%" alt="Friend List Screen Mockup">
-  <img src="./images/friend_code_screen_mockup.jpg" width="45%" alt="Friend Code Screen Mockup">
-  <img src="./images/friend_history_screen_mockup.jpg" width="45%" alt="Friend History Screen Mockup">
-  <img src="./images/scan_screen_mockup.jpg" width="45%" alt="Scan Screen Mockup">
-  <img src="./images/login_screen_mockup.jpg" width="45%" alt="Login Screen Mockup">
+  <img src="./images/product_information_screen_mockup.jpg" width="25%" alt="Product Information Screen Mockup">
+  <img src="./images/product_recommendations_screen_mockup.jpg" width="25%" alt="Product Recommendations Screen Mockup">
+  <img src="./images/friend_code_screen_mockup.jpg" width="25%" alt="Friend Code Screen Mockup">
+  <img src="./images/friend_history_screen_mockup.jpg" width="25%" alt="Friend History Screen Mockup">
+  <img src="./images/scan_screen_mockup.jpg" width="25%" alt="Scan Screen Mockup">
+  <img src="./images/login_screen_mockup.jpg" width="25%" alt="Login Screen Mockup">
 </p>
 
 
@@ -375,7 +372,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 - Confirmation message or an error response.
 
 3. **Friends**  
-   - **Purpose**: The Friends component allows users to manage their social connections within the system. It enables sending and accepting friend requests, viewing friends' product histories, and sending notifications about product choices.  
+   - **Purpose**: The Friends component allows users to manage their friends within the system. It enables sending, accepting, and rejecting friend requests, viewing friends' product histories, removing friends, and sending product reaction notifications.  
     - **Interfaces**:   
         1. **`POST /friends/requests`**  
             - **Purpose:** Sends a friend request to another user.  
@@ -451,6 +448,14 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 - `message_type` (String): Either "praise" or "shame".  
             - **Returns:**   
                 - Confirmation message or an error response.
+        10. **`GET /friends/ecoscore_score/{user_uuid}`**  
+            - **Purpose:** Retrieves the average ecoscore of a friend's past scanned products. 
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Parameters:**  
+                - `user_uuid` (String): The UUID of the friend whose average ecoscore is being retrieved.
+            - **Returns:**   
+                - The friend's average ecoscore or an error response.
 
 ### **4.2. Databases**
 
@@ -470,7 +475,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 1. **Open Food Facts API**  
    - **Purpose**: Provides access to product information, including eco-scores and sustainability data, through barcode-based lookups. The Open Food Facts API offers a MongoDB data dump for initial database population and is then queried dynamically to ensure products are up-to-date in our MongoDB database.
 2. **Google OAuth API**  
-    - **Purpose**: Enables authentication by validating user identities with Google ID tokens. These tokens are exchanged for JWTs that contain a unique identifier for the user in the users database allowing to verify their identity and authenticate them.
+    - **Purpose**: Enables authentication by validating user identities with Google ID tokens. These tokens are exchanged for JWTs that contain a unique identifier for the user in the users database allowing the system to verify their identity and authenticate them.
 
 ### **4.4. Frameworks**
 
@@ -489,20 +494,20 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 
 ### **4.5. Dependencies Diagram**
 
-![Dependencies Diagram](/documentation/images/dependencies_diagram.jpg)
+![Dependencies Diagram](./images/dependencies_diagram.jpg)
 
 ### **4.6. Functional Requirements Sequence Diagram**
 
 1. [**Scan Product**](#fr1)\
-![Scan Product Sequence Diagram](/documentation/images/scan_product_sequence_diagram.jpg)
+![Scan Product Sequence Diagram](./images/scan_product_sequence_diagram.jpg)
 2. [**Authenticate User**](#fr2)\
-![Authenticate User Sequence Diagram](/documentation/images/authenticate_user_sequence_diagram.jpg)
+![Authenticate User Sequence Diagram](./images/authenticate_user_sequence_diagram.jpg)
 3. [**Manage Product History**](#fr3)\
-![Manage Product History Sequence Diagram](/documentation/images/manage_product_history_sequence_diagram.jpg)  
-4. [**React to a Friend**](#fr4)\
-![React to a Friend Sequence Diagram](/documentation/images/react_to_a_friend_sequence_diagram.jpg)  
-5. [**Manage Friends**](#fr5)\
-![Manage Friends Sequence Diagram](/documentation/images/manage_friends_sequence_diagram.jpg)
+![Manage Product History Sequence Diagram](./images/manage_product_history_sequence_diagram.jpg)
+5. [**React to a Friend**](#fr4)\
+![React to a Friend Sequence Diagram](./images/react_to_a_friend_sequence_diagram.jpg)  
+6. [**Manage Friends**](#fr5)\
+![Manage Friends Sequence Diagram](./images/manage_friends_sequence_diagram.jpg)
 
 ### **4.7. Non-Functional Requirements Design**
 
