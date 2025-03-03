@@ -12,7 +12,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 
 ### **3.1. Use-Case Diagram**
 
-![Use-Case Diagram](/documentation/images/use_case_diagram.jpg)
+![Use-Case Diagram](./images/use_case_diagram.jpg)
 
 ### **3.2. Actors Description**
 
@@ -488,20 +488,20 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 
 ### **4.5. Dependencies Diagram**
 
-![Dependencies Diagram](/documentation/images/dependencies_diagram.jpg)
+![Dependencies Diagram](./images/dependencies_diagram.jpg)
 
 ### **4.6. Functional Requirements Sequence Diagram**
 
 1. [**Scan Product**](#fr1)\
-![Scan Product Sequence Diagram](/documentation/images/scan_product_sequence_diagram.jpg)
+![Scan Product Sequence Diagram](./images/scan_product_sequence_diagram.jpg)
 2. [**Authenticate User**](#fr2)\
-![Authenticate User Sequence Diagram](/documentation/images/authenticate_user_sequence_diagram.jpg)
+![Authenticate User Sequence Diagram](./images/authenticate_user_sequence_diagram.jpg)
 3. [**Manage Product History**](#fr3)\
-![Manage Product History Sequence Diagram](/documentation/images/manage_product_history_sequence_diagram.jpg)
+![Manage Product History Sequence Diagram](./images/manage_product_history_sequence_diagram.jpg)
 5. [**React to a Friend**](#fr4)\
-![React to a Friend Sequence Diagram](/documentation/images/react_to_a_friend_sequence_diagram.jpg)  
+![React to a Friend Sequence Diagram](./images/react_to_a_friend_sequence_diagram.jpg)  
 6. [**Manage Friends**](#fr5)\
-![Manage Friends Sequence Diagram](/documentation/images/manage_friends_sequence_diagram.jpg)
+![Manage Friends Sequence Diagram](./images/manage_friends_sequence_diagram.jpg)
 
 ### **4.7. Non-Functional Requirements Design**
 
