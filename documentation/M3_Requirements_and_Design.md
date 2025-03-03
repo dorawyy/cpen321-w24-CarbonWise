@@ -38,7 +38,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 2. The system requests camera permissions if not previously granted.  
                 3. User or guest user grants camera permissions if requested.  
                 4. User or guest user scans a barcode using the device camera.  
-                5. The system retrieves and displays an eco-score, sustainability information, and product recommendations for the scanned product.  
+                5. The system retrieves and displays an eco-score, sustainability information, and product recommendations for the scanned product.
                 6. The system adds the scanned product to the user’s history if the user is authenticated.
             - **Failure scenario(s)**:  
                 - 3a. User denies camera permissions.  
@@ -82,9 +82,9 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 - 4a. The Google OAuth token is invalid or expired.  
                     - 4a1. The system informs the guest user that their Google OAuth token has expired or is invalid.
                     - 4a2. The system returns the guest user to the login tab.
-                - 5b. The system fails to transition the guest user to a user due to a server error.  
-                    - 5b1. The system informs the guest user that login could not be completed due to a server error.  
-                    - 5b2. The system returns the guest user to the login tab.
+                - 4b. The system fails to transition the guest user to a user due to a server error.  
+                    - 4b1. The system informs the guest user that login could not be completed due to a server error.  
+                    - 4b2. The system returns the guest user to the login tab.
 
 <a name="fr3"></a>
 
@@ -178,8 +178,6 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                     - 5a1. The system informs the user that the friend has already been removed.  
                 - 5b. The friend could not be removed due to a server error.  
                     - 5b1. The system informs the user that the friend was not removed and displays the relevant server error.
-                - 5c. The user is trying to remove themselves as a friend.  
-                    - 5c1. The system informs the user that they cannot remove themselves as a friend.
 
 <a name="fr4"></a>
 
@@ -251,9 +249,6 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 3. The system fetches and displays the selected friend’s product history.
                 4. The user can browse through the friend’s product history.
             - **Failure scenario(s)**:
-                - 2a. The selected friend does not exist in the user’s friends list.
-                    - 2a1. The system informs the user that the selected friend does not exist in their friends list.
-                    - 2a2. The system returns the user to the friends tab.
                 - 3a. The system fails to fetch the friend’s product history due to a server error.  
                     - 3a1. The system informs the user that the friend’s product history could not be fetched due to a server error and displays the relevant error message.
                     - 3a2. The system returns the user to the friends tab.
@@ -263,6 +258,15 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 
 ### **3.4. Screen Mockups**
 
+<p align="center">
+  <img src="./images/product_information_screen_mockup.jpg" width="45%" alt="Product Information Screen Mockup">
+  <img src="./images/product_recommendations_screen_mockup.jpg" width="45%" alt="Product Recommendations Screen Mockup">
+  <img src="./images/friends_screen_mockup.jpg" width="45%" alt="Friend List Screen Mockup">
+  <img src="./images/friend_code_screen_mockup.jpg" width="45%" alt="Friend Code Screen Mockup">
+  <img src="./images/friend_history_screen_mockup.jpg" width="45%" alt="Friend History Screen Mockup">
+  <img src="./images/scan_screen_mockup.jpg" width="45%" alt="Scan Screen Mockup">
+  <img src="./images/login_screen_mockup.jpg" width="45%" alt="Login Screen Mockup">
+</p>
 
 
 ### **3.5. Non-Functional Requirements**
@@ -564,7 +568,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 
 ## 5. Contributions
 
-- Jason:  
-- Ethan:
-- Lemon:
-- Xavier: 
+- Jason: Helped develop the front-end components like Friends and Scan, debugging problems, as well as making adjustments to the overall layout and look. I also worked on sequence diagrams and documentation. Worked for ~30 hours in total.
+- Ethan: Worked on developing the product recommendation system and friends system on the back-end. Built the EC2 deployment pipeline and helped write documentation and reflection. Worked for ~55 hours in total.
+- Lemon: Worked on developing front-end components, namely the history, auth, and scanning systems. Also assisted in writing documentation and reflection. Worked for ~50 hours in total.
+- Xavier: Worked on the backend to set up and build the authentication system and user database for secure user management. Contributed to writing documentation, sequence diagrams, and code reviews. Worked for ~30 hours in total.
