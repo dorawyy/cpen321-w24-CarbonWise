@@ -8,14 +8,14 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.carbonwise.databinding.FragmentHistoryBinding
 import com.example.carbonwise.MainActivity
 import com.example.carbonwise.R
-import com.example.carbonwise.ui.info.InfoFragment
-import androidx.navigation.fragment.findNavController
+import com.example.carbonwise.databinding.FragmentHistoryBinding
 import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.EcoscoreResponse
+import com.example.carbonwise.ui.info.InfoFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -56,20 +56,21 @@ class HistoryFragment : Fragment() {
         return root
     }
 
+    override fun onResume() {
+        super.onResume()
+        fetchHistory()
+    }
+
     private fun fetchHistory() {
+        if (_binding == null) return
         val token = MainActivity.getJWTToken(requireContext())
         if (token.isNullOrEmpty()) {
             Toast.makeText(context, "No JWT token found", Toast.LENGTH_SHORT).show()
             return
         }
 
-        lifecycleScope.launch(Dispatchers.IO) { // Load in the background
-            val cachedHistory = if (HistoryCacheManager.isCacheValid(requireContext())) {
-                HistoryCacheManager.loadHistoryFromCache(requireContext())
-            } else {
-                HistoryCacheManager.fetchHistoryInBackground(requireContext()) // Fetch and update cache
-                HistoryCacheManager.loadHistoryFromCache(requireContext())
-            }
+        lifecycleScope.launch(Dispatchers.IO) {
+            var cachedHistory = HistoryCacheManager.loadHistoryFromCache(requireContext())
 
             withContext(Dispatchers.Main) {
                 cachedHistory?.let { historyAdapter.submitList(it) }
@@ -78,13 +79,28 @@ class HistoryFragment : Fragment() {
                 if (!cachedHistory.isNullOrEmpty()) {
                     fetchEcoscore()
                 } else {
-                    binding.textViewEcoscore.visibility = View.GONE
+                    binding.textEcoscoreValue.text = "0"
+                    binding.progressEcoscore.setProgressCompat(0, false)
                 }
 
                 binding.textViewEmptyHistory.visibility = if (cachedHistory.isNullOrEmpty()) View.VISIBLE else View.GONE
+                if (!cachedHistory.isNullOrEmpty()) fetchEcoscore()
+            }
+
+            // Fetch fresh history in the background
+            if (!HistoryCacheManager.isCacheValid(requireContext())) {
+                HistoryCacheManager.fetchHistoryInBackground(requireContext())
+                cachedHistory = HistoryCacheManager.loadHistoryFromCache(requireContext())
+
+                withContext(Dispatchers.Main) {
+                    cachedHistory?.let { historyAdapter.submitList(it) }
+                    binding.textViewEmptyHistory.visibility = if (cachedHistory.isNullOrEmpty()) View.VISIBLE else View.GONE
+                    if (!cachedHistory.isNullOrEmpty()) fetchEcoscore()
+                }
             }
         }
     }
+
 
     private fun fetchEcoscore() {
         if (_binding == null) return
@@ -112,17 +128,19 @@ class HistoryFragment : Fragment() {
                     if (ecoscore != null && ecoscore > 0) {
                         Log.d("HistoryFragment", "Ecoscore fetched: $ecoscore")
 
-                        val formattedEcoscore = "Ecoscore: ${String.format("%.1f", ecoscore)}"
-
+                        val formattedEcoscore = "${String.format("%d", ecoscore.toInt())}"
                         // Only update UI if the value is different to prevent unnecessary flicker
-                        if (binding.textViewEcoscore.text != formattedEcoscore) {
-                            binding.textViewEcoscore.text = formattedEcoscore
+                        if (binding.textEcoscoreValue.text != formattedEcoscore) {
+                            binding.textEcoscoreValue.text = formattedEcoscore
                         }
+
+                        binding.progressEcoscore.setProgressCompat(ecoscore.toInt(), false)
                     }
                 }
             }
 
             override fun onFailure(call: Call<EcoscoreResponse>, t: Throwable) {
+                if (_binding == null) return
                 Log.e("HistoryFragment", "Network error: ${t.message}")
             }
         })

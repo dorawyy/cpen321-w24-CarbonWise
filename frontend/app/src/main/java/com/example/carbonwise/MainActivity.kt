@@ -112,12 +112,36 @@ class MainActivity : AppCompatActivity() {
 
         binding.navView.setupWithNavController(navController)
 
+        binding.navView.setOnItemReselectedListener { item ->
+            if (item.itemId == R.id.navigation_history) {
+                navController.popBackStack(R.id.navigation_history, false)
+            }
+            if (item.itemId == R.id.navigation_friends) {
+                navController.popBackStack(R.id.navigation_friends, false)
+            }
+            if (item.itemId == R.id.navigation_scan) {
+                navController.popBackStack(R.id.navigation_scan, false)
+            }
+        }
+
         // Ensure correct navigation behavior for bottom nav bar clicks
         binding.navView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_history -> {
                     if (navController.currentDestination?.id != R.id.navigation_history) {
                         navController.navigate(R.id.navigation_history)
+                    }
+                    true
+                }
+                R.id.navigation_friends -> {
+                    if (navController.currentDestination?.id != R.id.navigation_friends) {
+                        navController.navigate(R.id.navigation_friends)
+                    }
+                    true
+                }
+                R.id.navigation_scan -> {
+                    if (navController.currentDestination?.id != R.id.navigation_scan) {
+                        navController.navigate(R.id.navigation_scan)
                     }
                     true
                 }
@@ -133,45 +157,16 @@ class MainActivity : AppCompatActivity() {
 
     fun switchToLoggedInMode() {
         isUserLoggedIn = true
-
         retrieveFCMToken()
-
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        val navInflater = navController.navInflater
-        val navGraph = navInflater.inflate(R.navigation.mobile_navigation_user)
-        navController.graph = navGraph
-
-        // Update the bottom navigation menu
-        binding.navView.menu.clear()
-        binding.navView.inflateMenu(R.menu.bottom_nav_menu_user)
-        binding.navView.setupWithNavController(navController)
+        getJWTToken(this)?.let { friendsViewModel.updateToken(it) }
+        HistoryCacheManager.fetchHistoryInBackground(this)
+        setupNavigation()
     }
 
     fun logout() {
         isUserLoggedIn = false
         clearToken(this)
-
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        val navInflater = navController.navInflater
-        val navGraph = navInflater.inflate(R.navigation.mobile_navigation_guest)
-        navController.graph = navGraph
-
-        binding.navView.menu.clear()
-        binding.navView.inflateMenu(R.menu.bottom_nav_menu_guest)
-        binding.navView.setupWithNavController(navController)
-
-        binding.navView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_logout -> {
-                    showLogoutConfirmationDialog()
-                    true
-                }
-                else -> {
-                    navController.navigate(item.itemId)
-                    true
-                }
-            }
-        }
+        setupNavigation()
     }
 
 

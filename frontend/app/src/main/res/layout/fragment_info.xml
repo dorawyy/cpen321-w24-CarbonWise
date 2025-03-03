@@ -205,7 +205,7 @@
                         android:id="@+id/ingredientHighlightTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Ingredient Overview"
+                        android:text="Product Categories"
                         android:textSize="18sp"
                         android:textColor="@android:color/black"
                         android:textStyle="bold"/>

@@ -29,9 +29,7 @@
 
         <action
             android:id="@+id/action_scanFragment_to_infoFragment"
-            app:destination="@id/navigation_info"
-            app:popUpTo="@id/navigation_scan"
-            app:popUpToInclusive="false"/>
+            app:destination="@id/navigation_info"/>
     </fragment>
 
     <fragment
@@ -54,9 +52,7 @@
 
         <action
             android:id="@+id/action_historyFragment_to_infoFragment"
-            app:destination="@id/navigation_info"
-            app:popUpTo="@id/navigation_history"
-            app:popUpToInclusive="false"/>
+            app:destination="@id/navigation_info"/>
     </fragment>
 
     <fragment

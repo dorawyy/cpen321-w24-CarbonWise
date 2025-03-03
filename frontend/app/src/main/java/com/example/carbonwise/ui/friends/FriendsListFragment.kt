@@ -11,6 +11,7 @@ import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.carbonwise.R
 import com.example.carbonwise.databinding.FragmentFriendsListBinding
+import com.example.carbonwise.network.Friend
 
 class FriendsListFragment : Fragment() {
 
@@ -18,6 +19,9 @@ class FriendsListFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var friendsViewModel: FriendsViewModel
+
+    private var qcurrentFriendList: List<Friend> = emptyList()
+    private var currentEcoscores: Map<String, Double> = emptyMap()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,10 +73,14 @@ class FriendsListFragment : Fragment() {
 
         // Fetch the friend list from the server
         friendsViewModel.fetchFriends()
+        friendsViewModel.friendEcoscores.observe(viewLifecycleOwner) { ecoscoreMap ->
+            adapter.updateFriendEcoscores(ecoscoreMap)
+        }
     }
 
     override fun onResume() {
         super.onResume()
+        friendsViewModel.fetchUserFriendCode()
         friendsViewModel.fetchFriends()
     }
 

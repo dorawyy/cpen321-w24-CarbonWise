@@ -9,13 +9,16 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.carbonwise.databinding.FragmentHistoryBinding
 import com.example.carbonwise.MainActivity
+import com.example.carbonwise.databinding.FragmentHistoryBinding
 import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.EcoscoreResponse
 import com.example.carbonwise.network.HistoryItem
 import com.example.carbonwise.network.ProductNotificationRequest
-import retrofit2.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class FriendsHistoryFragment : Fragment() {
@@ -64,6 +67,7 @@ class FriendsHistoryFragment : Fragment() {
     }
 
     private fun fetchFriendHistory() {
+        if (_binding == null) return
         val token = MainActivity.getJWTToken(requireContext())
         if (token.isNullOrEmpty()) {
             Toast.makeText(context, "No JWT token found", Toast.LENGTH_SHORT).show()
@@ -84,11 +88,13 @@ class FriendsHistoryFragment : Fragment() {
 
             call.enqueue(object : Callback<List<HistoryItem>> {
                 override fun onResponse(call: Call<List<HistoryItem>>, response: Response<List<HistoryItem>>) {
+                    if (_binding == null) return
                     if (response.isSuccessful) {
                         Log.d("FriendsHistoryFragment", "API Response Successful: ${response.body()}")
 
                         response.body()?.let { historyItems ->
                             historyAdapter.submitList(historyItems)
+                            binding.textViewEmptyHistory.visibility = if (historyItems.isNullOrEmpty()) View.VISIBLE else View.GONE
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()
@@ -98,6 +104,7 @@ class FriendsHistoryFragment : Fragment() {
                 }
 
                 override fun onFailure(call: Call<List<HistoryItem>>, t: Throwable) {
+                    if (_binding == null) return
                     Log.e("FriendsHistoryFragment", "Network error: ${t.message}")
                     Toast.makeText(context, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -109,9 +116,10 @@ class FriendsHistoryFragment : Fragment() {
     }
 
     private fun fetchFriendEcoscore() {
+        if (_binding == null) return
         val token = MainActivity.getJWTToken(requireContext())
         if (token.isNullOrEmpty() || friendUuid.isNullOrEmpty()) {
-            binding.textViewEcoscore.visibility = View.GONE
+            binding.circularContainer.visibility = View.GONE
             return
         }
 
@@ -127,32 +135,38 @@ class FriendsHistoryFragment : Fragment() {
 
         call.enqueue(object : Callback<EcoscoreResponse> {
             override fun onResponse(call: Call<EcoscoreResponse>, response: Response<EcoscoreResponse>) {
+                if (_binding == null) return
                 if (response.isSuccessful) {
                     val ecoscore = response.body()?.ecoscoreScore
                     if (ecoscore != null && ecoscore > 0) {
                         Log.d("FriendsHistoryFragment", "Friend's Ecoscore fetched successfully: $ecoscore")
-                        binding.textViewEcoscore.text = "Friend's Ecoscore: $ecoscore"
-                        binding.textViewEcoscore.visibility = View.VISIBLE
+                        binding.labelEcoscore.text = "Friend's Ecoscore"
+                        binding.labelEcoscore.visibility = View.VISIBLE
+
+                        binding.progressEcoscore.setProgressCompat(ecoscore.toInt(), false)
+                        binding.textEcoscoreValue.text = ecoscore.toInt().toString()
                     } else {
                         Log.d("FriendsHistoryFragment", "No ecoscore available for friend")
-                        binding.textViewEcoscore.visibility = View.GONE
+                        binding.circularContainer.visibility = View.GONE
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Log.e("FriendsHistoryFragment", "API Error: ${response.code()}, Body: $errorBody")
-                    binding.textViewEcoscore.visibility = View.GONE
+                    binding.circularContainer.visibility = View.GONE
                 }
             }
 
             override fun onFailure(call: Call<EcoscoreResponse>, t: Throwable) {
+                if (_binding == null) return
                 Log.e("FriendsHistoryFragment", "Network error: ${t.message}")
-                binding.textViewEcoscore.visibility = View.GONE
+                binding.circularContainer.visibility = View.GONE
             }
         })
     }
 
 
     private fun sendReaction(scan_uuid: String, reactionType: String) {
+        if (_binding == null) return
         val token = MainActivity.getJWTToken(requireContext())
 
         if (token.isNullOrEmpty()) {
@@ -184,6 +198,7 @@ class FriendsHistoryFragment : Fragment() {
 
             apiService.sendProductNotification(token, request).enqueue(object : Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                    if (_binding == null) return
                     if (response.isSuccessful) {
                         Toast.makeText(context, "Reaction sent!", Toast.LENGTH_SHORT).show()
                     } else {
@@ -193,6 +208,7 @@ class FriendsHistoryFragment : Fragment() {
                 }
 
                 override fun onFailure(call: Call<Void>, t: Throwable) {
+                    if (_binding == null) return
                     Log.e("sendReaction", "Network error: ${t.message}", t)
                     Toast.makeText(context, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
