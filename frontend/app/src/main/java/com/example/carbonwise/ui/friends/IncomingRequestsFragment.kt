@@ -31,6 +31,7 @@ class IncomingRequestsFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        if (_binding == null) return
         super.onViewCreated(view, savedInstanceState)
 
         val adapter = IncomingRequestsAdapter(

@@ -99,6 +99,7 @@ class ScanFragment : Fragment() {
     }
 
     private fun showPermissionDeniedMessage() {
+        if (_binding == null) return
         binding.previewView.visibility = View.GONE
         binding.barcodeOverlay.visibility = View.GONE
         binding.barcodeBox.visibility = View.GONE

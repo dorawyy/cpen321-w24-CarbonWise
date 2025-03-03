@@ -62,6 +62,7 @@ class HistoryFragment : Fragment() {
     }
 
     private fun fetchHistory() {
+        if (_binding == null) return
         val token = MainActivity.getJWTToken(requireContext())
         if (token.isNullOrEmpty()) {
             Toast.makeText(context, "No JWT token found", Toast.LENGTH_SHORT).show()
@@ -138,6 +139,7 @@ class HistoryFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<EcoscoreResponse>, t: Throwable) {
+                if (_binding == null) return
                 Log.e("HistoryFragment", "Network error: ${t.message}")
             }
         })
