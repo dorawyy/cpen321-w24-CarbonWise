@@ -79,7 +79,8 @@ class HistoryFragment : Fragment() {
                 if (!cachedHistory.isNullOrEmpty()) {
                     fetchEcoscore()
                 } else {
-                    binding.circularContainer.visibility = View.GONE
+                    binding.textEcoscoreValue.text = "0"
+                    binding.progressEcoscore.setProgressCompat(0, false)
                 }
 
                 binding.textViewEmptyHistory.visibility = if (cachedHistory.isNullOrEmpty()) View.VISIBLE else View.GONE
