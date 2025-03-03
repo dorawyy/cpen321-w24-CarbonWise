@@ -259,13 +259,12 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
 ### **3.4. Screen Mockups**
 
 <p align="center">
-  <img src="./images/product_information_screen_mockup.jpg" width="45%" alt="Product Information Screen Mockup">
-  <img src="./images/product_recommendations_screen_mockup.jpg" width="45%" alt="Product Recommendations Screen Mockup">
-  <img src="./images/friends_screen_mockup.jpg" width="45%" alt="Friend List Screen Mockup">
-  <img src="./images/friend_code_screen_mockup.jpg" width="45%" alt="Friend Code Screen Mockup">
-  <img src="./images/friend_history_screen_mockup.jpg" width="45%" alt="Friend History Screen Mockup">
-  <img src="./images/scan_screen_mockup.jpg" width="45%" alt="Scan Screen Mockup">
-  <img src="./images/login_screen_mockup.jpg" width="45%" alt="Login Screen Mockup">
+  <img src="./images/product_information_screen_mockup.jpg" width="25%" alt="Product Information Screen Mockup">
+  <img src="./images/product_recommendations_screen_mockup.jpg" width="25%" alt="Product Recommendations Screen Mockup">
+  <img src="./images/friend_code_screen_mockup.jpg" width="25%" alt="Friend Code Screen Mockup">
+  <img src="./images/friend_history_screen_mockup.jpg" width="25%" alt="Friend History Screen Mockup">
+  <img src="./images/scan_screen_mockup.jpg" width="25%" alt="Scan Screen Mockup">
+  <img src="./images/login_screen_mockup.jpg" width="25%" alt="Login Screen Mockup">
 </p>
 
 
