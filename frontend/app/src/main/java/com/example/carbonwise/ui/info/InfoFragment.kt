@@ -242,7 +242,7 @@ class InfoFragment : Fragment() {
 
         if (categories == null || categories.length() == 0) {
             val noIngredientsTextView = TextView(requireContext()).apply {
-                text = "No ingredient data available"
+                text = "No category data available"
                 textSize = 16f
                 setTextColor(ContextCompat.getColor(requireContext(), android.R.color.black))
             }
