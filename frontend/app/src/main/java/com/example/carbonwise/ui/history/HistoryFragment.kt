@@ -73,7 +73,6 @@ class HistoryFragment : Fragment() {
 
             withContext(Dispatchers.Main) {
                 cachedHistory?.let { historyAdapter.submitList(it) }
-<<<<<<< HEAD
 
                 // Only fetch ecoscore if history exists
                 if (!cachedHistory.isNullOrEmpty()) {
@@ -82,8 +81,6 @@ class HistoryFragment : Fragment() {
                     binding.circularContainer.visibility = View.GONE
                 }
 
-=======
->>>>>>> 1d744e196d754626ee75e407dbfda29317486cc5
                 binding.textViewEmptyHistory.visibility = if (cachedHistory.isNullOrEmpty()) View.VISIBLE else View.GONE
                 if (!cachedHistory.isNullOrEmpty()) fetchEcoscore()
             }
