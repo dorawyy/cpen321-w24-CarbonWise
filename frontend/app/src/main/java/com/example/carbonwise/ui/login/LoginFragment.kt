@@ -120,7 +120,9 @@ class LoginFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        oneTapClient.signOut() // Ensure no lingering login sessions
+        if (::oneTapClient.isInitialized) {
+            oneTapClient.signOut()
+        }
     }
 
     private fun saveToken(context: Context, token: String) {

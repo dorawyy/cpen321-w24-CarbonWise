@@ -100,15 +100,21 @@ class InfoFragment : Fragment() {
                 response.use {
                     if (!response.isSuccessful) {
                         Log.e("InfoFragment", "Unexpected response: ${response.code()}")
+
                         activity?.runOnUiThread {
                             if (isAdded && _binding != null) {
                                 binding.progressBar.visibility = View.GONE
                                 binding.errorText.visibility = View.VISIBLE
-                                binding.errorText.text = "Failed to load product info."
+
+                                binding.errorText.text = when (response.code()) {
+                                    404 -> "Product not found in our database.\nPlease try another product."
+                                    else -> "Failed to load product info.\nPlease try again later."
+                                }
                             }
                         }
                         return
                     }
+
 
                     val responseBody = response.body()?.string()
                     Log.d("InfoFragment", "Raw API Response: $responseBody")
@@ -236,7 +242,7 @@ class InfoFragment : Fragment() {
 
         if (categories == null || categories.length() == 0) {
             val noIngredientsTextView = TextView(requireContext()).apply {
-                text = "No ingredient data available"
+                text = "No category data available"
                 textSize = 16f
                 setTextColor(ContextCompat.getColor(requireContext(), android.R.color.black))
             }

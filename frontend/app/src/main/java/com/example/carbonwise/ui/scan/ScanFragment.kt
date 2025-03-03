@@ -99,6 +99,7 @@ class ScanFragment : Fragment() {
     }
 
     private fun showPermissionDeniedMessage() {
+        if (_binding == null) return
         binding.previewView.visibility = View.GONE
         binding.barcodeOverlay.visibility = View.GONE
         binding.barcodeBox.visibility = View.GONE
@@ -110,17 +111,23 @@ class ScanFragment : Fragment() {
 
 
     private fun startCamera() {
+        if (!isAdded || _binding == null) return
+
         val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
             ProcessCameraProvider.getInstance(requireContext())
 
         cameraProviderFuture.addListener({
+            if (!isAdded || _binding == null) return@addListener
+
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
             cameraProvider.unbindAll()
 
             val preview = Preview.Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(binding.previewView.surfaceProvider)
+                    _binding?.previewView?.surfaceProvider?.let { provider ->
+                        it.setSurfaceProvider(provider)
+                    }
                 }
 
             val imageAnalysis = ImageAnalysis.Builder()
@@ -138,7 +145,7 @@ class ScanFragment : Fragment() {
                     viewLifecycleOwner, cameraSelector, preview, imageAnalysis
                 )
 
-                binding.buttonFlash.isEnabled = camera?.cameraInfo?.hasFlashUnit() == true
+                _binding?.buttonFlash?.isEnabled = camera?.cameraInfo?.hasFlashUnit() == true
 
             } catch (exc: Exception) {
                 Log.e("CameraX", "Use case binding failed", exc)
@@ -146,6 +153,7 @@ class ScanFragment : Fragment() {
 
         }, ContextCompat.getMainExecutor(requireContext()))
     }
+
 
     private fun toggleFlash() {
         camera?.let {
@@ -166,12 +174,17 @@ class ScanFragment : Fragment() {
 
     @OptIn(ExperimentalGetImage::class)
     private fun processImageProxy(imageProxy: ImageProxy) {
+        if (!isAdded || _binding == null) {
+            imageProxy.close()
+            return
+        }
+
         val mediaImage = imageProxy.image ?: return
         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
 
         barcodeScanner.process(image)
             .addOnSuccessListener { barcodes ->
-                if (!isAdded) return@addOnSuccessListener
+                if (!isAdded || _binding == null) return@addOnSuccessListener
 
                 for (barcode in barcodes) {
                     var rawValue = barcode.rawValue
@@ -184,10 +197,8 @@ class ScanFragment : Fragment() {
                             isScanningLocked = true
                             lastScannedResult = rawValue
 
-                            binding?.let {
-                                it.textScan.text = "Scanned: $rawValue"
-                                showConfirmationDialog(rawValue)
-                            }
+                            _binding?.textScan?.text = "Scanned: $rawValue"
+                            showConfirmationDialog(rawValue)
                         }
                     }
                 }
@@ -201,7 +212,7 @@ class ScanFragment : Fragment() {
     }
 
     private fun showConfirmationDialog(barcode: String) {
-        if (!isAdded || isDialogDisplayed) return  // 🔹 Prevent crashes if fragment is destroyed
+        if (!isAdded || isDialogDisplayed || _binding == null) return
 
         isDialogDisplayed = true
 
