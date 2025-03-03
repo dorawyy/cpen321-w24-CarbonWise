@@ -68,11 +68,7 @@ class InfoFragment : Fragment() {
     private fun fetchProductInfo(upcCode: String, retryCount: Int = 1) {
         val jwtToken = MainActivity.getJWTToken(requireContext())
 
-        val url = if (jwtToken.isNullOrBlank()) {
-            "https://api.cpen321-jelx.com/products/$upcCode"
-        } else {
-            "https://api.cpen321-jelx.com/products/$upcCode?num_recommendations=3"
-        }
+        val url = "https://api.cpen321-jelx.com/products/$upcCode?num_recommendations=3"
 
         val requestBuilder = Request.Builder().url(url)
         if (!jwtToken.isNullOrBlank()) {
