@@ -11,13 +11,14 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.carbonwise.MainActivity
 import com.example.carbonwise.R
 import com.example.carbonwise.databinding.FragmentInfoBinding
 import com.example.carbonwise.network.AddToHistoryRequest
 import com.example.carbonwise.network.ApiService
-import com.example.carbonwise.ui.history.HistoryCacheManager
+import com.example.carbonwise.ui.history.HistoryViewModel
 import okhttp3.*
 import org.json.JSONObject
 import retrofit2.Retrofit
@@ -29,6 +30,8 @@ class InfoFragment : Fragment() {
 
     private var _binding: FragmentInfoBinding? = null
     private val binding get() = _binding!!
+
+    private val historyViewModel: HistoryViewModel by activityViewModels()
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -300,7 +303,8 @@ class InfoFragment : Fragment() {
         call.enqueue(object : retrofit2.Callback<Void> {
             override fun onResponse(call: retrofit2.Call<Void>, response: retrofit2.Response<Void>) {
                 if (response.isSuccessful) {
-                    HistoryCacheManager.invalidateCache(requireContext())
+                    historyViewModel.fetchHistory(token, forceRefresh = true)
+                    historyViewModel.fetchEcoScore(token, forceRefresh = true)
                 }
             }
 
