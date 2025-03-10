@@ -9,7 +9,7 @@ import dotenv from "dotenv";
 
 import passport from "passport";
 import session from "express-session";
-import authRoutes, { authenticateJWT } from "./auth";
+import { router as authRoutes, authenticateJWT } from "./auth";
 
 dotenv.config();
 

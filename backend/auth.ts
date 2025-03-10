@@ -3,10 +3,9 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { OAuth2Client } from "google-auth-library";
 import { Request, Response, NextFunction } from "express";
 import { v4 as uuidv4 } from "uuid";
-import { client } from "./services";
+import { client, oauthClient } from "./services";
 import { Collection } from "mongodb";
 import { User } from "./types";
 import { JWT_EXPIRATION_TIME } from "./constants";
@@ -14,7 +13,6 @@ import { JWT_EXPIRATION_TIME } from "./constants";
 dotenv.config();
 
 const router = express.Router();
-const oauthClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 //=========================== FOR BROWSER TESTING ===========================
 passport.use(
@@ -26,7 +24,6 @@ passport.use(
     },
     async (_accessToken, _refreshToken, profile, done) => {
       const userCollection: Collection<User> = client.db("users_db").collection("users");
-
       let user = await userCollection.findOne({ google_id: profile.id });
 
       if (!user) {
@@ -83,6 +80,7 @@ router.post("/auth/google", async (req, res) => {
   const { google_id_token } = req.body;
 
   try {
+
     const ticket = await oauthClient.verifyIdToken({
       idToken: google_id_token,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -93,8 +91,10 @@ router.post("/auth/google", async (req, res) => {
 
     const userCollection: Collection<User> = client.db("users_db").collection("users");
     let user = await userCollection.findOne({ google_id: payload.sub });
+
     if (!user) {
       const user_uuid = uuidv4();
+
       user = {
         _id: user_uuid,
         google_id: payload.sub,
@@ -118,7 +118,7 @@ router.post("/auth/google", async (req, res) => {
   }
 });
 
-export const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
+const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers.token;
 
   if (!token) {
@@ -134,4 +134,4 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
   }
 };
 
-export default router;
+export { router, authenticateJWT };
