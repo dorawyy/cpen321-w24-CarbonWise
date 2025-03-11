@@ -10,10 +10,15 @@ jest.mock("../../services", () => {
     return {
         client: {
             db: jest.fn(() => ({
-                collection: jest.fn(() => ({
-                    findOne: findOneMock,
-                    insertOne: insertOneMock,
-                })),
+                collection: jest.fn((name) => {
+                    if (name === "users") {
+                        return {
+                            findOne: findOneMock,
+                            insertOne: insertOneMock,
+                        };
+                    }
+                    return {};
+                }),
             })),
         },
         oauthClient: {
@@ -30,7 +35,7 @@ describe("Mocked: POST /auth/google", () => {
     let oauthClient: any;
 
     beforeEach(() => {
-        userCollection = (services.client.db as jest.Mock)().collection();
+        userCollection = (services.client.db as jest.Mock)().collection("users");
         oauthClient = services.oauthClient;
 
         userCollection.findOne.mockClear();
