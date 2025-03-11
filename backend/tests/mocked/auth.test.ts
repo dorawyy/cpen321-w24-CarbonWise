@@ -47,28 +47,29 @@ describe("Mocked: POST /auth/google", () => {
         jest.clearAllMocks();
     });
 
-    // Input: google_id_token is an valid google ID token
+    // Input: google_id_token is a valid Google ID token for an existing user
     // Expected status code: 200
     // Expected behavior: user is authenticated
     // Expected output: JWT token
     test("Valid Google ID Token for Existing User", async () => {
-        oauthClient.verifyIdToken.mockImplementationOnce(() =>
-            Promise.resolve({
-                getPayload: () => ({
-                    sub: "valid-google-id",
-                    email: "user@example.com",
-                    name: "Test User",
-                }),
-            })
-        );
-
-        userCollection.findOne.mockResolvedValueOnce({
+        const mockUser = {
             google_id: "valid-google-id",
             email: "user@example.com",
             name: "Test User",
             user_uuid: uuidv4(),
-        });
+        };
 
+        oauthClient.verifyIdToken.mockImplementationOnce(() =>
+            Promise.resolve({
+                getPayload: () => ({
+                    sub: mockUser.google_id,
+                    email: mockUser.email,
+                    name: mockUser.name,
+                }),
+            })
+        );
+
+        userCollection.findOne.mockResolvedValueOnce(mockUser);
 
         const res = await supertest(app)
             .post("/auth/google")
@@ -76,25 +77,33 @@ describe("Mocked: POST /auth/google", () => {
 
         expect(res.status).toStrictEqual(200);
         expect(res.body).toHaveProperty("token");
+        expect(res.body.token).toBeDefined();
+        expect(userCollection.findOne).toHaveBeenCalledWith({ google_id: mockUser.google_id });
+        expect(userCollection.insertOne).not.toHaveBeenCalled();
     });
 
-    // Input: google_id_token is an valid google ID token
+    // Input: google_id_token is a valid Google ID token for a new user
     // Expected status code: 200
-    // Expected behavior: user is authenticated
+    // Expected behavior: user is created and authenticated
     // Expected output: JWT token
     test("Valid Google ID Token for New User", async () => {
+        const newUser = {
+            google_id: "new-google-id",
+            email: "newuser@example.com",
+            name: "New User",
+        };
+
         oauthClient.verifyIdToken.mockImplementationOnce(() =>
             Promise.resolve({
                 getPayload: () => ({
-                    sub: "new-google-id",
-                    email: "newuser@example.com",
-                    name: "New User",
+                    sub: newUser.google_id,
+                    email: newUser.email,
+                    name: newUser.name,
                 }),
             })
         );
 
         userCollection.findOne.mockResolvedValueOnce(null);
-
         userCollection.insertOne.mockResolvedValueOnce({
             acknowledged: true,
             insertedId: "mocked-insert-id",
@@ -104,17 +113,37 @@ describe("Mocked: POST /auth/google", () => {
             .post("/auth/google")
             .send({ google_id_token: "valid_google_id_token" });
 
-
         expect(res.status).toStrictEqual(200);
         expect(res.body).toHaveProperty("token");
-        expect(userCollection.findOne).toHaveBeenCalledWith({ google_id: "new-google-id" });
+        expect(res.body.token).toBeDefined();
+        expect(userCollection.findOne).toHaveBeenCalledWith({ google_id: newUser.google_id });
         expect(userCollection.insertOne).toHaveBeenCalledWith({
             _id: expect.any(String),
-            google_id: "new-google-id",
-            email: "newuser@example.com",
-            name: "New User",
+            google_id: newUser.google_id,
+            email: newUser.email,
+            name: newUser.name,
             user_uuid: expect.any(String),
             fcm_registration_token: "",
         });
+    });
+
+    // Input: google_id_token is an invalid Google ID token
+    // Expected status code: 401
+    // Expected behavior: user is not authenticated
+    // Expected output: error message
+    test("Invalid Google ID Token", async () => {
+        oauthClient.verifyIdToken.mockImplementationOnce(() => {
+            throw new Error("Invalid token payload");
+        });
+
+        const res = await supertest(app)
+            .post("/auth/google")
+            .send({ google_id_token: "invalid_google_id_token" });
+
+        expect(res.status).toStrictEqual(401);
+        expect(res.body).toHaveProperty("message");
+        expect(res.body.message).toStrictEqual("Invalid token");
+        expect(userCollection.findOne).not.toHaveBeenCalled();
+        expect(userCollection.insertOne).not.toHaveBeenCalled();
     });
 });
