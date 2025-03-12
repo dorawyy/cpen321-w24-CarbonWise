@@ -141,47 +141,6 @@ export class FriendsController {
         }
     }
 
-    async getFriendHistory(req: Request, res: Response, nextFunction: NextFunction) {
-        const user = req.user as User;
-        const user_uuid = user.user_uuid;
-        const { timestamp } = req.query;
-
-        const friendsCollection = client.db("users_db").collection<Friends>("friends");
-
-        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
-
-        // Fetch history for each friend
-        if (userFriends?.friends) {
-            const historyMap: Record<string, any[]> = {};
-            for (const friend of userFriends.friends) {
-                const friendHistory = await getHistoryByUserUUID(friend.user_uuid, timestamp as string);
-
-                const detailedHistory = await Promise.all(friendHistory.map(async (entry) => {
-                    const detailedProducts = await Promise.all(entry.products.map(async (product) => {
-                        const productDetails = await fetchProductById(product.product_id);
-                        const productImage = await fetchProductImageById(product.product_id);
-                        return {
-                            ...product,
-                            "product": {
-                                ...productDetails,
-                                image: productImage
-                            }
-                        }; 
-                    }));
-                    return {
-                        ...entry,
-                        products: detailedProducts
-                    };
-                }));
-
-                historyMap[friend.user_uuid] = detailedHistory;
-            }
-            res.status(200).send(historyMap);
-        } else {
-            res.status(200).send({});
-        }
-    }
-
     async getFriendRequests(req: Request, res: Response, nextFunction: NextFunction) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
