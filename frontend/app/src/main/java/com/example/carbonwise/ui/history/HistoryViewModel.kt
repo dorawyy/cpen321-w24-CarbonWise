@@ -64,7 +64,7 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                         _historyItems.postValue(historyList.flatMap { it.products })
                     }
                 }
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 e.printStackTrace()
             } finally {
                 _isLoading.postValue(false)
@@ -80,7 +80,7 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                     _historyItems.postValue(_historyItems.value?.filterNot { it.scan_uuid == scanUuid })
                     fetchEcoScore(token, true)
                 }
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 e.printStackTrace()
             }
         }
