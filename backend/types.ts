@@ -24,17 +24,17 @@ export interface Product {
     product_name?: string;
     ecoscore_grade?: string;
     ecoscore_score?: number;
-    ecoscore_data?: Record<string, any>;
+    ecoscore_data?: Record<string, unknown>;
     categories_tags?: string[];
     categories_hierarchy?: string[];
     countries_tags?: string[];
     lang?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface OpenFoodFactsProduct {
     data?: {
         status?: number;
-        product?: {};
+        product?: Product;
     }
 }
