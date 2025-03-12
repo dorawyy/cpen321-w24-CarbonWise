@@ -9,9 +9,7 @@ client.connect().then(() => {
 
     const app = createServer();
 
-    app.listen(process.env.PORT, () => {
-        console.log("Listening on port " + process.env.PORT);
-    });
+    app.listen(process.env.PORT);
 
 }).catch(err => {
     console.error(err);
