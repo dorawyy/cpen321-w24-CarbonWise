@@ -4,7 +4,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { Request, Response, NextFunction } from "express";
-import { v4 as uuidv4 } from "uuid";
+import { nanoid } from "nanoid";
 import { client, oauthClient } from "./services";
 import { Collection } from "mongodb";
 import { User } from "./types";
@@ -28,7 +28,7 @@ passport.use(
 
       if (!user) {
 
-        const user_uuid = uuidv4();
+        const user_uuid = nanoid(8);
 
         user = {
           _id: user_uuid,
@@ -93,7 +93,7 @@ router.post("/auth/google", async (req, res) => {
     let user = await userCollection.findOne({ google_id: payload.sub });
 
     if (!user) {
-      const user_uuid = uuidv4();
+      const user_uuid = nanoid(8);
 
       user = {
         _id: user_uuid,
