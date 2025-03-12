@@ -2,28 +2,35 @@ package com.example.carbonwise
 
 import android.Manifest
 import android.content.BroadcastReceiver
-import android.content.pm.PackageManager
-import android.os.Build
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.carbonwise.databinding.ActivityMainBinding
 import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.FCMTokenManager
 import com.example.carbonwise.ui.friends.FriendsViewModel
-import okhttp3.*
+import com.google.android.gms.tasks.Task
+import com.google.firebase.messaging.FirebaseMessaging
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
+import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import com.google.firebase.messaging.FirebaseMessaging
-import org.json.JSONObject
 import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
@@ -240,23 +247,24 @@ class MainActivity : AppCompatActivity() {
 
     // Get FCM token
     private fun retrieveFCMToken() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Log.w("FCM", "Fetching FCM token failed", task.exception)
-                return@addOnCompleteListener
-            }
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(::handleFCMTokenResult)
+    }
 
-            val newToken = task.result
-            Log.d("FCM", "FCM Token: $newToken")
+    private fun handleFCMTokenResult(task: Task<String>) {
+        if (!task.isSuccessful) {
+            Log.w("FCM", "Fetching FCM token failed", task.exception)
+            return
+        }
 
-            val sharedPref = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val newToken = task.result
+        Log.d("FCM", "FCM Token: $newToken")
 
-            FCMTokenManager.sendFCMTokenToBackend(this, newToken)
+        val sharedPref = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        FCMTokenManager.sendFCMTokenToBackend(this, newToken)
 
-            with(sharedPref.edit()) {
-                putString("fcm_token", newToken)
-                apply()
-            }
+        with(sharedPref.edit()) {
+            putString("fcm_token", newToken)
+            apply()
         }
     }
 
