@@ -46,9 +46,8 @@ export class UsersController {
     async getHistory(req: Request, res: Response, nextFunction: NextFunction) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
-        const { timestamp } = req.query;
 
-        const userHistory = await getHistoryByUserUUID(user_uuid, timestamp as string);
+        const userHistory = await getHistoryByUserUUID(user_uuid);
 
         // Fetch product details for each product in the history
         if (userHistory.length > 0) {
@@ -234,13 +233,10 @@ export class UsersController {
 }
 
 // Helper function to fetch history entries for a user
-export async function getHistoryByUserUUID(user_uuid: string, timestamp?: string) {
+export async function getHistoryByUserUUID(user_uuid: string) {
     const historyCollection = client.db("users_db").collection<History>("history");
 
     const query: any = { user_uuid: user_uuid };
-    if (timestamp) {
-        query["products.timestamp"] = { $gt: new Date(timestamp) };
-    }
 
     return await historyCollection.find(query).toArray();
 }
