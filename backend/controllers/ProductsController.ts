@@ -72,7 +72,7 @@ export class ProductsController {
             matchingProducts = matchingProducts
                 .map(product => ({
                     ...product,
-                    categories_tags_difference: calculateTagDifference(baseProduct.categories_tags ?? [], product.categories_tags || [])
+                    categories_tags_difference: calculateTagDifference(baseProduct.categories_tags ?? [], product.categories_tags ?? [])
                 }))
                 .sort((a, b) => a.categories_tags_difference - b.categories_tags_difference);  
 
@@ -89,7 +89,7 @@ export class ProductsController {
             );
 
             return res.status(200).json({
-                product: { ...baseProduct, image: baseProductImage || null },
+                product: { ...baseProduct, image: baseProductImage ?? null },
                 recommendations: recommendationsWithImages
             });
         } catch (error) {
