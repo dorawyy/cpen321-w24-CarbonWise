@@ -6,20 +6,10 @@ const controller = new FriendsController()
 export const FriendsRoutes = [
     {
         method: "get",
-        route: "/friends/history",
-        action: controller.getFriendHistory,
-        validation: [
-            query("timestamp").optional().isISO8601().withMessage("Timestamp should be a valid ISO 8601 date string")
-        ],
-        protected: true
-    },
-    {
-        method: "get",
         route: "/friends/history/:user_uuid",
         action: controller.getFriendHistoryByUUID,
         validation: [
-            param("user_uuid").isString().withMessage("User UUID should be a string"),
-            query("timestamp").optional().isISO8601().withMessage("Timestamp should be a valid ISO 8601 date string")
+            param("user_uuid").isString().withMessage("User UUID should be a string")
         ],
         protected: true
     },

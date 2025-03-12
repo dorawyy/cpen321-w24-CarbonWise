@@ -10,6 +10,7 @@ import dotenv from "dotenv";
 import passport from "passport";
 import session from "express-session";
 import { router as authRoutes, authenticateJWT } from "./auth";
+import { Product } from './types';
 
 dotenv.config();
 
@@ -54,6 +55,24 @@ function createServer() {
     });
 
     return app;
-}   
+}
 
-export {createServer};
+function hasRequiredProductFields(product: Partial<Product> | null): product is Product {
+    if (!product) return false;
+
+    const requiredFields: (keyof Product)[] = [
+        "product_name",
+        "ecoscore_grade",
+        "ecoscore_score",
+        "ecoscore_data",
+        "categories_tags",
+        "categories_hierarchy",
+        "countries_tags",
+        "lang"
+    ];
+
+    return requiredFields.every(field => product[field] != null);
+}
+
+
+export {createServer, hasRequiredProductFields};

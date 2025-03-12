@@ -20,7 +20,7 @@ export interface Friends {
 }
 
 export interface Product {
-    _id: string;
+    _id?: string;
     product_name?: string;
     ecoscore_grade?: string;
     ecoscore_score?: number;
@@ -30,4 +30,11 @@ export interface Product {
     countries_tags?: string[];
     lang?: string;
     [key: string]: any;
+}
+
+export interface OpenFoodFactsProduct {
+    data?: {
+        status?: number;
+        product?: {};
+    }
 }
