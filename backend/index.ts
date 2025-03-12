@@ -4,10 +4,10 @@ import { createServer } from "./utils";
 
 dotenv.config();
 
-const app = createServer();
-
 client.connect().then(() => {
     console.log("MongoDB Client Connected");
+
+    const app = createServer();
 
     app.listen(process.env.PORT, () => {
         console.log("Listening on port " + process.env.PORT);

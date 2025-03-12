@@ -159,7 +159,7 @@ export async function fetchProductImageById(product_id: string): Promise<string 
         const imageUrl = `${OPENFOODFACTS_IMAGE_API_URL}${imageKey}`;
 
         const imageResponse = await axios.get(imageUrl, { responseType: "arraybuffer" });
-        return Buffer.from(imageResponse.data, "binary").toString("base64");
+        return Buffer.from(imageResponse.data as string, "binary").toString("base64");
     } catch (error) {
         return null;
     }
