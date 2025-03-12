@@ -2,13 +2,17 @@ package com.example.carbonwise.ui.history
 
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.ProductItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.IOException
 
 class HistoryViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -41,7 +45,7 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                 } else {
                     _ecoScore.postValue(0.0)
                 }
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 Log.e("HistoryViewModel", "Error fetching ecoScore", e)
             }
         }
