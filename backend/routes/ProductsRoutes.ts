@@ -7,7 +7,7 @@ export const ProductsRoutes = [
     {
         method: "get",
         route: "/products/:product_id",
-        action: controller.getProductById,
+        action: controller.getProductById.bind(controller),
         validation: [
             param("product_id").isString().withMessage("Invalid product ID"),
             query("num_recommendations").optional().isInt({ min: 1 }).withMessage("Number of recommendations must be a positive integer"),

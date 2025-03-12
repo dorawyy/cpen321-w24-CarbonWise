@@ -1,15 +1,24 @@
-import { NextFunction, Request, Response } from "express";
-import { client } from "../services";
+import { Request, Response } from "express";
 import { Filter, Document } from "mongodb";
 import { fetchProductById, fetchProductImageById } from "./ProductsController";
 import { getMessaging, TokenMessage } from 'firebase-admin/messaging';
-import { getFirebaseApp } from "../services";
+import { client, getFirebaseApp } from "../services";
 import { User, Friends, History } from "../types";
 import { getHistoryByUserUUID } from "./UsersController";
 
+interface FriendRequestBody {
+    user_uuid: string;
+}
+
+interface ReactionRequest {
+    user_uuid: string;
+    scan_uuid: string;
+    message_type: string;
+}
+
 export class FriendsController {
     
-    async sendFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
+    async sendFriendRequest(req: Request<{}, {}, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.body;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -46,7 +55,7 @@ export class FriendsController {
         }
     }
 
-    async acceptFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
+    async acceptFriendRequest(req: Request<{}, {}, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.body;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -88,7 +97,7 @@ export class FriendsController {
         }
     }
 
-    async removeFriend(req: Request, res: Response, nextFunction: NextFunction) {
+    async removeFriend(req: Request<{}, {}, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.query;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -117,7 +126,7 @@ export class FriendsController {
         }
     }
 
-    async rejectFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
+    async rejectFriendRequest(req: Request<{}, {}, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.query;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -141,7 +150,7 @@ export class FriendsController {
         }
     }
 
-    async getFriendRequests(req: Request, res: Response, nextFunction: NextFunction) {
+    async getFriendRequests(req: Request<{}, {}, FriendRequestBody>, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
@@ -156,7 +165,7 @@ export class FriendsController {
         }
     }
 
-    async getOutgoingFriendRequests(req: Request, res: Response) {
+    async getOutgoingFriendRequests(req: Request<{}, {}, FriendRequestBody>, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
@@ -169,7 +178,7 @@ export class FriendsController {
         res.status(200).send(outgoingRequestUUIDs);
     }
 
-    async getCurrentFriends(req: Request, res: Response, nextFunction: NextFunction) {
+    async getCurrentFriends(req: Request<{}, {}, FriendRequestBody>, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
@@ -184,11 +193,10 @@ export class FriendsController {
         }
     }
 
-    async getFriendHistoryByUUID(req: Request, res: Response, nextFunction: NextFunction) {
+    async getFriendHistoryByUUID(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
         const { user_uuid: friend_uuid } = req.params;
-        const { timestamp } = req.query;
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
 
@@ -200,7 +208,7 @@ export class FriendsController {
             return res.status(404).send({message: "User does not exist or is not a friend"});
         }
 
-        const friendHistory = await getHistoryByUserUUID(friend_uuid, timestamp as string);
+        const friendHistory = await getHistoryByUserUUID(friend_uuid);
 
         // Fetch detailed product information for each product
         const detailedHistory = await Promise.all(friendHistory.map(async (entry) => {
@@ -224,7 +232,7 @@ export class FriendsController {
         res.status(200).send(detailedHistory);
     }
 
-    async sendProductNotification(req: Request, res: Response, nextFunction: NextFunction) {
+    async sendProductNotification(req: Request, res: Response) {
         const { user_uuid: friend_uuid, scan_uuid, message_type } = req.body;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -300,7 +308,7 @@ export class FriendsController {
             });
     }
 
-    async getFriendEcoscore(req: Request, res: Response, nextFunction: NextFunction) {
+    async getFriendEcoscore(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
         const { user_uuid: friend_uuid } = req.params;
