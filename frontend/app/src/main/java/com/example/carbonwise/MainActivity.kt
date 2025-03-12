@@ -268,7 +268,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun refreshJWTToken(googleIdToken: String) {
         val url = "https://api.cpen321-jelx.com/auth/google"
         val jsonBody = """
