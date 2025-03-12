@@ -156,6 +156,19 @@ export class FriendsController {
         }
     }
 
+    async getOutgoingFriendRequests(req: Request, res: Response) {
+        const user = req.user as User;
+        const user_uuid = user.user_uuid;
+
+        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+
+        const outgoingRequests = await friendsCollection.find({ "incoming_requests.user_uuid": user_uuid }).toArray();
+
+        const outgoingRequestUUIDs = outgoingRequests.map(request => request.user_uuid);
+
+        res.status(200).send(outgoingRequestUUIDs);
+    }
+
     async getCurrentFriends(req: Request, res: Response, nextFunction: NextFunction) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;

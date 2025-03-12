@@ -58,6 +58,13 @@ export const FriendsRoutes = [
     },
     {
         method: "get",
+        route: "/friends/requests/outgoing",
+        action: controller.getOutgoingFriendRequests,
+        validation: [],
+        protected: true
+    },
+    {
+        method: "get",
         route: "/friends",
         action: controller.getCurrentFriends,
         validation: [],
