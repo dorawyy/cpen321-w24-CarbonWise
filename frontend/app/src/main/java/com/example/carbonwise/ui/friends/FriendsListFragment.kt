@@ -48,16 +48,15 @@ class FriendsListFragment : Fragment() {
             onViewHistory = { friend ->
                 if (friend.user_uuid.isNullOrEmpty()) {
                     Log.e("FriendsAdapter", "No friend UUID provided, cannot navigate!")
-                    return@FriendsAdapter
+                } else {
+                    Log.e("FriendsAdapter", "Navigating with UUID: ${friend.user_uuid}")
+
+                    val action = FriendsFragmentDirections
+                        .actionFriendsFragmentToFriendsHistoryFragment(friend.user_uuid)
+
+                    Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_activity_main)
+                        .navigate(action)
                 }
-
-                Log.e("FriendsAdapter", "Navigating with UUID: ${friend.user_uuid}")
-
-                val action = FriendsFragmentDirections
-                    .actionFriendsFragmentToFriendsHistoryFragment(friend.user_uuid)
-
-                Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_activity_main)
-                    .navigate(action)
             }
 
         )
