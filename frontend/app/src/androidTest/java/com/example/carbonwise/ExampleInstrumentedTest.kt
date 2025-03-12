@@ -34,6 +34,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.*
+import java.util.concurrent.Executors
 
 
 @RunWith(AndroidJUnit4::class)
@@ -105,5 +106,101 @@ class ScanProductsTest {
                 throw AssertionError("Barcode scanning failed unexpectedly!")
             }
     }
+
+    /**
+     * Test Case: Product does not exist
+     */
+    @Test
+    fun testScanProduct_NoProductInfo_ShowsErrorMessage() {
+        val result = Instrumentation.ActivityResult(Activity.RESULT_OK, Intent())
+        Intents.intending(hasAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)).respondWith(result)
+
+        val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+        val allowButton: UiObject = device.findObject(
+            UiSelector().resourceId("com.android.permissioncontroller:id/permission_allow_foreground_only_button")
+        )
+
+        if (allowButton.exists() && allowButton.isEnabled) {
+            allowButton.click()
+        } else {
+            throw AssertionError("Cannot Enable Permissions")
+        }
+
+        val mockBitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        val inputImage = InputImage.fromBitmap(mockBitmap, 0)
+
+        val mockBarcode = mock(Barcode::class.java)
+        `when`(mockBarcode.rawValue).thenReturn("123456789")
+
+        val mockBarcodeScanner = mock(BarcodeScanner::class.java)
+        val task = Tasks.forResult(listOf(mockBarcode))
+
+        `when`(mockBarcodeScanner.process(any(InputImage::class.java))).thenReturn(task)
+
+        val executor = Executors.newSingleThreadExecutor()
+        executor.execute {
+            mockBarcodeScanner.process(inputImage)
+                .addOnSuccessListener { barcodes ->
+                    assertEquals(1, barcodes.size)
+
+                    // Ensure UI assertion runs on the main thread
+                    InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                        onView(withText("Product information not found.")).check(matches(isDisplayed()))
+                    }
+                }
+                .addOnFailureListener {
+                    throw AssertionError("Barcode scanning failed unexpectedly!")
+                }
+        }
+    }
+
+    /**
+     * Test Case: Product exists, scan completes fully
+     */
+    @Test
+    fun testScanProduct_ProductInDB_NoErrorMessage() {
+        val result = Instrumentation.ActivityResult(Activity.RESULT_OK, Intent())
+        Intents.intending(hasAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)).respondWith(result)
+
+        val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+        val allowButton: UiObject = device.findObject(
+            UiSelector().resourceId("com.android.permissioncontroller:id/permission_allow_foreground_only_button")
+        )
+
+        if (allowButton.exists() && allowButton.isEnabled) {
+            allowButton.click()
+        } else {
+            throw AssertionError("Cannot Enable Permissions")
+        }
+
+        val mockBitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        val inputImage = InputImage.fromBitmap(mockBitmap, 0)
+
+        val mockBarcode = mock(Barcode::class.java)
+        `when`(mockBarcode.rawValue).thenReturn("009800895007")
+
+        val mockBarcodeScanner = mock(BarcodeScanner::class.java)
+        val task = Tasks.forResult(listOf(mockBarcode))
+
+        `when`(mockBarcodeScanner.process(any(InputImage::class.java))).thenReturn(task)
+
+        val executor = Executors.newSingleThreadExecutor()
+        executor.execute {
+            mockBarcodeScanner.process(inputImage)
+                .addOnSuccessListener { barcodes ->
+                    assertEquals(1, barcodes.size)
+
+                    // Ensure UI assertion runs on the main thread
+                    InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                        onView(withText("Nutella")).check(matches(isDisplayed()))
+                    }
+                }
+                .addOnFailureListener {
+                    throw AssertionError("Barcode scanning failed unexpectedly!")
+                }
+        }
+    }
+
+
 
 }
