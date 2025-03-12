@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { client } from "../services";
-import { Collection } from "mongodb";
+import { Collection, MongoClient } from "mongodb";
 import axios from "axios";
 import { Buffer } from "buffer";
 import { Product, OpenFoodFactsProduct } from "../types";
@@ -29,7 +29,7 @@ export class ProductsController {
             // Fetch product image
             const baseProductImage = await fetchProductImageById(product_id);
   
-            const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
+            const collection: Collection<Product> = (client as MongoClient).db("products_db").collection<Product>("products");
             
             let remainingTags = [...baseProduct.categories_hierarchy];
             let matchingProducts: Product[] = [];
