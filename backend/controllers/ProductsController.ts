@@ -29,7 +29,11 @@ export class ProductsController {
             // Fetch product image
             const baseProductImage = await fetchProductImageById(product_id);
   
-            const collection: Collection<Product> = (client as MongoClient).db("products_db").collection<Product>("products");
+
+            if (!client || !(client instanceof MongoClient)) {
+                throw new Error("Database connection error.");
+            }
+            const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
             
             let remainingTags = [...baseProduct.categories_hierarchy];
             let matchingProducts: Product[] = [];
