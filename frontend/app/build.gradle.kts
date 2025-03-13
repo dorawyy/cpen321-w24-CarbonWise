@@ -93,4 +93,5 @@ dependencies {
     implementation ("com.google.android.material:material:1.12.0")
 
     androidTestImplementation("org.mockito:mockito-android:5.3.1")
+    androidTestImplementation("androidx.test.espresso:espresso-idling-resource:3.5.1")
 }
