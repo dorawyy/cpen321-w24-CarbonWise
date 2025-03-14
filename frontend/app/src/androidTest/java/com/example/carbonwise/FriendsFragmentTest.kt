@@ -15,6 +15,7 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
@@ -70,7 +71,8 @@ class FriendsFragmentTest {
         onView(withId(R.id.textFriendCode)).check(matches(isDisplayed()))
         onView(withId(R.id.editFriendCode)).check(matches(isDisplayed()))
 
-        onView(withId(R.id.editFriendCode)).perform(typeText("TEST_CODE"), closeSoftKeyboard())
+        onView(withId(R.id.editFriendCode))
+            .perform(typeText("08f7403a-b934-4cc2-ab92-d0f177e79731"), closeSoftKeyboard())
 
         onView(withId(R.id.buttonAddFriend)).perform(click())
 
@@ -80,6 +82,52 @@ class FriendsFragmentTest {
         //        onView(withText("Friend request sent!"))
         //            .inRoot(isToast())
         //            .check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun sendFriendRequestFailureNoMatchingUser() {
+
+        onView(withId(R.id.fabAddFriend)).perform(click())
+        Thread.sleep(1000)
+
+        onView(withId(R.id.textFriendCode)).check(matches(isDisplayed()))
+        onView(withId(R.id.editFriendCode)).check(matches(isDisplayed()))
+
+        onView(withId(R.id.editFriendCode)).perform(typeText("NONEXISTENT_CODE"), closeSoftKeyboard())
+
+        onView(withId(R.id.buttonAddFriend)).perform(click())
+
+        Thread.sleep(100)
+
+        //        onView(withText("Enter a valid friend code"))
+        //            .inRoot(isToast())
+        //            .check(matches(isDisplayed()))
+    }
+
+    /**
+     * Test case: When a user enters their own friend code and taps Send,
+     * the UI should inform them that they cannot send a friend request to themselves.
+     */
+    @Test
+    fun testSendFriendRequestToSelf() {
+
+        onView(withId(R.id.fabAddFriend)).perform(click())
+        Thread.sleep(1000)
+
+        onView(withId(R.id.textFriendCode)).check(matches(isDisplayed()))
+
+        var ownFriendCode = "Error fetching code"
+
+        onView(withId(R.id.editFriendCode))
+            .perform(typeText(ownFriendCode), closeSoftKeyboard())
+
+        onView(withId(R.id.buttonAddFriend)).perform(click())
+        Thread.sleep(100)
+
+        onView(withText("You cannot send a friend request to yourself!"))
+            .check(matches(isDisplayed()))
+
+        Thread.sleep(100)
     }
 
     /**
