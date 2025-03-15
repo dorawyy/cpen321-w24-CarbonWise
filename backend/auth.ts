@@ -108,7 +108,7 @@ router.post("/auth/google", asyncHandler(async (req, res) => {
     });
 
     const payload = ticket.getPayload();
-    if (!payload) throw new Error("Invalid token payload");
+    if (!payload) throw new Error("Invalid Google OAuth token");
 
     const userCollection: Collection<User> = client.db("users_db").collection("users");
     let user = await userCollection.findOne({ google_id: payload.sub });
@@ -140,7 +140,7 @@ router.post("/auth/google", asyncHandler(async (req, res) => {
 
     res.json({ token: jwtToken });
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+    res.status(401).json({ message: "Invalid Google OAuth token" });
   }
 }));
 
@@ -161,7 +161,7 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
     (req as any).user = decoded;
     next();
   } catch (err) {
-    return res.status(403).json({ message: "Unauthorized" });
+    return res.status(403).json({ message: "Authentication error" });
   }
 };
 

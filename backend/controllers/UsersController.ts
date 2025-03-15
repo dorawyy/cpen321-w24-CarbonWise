@@ -8,6 +8,7 @@ import { Collection } from "mongodb";
 
 
 export class UsersController {
+    
     async addToHistory(req: Request, res: Response) {
         const { product_id } = req.body;
         const user = req.user as User;
@@ -19,7 +20,7 @@ export class UsersController {
         // Check if product exists and has required fields
         const product: Product | null = await productCollection.findOne({ _id: product_id });
         if (!product?.product_name || !product.ecoscore_grade || !product.ecoscore_score || !product.ecoscore_data || !product.categories_tags || !product.categories_hierarchy) {
-            return res.status(404).send({message: "Product not found"});
+            return res.status(404).send({message: "Product could not be added to user history"});
         }
 
         const historyEntry: HistoryEntry = {

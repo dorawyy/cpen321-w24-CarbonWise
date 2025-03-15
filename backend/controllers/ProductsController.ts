@@ -23,7 +23,7 @@ export class ProductsController {
 
             
             if (!baseProduct?.categories_hierarchy) {
-                return res.status(404).json({ message: "Product not found or missing required fields." });
+                return res.status(404).json({ message: "Product not found or missing required fields" });
             }
 
             // Fetch product image
@@ -101,9 +101,6 @@ export async function fetchProductById(product_id: string): Promise<Product | nu
         { 
             _id: product_id, 
             product_name: { $exists: true },
-            ecoscore_grade: { $exists: true },
-            ecoscore_score: { $exists: true },
-            ecoscore_data: { $exists: true },
             categories_tags: { $exists: true },
             categories_hierarchy: { $exists: true },
             countries_tags: { $exists: true },
@@ -127,9 +124,6 @@ export async function fetchProductById(product_id: string): Promise<Product | nu
         // Ensure fetched product has all required fields BEFORE inserting
         if (
             fetchedProduct.product_name &&
-            fetchedProduct.ecoscore_grade &&
-            fetchedProduct.ecoscore_score &&
-            fetchedProduct.ecoscore_data &&
             fetchedProduct.categories_tags &&
             fetchedProduct.categories_hierarchy &&
             fetchedProduct.countries_tags &&
