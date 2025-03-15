@@ -10,11 +10,17 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
-import androidx.camera.core.*
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.example.carbonwise.R
 import com.example.carbonwise.databinding.FragmentScanBinding
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.mlkit.vision.barcode.BarcodeScanner
@@ -24,7 +30,6 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import com.example.carbonwise.R
 
 class ScanFragment : Fragment() {
 
@@ -108,40 +113,39 @@ class ScanFragment : Fragment() {
             ProcessCameraProvider.getInstance(requireContext())
 
         cameraProviderFuture.addListener({
-            if (!isAdded || _binding == null) return@addListener
+            if (isAdded || _binding != null){
+                val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+                cameraProvider.unbindAll()
 
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-            cameraProvider.unbindAll()
-
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    _binding?.previewView?.surfaceProvider?.let { provider ->
-                        it.setSurfaceProvider(provider)
+                val preview = Preview.Builder()
+                    .build()
+                    .also {
+                        _binding?.previewView?.surfaceProvider?.let { provider ->
+                            it.setSurfaceProvider(provider)
+                        }
                     }
+
+                val imageAnalysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+
+                imageAnalysis.setAnalyzer(cameraExecutor) { imageProxy ->
+                    processImageProxy(imageProxy)
                 }
 
-            val imageAnalysis = ImageAnalysis.Builder()
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build()
+                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
-            imageAnalysis.setAnalyzer(cameraExecutor) { imageProxy ->
-                processImageProxy(imageProxy)
+                try {
+                    camera = cameraProvider.bindToLifecycle(
+                        viewLifecycleOwner, cameraSelector, preview, imageAnalysis
+                    )
+
+                    _binding?.buttonFlash?.isEnabled = camera?.cameraInfo?.hasFlashUnit() == true
+
+                } catch (exc: IllegalStateException) {
+                    Log.e("CameraX", "Use case binding failed", exc)
+                }
             }
-
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-            try {
-                camera = cameraProvider.bindToLifecycle(
-                    viewLifecycleOwner, cameraSelector, preview, imageAnalysis
-                )
-
-                _binding?.buttonFlash?.isEnabled = camera?.cameraInfo?.hasFlashUnit() == true
-
-            } catch (exc: Exception) {
-                Log.e("CameraX", "Use case binding failed", exc)
-            }
-
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
@@ -175,21 +179,21 @@ class ScanFragment : Fragment() {
 
         barcodeScanner.process(image)
             .addOnSuccessListener { barcodes ->
-                if (!isAdded || _binding == null) return@addOnSuccessListener
+                if (isAdded || _binding != null) {
+                    for (barcode in barcodes) {
+                        var rawValue = barcode.rawValue
+                        if (rawValue != null) {
+                            if (rawValue.length == 12) {
+                                rawValue = "0$rawValue"
+                            }
 
-                for (barcode in barcodes) {
-                    var rawValue = barcode.rawValue
-                    if (rawValue != null) {
-                        if (rawValue.length == 12) {
-                            rawValue = "0$rawValue"
-                        }
+                            if (rawValue != lastScannedResult && !isScanningLocked) {
+                                isScanningLocked = true
+                                lastScannedResult = rawValue
 
-                        if (rawValue != lastScannedResult && !isScanningLocked) {
-                            isScanningLocked = true
-                            lastScannedResult = rawValue
-
-                            _binding?.textScan?.text = "Scanned: $rawValue"
-                            showConfirmationDialog(rawValue)
+                                _binding?.textScan?.text = "Scanned: $rawValue"
+                                showConfirmationDialog(rawValue)
+                            }
                         }
                     }
                 }
