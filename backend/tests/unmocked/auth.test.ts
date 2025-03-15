@@ -17,7 +17,7 @@ describe("Unmocked: POST /auth/google", () => {
 
         expect(res.status).toStrictEqual(401);
         expect(res.body).toHaveProperty("message");
-        expect(res.body.message).toStrictEqual("Invalid token");
+        expect(res.body.message).toStrictEqual("Invalid Google OAuth token.");
     });
     
 });

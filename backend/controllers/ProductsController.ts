@@ -23,7 +23,7 @@ export class ProductsController {
 
             
             if (!baseProduct?.categories_hierarchy) {
-                return res.status(404).json({ message: "Product not found or missing required fields" });
+                return res.status(404).json({ message: "Product not found or missing required fields." });
             }
 
             // Fetch product image
@@ -48,7 +48,6 @@ export class ProductsController {
                     product_name: { $exists: true, $ne: "" }
                 };
 
-
                 matchingProducts = await collection
                     .find(query, {
                         projection: {
@@ -56,7 +55,7 @@ export class ProductsController {
                         }
                     })
                     .limit(RECOMMENDATIONS_UPPER_LIMIT)
-                    .toArray();
+                    .toArray() || [];
 
                 if (matchingProducts.length >= RECOMMENDATIONS_LOWER_LIMIT) break;
                 remainingTags.pop();
@@ -71,7 +70,7 @@ export class ProductsController {
                 }))
                 .sort((a, b) => a.categories_tags_difference - b.categories_tags_difference);  
 
-
+          
             // Fetch products and their images
             const recommendationsWithImages = await Promise.all(
                 matchingProducts.slice(0, RESULT_LIMIT).map(async (product) => {
@@ -83,12 +82,13 @@ export class ProductsController {
                 })
             );
 
+
             return res.status(200).json({
                 product: { ...baseProduct, image: baseProductImage ?? null },
                 recommendations: recommendationsWithImages
             });
         } catch (error) {
-            return res.status(500).json({ message: "Internal server error" });
+            return res.status(500).json({ message: "Internal server error." });
         }
     }
 }
@@ -117,7 +117,7 @@ export async function fetchProductById(product_id: string): Promise<Product | nu
     try {
         const response = await axios.get(apiUrl);
 
-        if (response.data?.status !== 1 || !response.data.product) return null;
+        if (response.data.status !== 1 || !response.data.product) return null;
 
         const fetchedProduct: Product = response.data.product;
 

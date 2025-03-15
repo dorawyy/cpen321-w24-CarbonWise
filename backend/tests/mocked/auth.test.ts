@@ -134,7 +134,7 @@ describe("Mocked: POST /auth/google", () => {
     // Expected output: error message
     test("Invalid Google ID Token", async () => {
         oauthClient.verifyIdToken.mockImplementationOnce(() => {
-            throw new Error("Invalid token payload");
+            throw new Error("Invalid Google OAuth token.");
         });
 
         const res = await supertest(app)
@@ -143,8 +143,9 @@ describe("Mocked: POST /auth/google", () => {
 
         expect(res.status).toStrictEqual(401);
         expect(res.body).toHaveProperty("message");
-        expect(res.body.message).toStrictEqual("Invalid token");
+        expect(res.body.message).toStrictEqual("Invalid Google OAuth token.");
         expect(userCollection.findOne).not.toHaveBeenCalled();
         expect(userCollection.insertOne).not.toHaveBeenCalled();
     });
+
 });

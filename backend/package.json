@@ -6,7 +6,9 @@
   "scripts": {
     "start": "ts-node index.ts",
     "dev": "dotenv -e .env -- npx nodemon -e .ts index.ts",
-    "test": "jest --detectOpenHandles --forceExit"
+    "test": "jest --detectOpenHandles --forceExit",
+    "test:unmocked": "jest tests/unmocked --detectOpenHandles --forceExit",
+    "test:mocked": "jest tests/mocked --detectOpenHandles --forceExit"
   },
   "author": "",
   "license": "ISC",

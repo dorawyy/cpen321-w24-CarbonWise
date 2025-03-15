@@ -20,7 +20,7 @@ export class UsersController {
         // Check if product exists and has required fields
         const product: Product | null = await productCollection.findOne({ _id: product_id });
         if (!product?.product_name || !product.ecoscore_grade || !product.ecoscore_score || !product.ecoscore_data || !product.categories_tags || !product.categories_hierarchy) {
-            return res.status(404).send({message: "Product could not be added to user history"});
+            return res.status(404).send({message: "Product could not be added to user history."});
         }
 
         const historyEntry: HistoryEntry = {
@@ -69,7 +69,7 @@ export class UsersController {
             }));
             res.status(200).send(detailedHistory);
         } else {
-            res.status(404).send({message: "No history found for the user"});
+            res.status(404).send({message: "No history found for the user."});
         }
     }
 
@@ -89,7 +89,7 @@ export class UsersController {
             await updateEcoscoreAverage(user_uuid);
             res.status(200).send({message: "History entry deleted"});
         } else {
-            res.status(404).send({message: "History entry not found"});
+            res.status(404).send({message: "History entry not found."});
         }
     }
 
@@ -109,9 +109,9 @@ export class UsersController {
         );
         
         if (result.matchedCount > 0 || result.upsertedCount > 0) {
-            res.status(200).send({message: "FCM registration token updated"});
+            res.status(200).send({message: "FCM registration token updated."});
         } else {
-            res.status(404).send({message: "User not found"});
+            res.status(404).send({message: "User not found."});
         }
     }
 
@@ -141,10 +141,10 @@ export class UsersController {
                 };
                 res.status(200).send(detailedProduct);
             } else {
-                res.status(404).send({message: "No product found with the given scan UUID"});
+                res.status(404).send({message: "No product found with the given scan UUID."});
             }
         } else {
-            res.status(404).send({message: "No history found for the user"});
+            res.status(404).send({message: "No history found for the user."});
         }
     }
 
@@ -181,7 +181,7 @@ export class UsersController {
 
             res.status(200).send({ ecoscore_score: averageEcoscore });
         } else {
-            res.status(404).send({message: "No history found for the user"});
+            res.status(404).send({message: "No history found for the user."});
         }
     }
 
@@ -198,7 +198,7 @@ export class UsersController {
 
         // Check if user is friends with the target user
         if (!friendRelationship) {
-            return res.status(404).send({message: "User does not exist or is not a friend"});
+            return res.status(404).send({message: "User does not exist or is not a friend."});
         }
 
         const friendHistory = await historyCollection.findOne({ user_uuid: friend_uuid });
@@ -222,7 +222,7 @@ export class UsersController {
 
             res.status(200).send({ ecoscore_score: averageEcoscore });
         } else {
-            res.status(404).send({message: "No history found for the friend"});
+            res.status(404).send({message: "No history found for the friend."});
         }
     }
 
