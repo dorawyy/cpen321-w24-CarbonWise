@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.network.FriendsApiService
 import com.example.carbonwise.network.EcoscoreResponse
 import com.example.carbonwise.network.Friend
 import com.example.carbonwise.network.FriendRequest
@@ -15,7 +15,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class FriendsViewModel(private val apiService: ApiService, private var token: String) : ViewModel() {
+class FriendsViewModel(private val apiService: FriendsApiService, private var token: String) : ViewModel() {
 
     init {
         fetchUserFriendCode()
@@ -185,7 +185,7 @@ class FriendsViewModel(private val apiService: ApiService, private var token: St
         })
     }
 
-    class Factory(private val apiService: ApiService, private val token: String) : ViewModelProvider.Factory {
+    class Factory(private val apiService: FriendsApiService, private val token: String) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(FriendsViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")

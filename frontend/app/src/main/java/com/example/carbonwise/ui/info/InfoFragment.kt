@@ -17,7 +17,7 @@ import com.example.carbonwise.MainActivity
 import com.example.carbonwise.R
 import com.example.carbonwise.databinding.FragmentInfoBinding
 import com.example.carbonwise.network.AddToHistoryRequest
-import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.network.UsersApiService
 import com.example.carbonwise.ui.history.HistoryViewModel
 import okhttp3.Call
 import okhttp3.Callback
@@ -300,7 +300,7 @@ class InfoFragment : Fragment() {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        val apiService = retrofit.create(ApiService::class.java)
+        val apiService = retrofit.create(UsersApiService::class.java)
 
         // Call the addToHistory API
         val call = apiService.addToHistory(token, requestBody)

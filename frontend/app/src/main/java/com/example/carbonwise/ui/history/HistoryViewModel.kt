@@ -6,7 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.network.UsersApiService
 import com.example.carbonwise.network.ProductItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,7 +30,7 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    private val apiService = retrofit.create(ApiService::class.java)
+    private val apiService = retrofit.create(UsersApiService::class.java)
 
     fun fetchEcoScore(token: String, forceRefresh: Boolean = false) {
         if (!forceRefresh && _ecoScore.value != null) return

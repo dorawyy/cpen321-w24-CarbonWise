@@ -16,7 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.carbonwise.databinding.ActivityMainBinding
-import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.network.FriendsApiService
 import com.example.carbonwise.network.FCMTokenManager
 import com.example.carbonwise.ui.friends.FriendsViewModel
 import com.google.android.gms.tasks.Task
@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        val apiService = retrofit.create(ApiService::class.java)
+        val apiService = retrofit.create(FriendsApiService::class.java)
         val token = getJWTToken(this) ?: ""
 
         val factory = FriendsViewModel.Factory(apiService, token)

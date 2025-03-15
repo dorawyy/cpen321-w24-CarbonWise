@@ -11,7 +11,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.carbonwise.MainActivity
 import com.example.carbonwise.databinding.FragmentHistoryBinding
-import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.network.FriendsApiService
 import com.example.carbonwise.network.EcoscoreResponse
 import com.example.carbonwise.network.HistoryItem
 import com.example.carbonwise.network.ProductNotificationRequest
@@ -82,7 +82,7 @@ class FriendsHistoryFragment : Fragment() {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
 
-            val apiService = retrofit.create(ApiService::class.java)
+            val apiService = retrofit.create(FriendsApiService::class.java)
             val call = apiService.getFriendHistoryByUUID(token, uuid)
 
             call.enqueue(object : Callback<List<HistoryItem>> {
@@ -130,7 +130,7 @@ class FriendsHistoryFragment : Fragment() {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        val apiService = retrofit.create(ApiService::class.java)
+        val apiService = retrofit.create(FriendsApiService::class.java)
         val call = apiService.getFriendEcoscore(token, friendUuid!!)
 
         call.enqueue(object : Callback<EcoscoreResponse> {
@@ -192,7 +192,7 @@ class FriendsHistoryFragment : Fragment() {
                 .baseUrl("https://api.cpen321-jelx.com/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
-                .create(ApiService::class.java)
+                .create(FriendsApiService::class.java)
 
             Log.d("sendReaction", "Sending request to API...")
 
