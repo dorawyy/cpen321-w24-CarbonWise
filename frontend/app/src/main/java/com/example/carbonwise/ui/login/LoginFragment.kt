@@ -154,12 +154,20 @@ class LoginFragment : Fragment() {
 
     private fun processSignIn(idToken: String) {
         Log.d(TAG, "Google ID Token: $idToken")
-        saveToken(requireContext(), idToken)
+        val sharedPref = requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("google_id_token", idToken)
+            apply()
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             val jwtToken = getJWT(idToken)
             if (jwtToken != null) {
-                saveJWTToken(requireContext(), jwtToken)
+                Log.e(TAG, "Got JWT Token: $jwtToken")
+                with(sharedPref.edit()) {
+                    putString("jwt_token", jwtToken)
+                    apply()
+                }
                 if (isAdded) {
                     (activity as? MainActivity)?.switchToLoggedInMode()
                 }
@@ -180,23 +188,6 @@ class LoginFragment : Fragment() {
         super.onDestroy()
         if (::oneTapClient.isInitialized) {
             oneTapClient.signOut()
-        }
-    }
-
-    private fun saveToken(context: Context, token: String) {
-        val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("google_id_token", token)
-            apply()
-        }
-    }
-
-    private fun saveJWTToken(context: Context, jwtToken: String) {
-        val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        Log.e(TAG, "Got JWT Token: $jwtToken")
-        with(sharedPref.edit()) {
-            putString("jwt_token", jwtToken)
-            apply()
         }
     }
 
