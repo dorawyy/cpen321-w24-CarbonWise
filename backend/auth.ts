@@ -7,19 +7,39 @@ import { nanoid } from "nanoid";
 import { client, oauthClient } from "./services";
 import { Collection } from "mongodb";
 import { User } from "./types";
-import { GOOGLE_REDIRECT_URI, JWT_EXPIRATION_TIME } from "./constants";
+import { JWT_EXPIRATION_TIME } from "./constants";
 import asyncHandler from "express-async-handler";
 
 dotenv.config();
 
 const router = express.Router();
 
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+if (!GOOGLE_REDIRECT_URI) {
+  throw new Error("Missing GOOGLE_REDIRECT_URI in environment variables");
+}
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+if (!GOOGLE_CLIENT_ID) {
+  throw new Error("Missing GOOGLE_CLIENT_ID in environment variables");
+}
+
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+if (!GOOGLE_CLIENT_SECRET) {
+  throw new Error("Missing GOOGLE_CLIENT_SECRET in environment variables");
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("Missing JWT_SECRET in environment variables");
+}
+
 //=========================== FOR BROWSER TESTING ===========================
 passport.use(
   new GoogleStrategy(
     {
-      clientID: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      clientID: GOOGLE_CLIENT_ID,
+      clientSecret: GOOGLE_CLIENT_SECRET,
       callbackURL: GOOGLE_REDIRECT_URI,
     },
     async (_accessToken, _refreshToken, profile, done) => {
@@ -67,7 +87,7 @@ router.get(
   passport.authenticate("google", { session: false }),
   (req, res) => {
     const user = req.user as User;
-    const token = jwt.sign(user, process.env.JWT_SECRET as string, { expiresIn: JWT_EXPIRATION_TIME });
+    const token = jwt.sign(user, JWT_SECRET, { expiresIn: JWT_EXPIRATION_TIME });
 
     res.json({ token, user });
   }

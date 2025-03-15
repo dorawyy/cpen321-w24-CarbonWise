@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express'
+import express, { Request, Response } from 'express'
 import { ProductsRoutes } from './routes/ProductsRoutes';
 import { UsersRoutes } from './routes/UsersRoutes';
 import { FriendsRoutes } from './routes/FriendsRoutes';
@@ -11,6 +11,7 @@ import passport from "passport";
 import session from "express-session";
 import { router as authRoutes, authenticateJWT } from "./auth";
 
+
 dotenv.config();
 
 function createServer() {
@@ -20,7 +21,12 @@ function createServer() {
     app.use(express.json());
     app.use(morgan('tiny'));
 
-    app.use(session({ secret: process.env.JWT_SECRET as string, resave: false, saveUninitialized: false }));
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+        throw new Error("Missing JWT_SECRET in environment variables");
+    }
+
+    app.use(session({ secret: JWT_SECRET, resave: false, saveUninitialized: false }));
     app.use(passport.initialize());
     app.use(passport.session());
 
