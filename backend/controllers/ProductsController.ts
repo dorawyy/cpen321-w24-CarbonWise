@@ -4,7 +4,6 @@ import { Collection, MongoClient } from "mongodb";
 import axios from "axios";
 import { Buffer } from "buffer";
 import { Product, OpenFoodFactsProduct } from "../types";
-import { hasRequiredProductFields } from "../utils";
 import { RECOMMENDATIONS_UPPER_LIMIT, RECOMMENDATIONS_LOWER_LIMIT, OPENFOODFACTS_API_URL, OPENFOODFACTS_IMAGE_API_URL } from "../constants";
 
 export class ProductsController {
@@ -98,56 +97,49 @@ export class ProductsController {
     }
 }
 
-
 export async function fetchProductById(product_id: string): Promise<Product | null> {
     const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
 
+    // Required fields that must be present
+    const requiredFields: (keyof Product)[] = [
+        "product_name",
+        "ecoscore_grade",
+        "ecoscore_score",
+        "ecoscore_data",
+        "categories_tags",
+        "categories_hierarchy",
+        "countries_tags",
+        "lang"
+    ];
+
+    // Helper function to validate required fields
+    const hasRequiredFields = (product: Partial<Product> | null): product is Product =>
+        !!product && requiredFields.every(field => product[field] != null);
+
     // Try to fetch product from the database
-    const product: Product | null = await collection.findOne({ _id: product_id });
+    let product: Product | null = await collection.findOne({ _id: product_id });
 
-    // Fetch product data from OpenFoodFacts API if not found in the database
+    // If product is not found in DB, fetch from OpenFoodFacts API
     if (!product) {
-
         const apiUrl = `${OPENFOODFACTS_API_URL}api/v2/product/${product_id}.json`;
 
         try {
+            const response = await axios.get(apiUrl);
+            const fetchedProduct: Product | null = response.data?.status === 1 ? response.data.product : null;
 
-            const response: OpenFoodFactsProduct = await axios.get(apiUrl);
-
-            if (response.data?.status === 1 && response.data.product) {
-                
-                const fetchedProduct: Product = response.data.product;
-
-                if (!hasRequiredProductFields(fetchedProduct)) {
-                    return null;
-                }
-
-                const updatedProduct: Product = {
-                    _id: product_id,
-                    ...fetchedProduct,
-                };
-
-                await collection.insertOne(updatedProduct);
-
-
-                return fetchedProduct;
-
-            } else {
-                return null;
+            if (hasRequiredFields(fetchedProduct)) {
+                product = { _id: product_id, ...fetchedProduct };
+                await collection.insertOne(product);
             }
-
         } catch (error) {
             return null;
         }
     }
 
-    // Check if product has required fields
-    if (!hasRequiredProductFields(product)) {
-        return null;
-    }
-
-    return product;
+    // Final validation before returning product
+    return hasRequiredFields(product) ? product : null;
 }
+
 
 export async function fetchProductImageById(product_id: string): Promise<string | null> {
     try {

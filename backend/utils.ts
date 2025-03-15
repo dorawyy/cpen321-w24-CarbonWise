@@ -44,7 +44,6 @@ function createServer() {
                     await route.action(
                         req,
                         res,
-                        next,
                     );
                 } catch (err) {
                     return res.sendStatus(500);
@@ -56,25 +55,5 @@ function createServer() {
     return app;
 }
 
-function hasRequiredProductFields(product: Partial<Product> | null): product is Product {
-    if (!product || typeof product !== "object") return false;
 
-    const requiredFields: (keyof Product)[] = [
-        "product_name",
-        "ecoscore_grade",
-        "ecoscore_score",
-        "ecoscore_data",
-        "categories_tags",
-        "categories_hierarchy",
-        "countries_tags",
-        "lang"
-    ];
-
-    return requiredFields.every(field => 
-        Object.prototype.hasOwnProperty.call(product, field) && product[field] !== null
-    );
-}
-
-
-
-export {createServer, hasRequiredProductFields};
+export {createServer};

@@ -8,7 +8,7 @@ let firebase_app: App;
 
 export function getFirebaseApp() {
     if (!getApps()) {
-        firebase_app = initializeApp();
+    firebase_app = initializeApp();
     }
     return firebase_app;
 }
