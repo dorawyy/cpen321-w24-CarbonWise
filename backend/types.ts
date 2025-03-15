@@ -44,3 +44,17 @@ export interface OpenFoodFactsProduct {
         product?: Product;
     }
 }
+
+export interface ExtendedProduct extends Product {
+    product: {
+        product_name?: string;
+        ecoscore_grade?: string;
+        ecoscore_score?: number;
+        ecoscore_data?: Record<string, unknown>;
+        categories_tags?: string[];
+        categories_hierarchy?: string[];
+        countries_tags?: string[];
+        lang?: string;
+        image?: string;
+    };
+}
