@@ -42,13 +42,9 @@ export class FriendsController {
             );
 
             // Send notification to the target user
-            sendNotification(friend_uuid, `${user.name} has sent you a friend request`).catch((error: any) => {
-                console.error("Error sending notification:", error);
+            sendNotification(friend_uuid, `${user.name} has accepted your friend request`).finally(() => {
+                res.status(200).send({message: "Friend request sent"});
             });
-
-            
-
-            res.status(200).send({message: "Friend request sent"});
         } else {
             res.status(400).send({message: "Friend request already sent"});
         }
@@ -88,11 +84,9 @@ export class FriendsController {
             );
 
             // Send notification to the target user
-            sendNotification(friend_uuid, `${user.name} has accepted your friend request`).catch((error: any) => {
-                console.error("Error sending notification:", error);
+            sendNotification(friend_uuid, `${user.name} has accepted your friend request`).finally(() => {
+                res.status(200).send({message: "Friend request accepted"});
             });
-
-            res.status(200).send({message: "Friend request accepted"});
         } else {
             res.status(400).send({message: "No such friend request"});
         }
