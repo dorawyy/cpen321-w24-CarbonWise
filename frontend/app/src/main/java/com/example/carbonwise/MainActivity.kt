@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
 
         setupNavigation()
         askNotificationPermission()
-        retrieveFCMToken()
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(::handleFCMTokenResult)
 
         if (isUserLoggedIn) {
             refreshJWTToken(token)
@@ -160,7 +160,7 @@ class MainActivity : AppCompatActivity() {
 
     fun switchToLoggedInMode() {
         isUserLoggedIn = true
-        retrieveFCMToken()
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(::handleFCMTokenResult)
         getJWTToken(this)?.let { friendsViewModel.updateToken(it) }
         setupNavigation()
     }
@@ -189,9 +189,6 @@ class MainActivity : AppCompatActivity() {
         private const val PREFS_NAME = "AppPrefs"
         private const val TOKEN_KEY = "google_id_token"
         private const val JWT_TOKEN_KEY = "jwt_token"
-
-
-
 
         fun getToken(context: Context): String? {
             val sharedPref = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -237,11 +234,6 @@ class MainActivity : AppCompatActivity() {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
-    }
-
-    // Get FCM token
-    private fun retrieveFCMToken() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener(::handleFCMTokenResult)
     }
 
     private fun handleFCMTokenResult(task: Task<String>) {
