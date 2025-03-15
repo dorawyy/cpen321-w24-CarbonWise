@@ -5,13 +5,20 @@ import android.content.Context
 import android.content.Intent
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
+import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.rule.ActivityTestRule
 import androidx.test.uiautomator.*
 import com.example.carbonwise.MainActivity
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertTrue
+import org.hamcrest.CoreMatchers.not
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -22,6 +29,10 @@ import org.junit.runner.RunWith
 class GoogleSignInTest {
 
     private lateinit var device: UiDevice
+
+    @Rule
+    @JvmField
+    var activityRule: ActivityTestRule<MainActivity> = ActivityTestRule(MainActivity::class.java)
 
     @Before
     fun setUp() {
@@ -55,6 +66,27 @@ class GoogleSignInTest {
         googleSignInButton.click()
 
         handleGoogleSignIn()
+    }
+
+    @Test
+    fun testLoginConnectionError() {
+
+        device.executeShellCommand("svc wifi disable")
+        Thread.sleep(5000)
+
+        allowCameraPermission()
+
+        navigateToLoginFragment()
+
+        val googleSignInButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/loginButton"))
+        assertTrue("Google Sign-In button not found", googleSignInButton.waitForExists(5000))
+        googleSignInButton.click()
+
+        val logs = device.executeShellCommand("logcat -d | grep Toast")
+        assertTrue("Expected toast message not found", logs.contains("No internet connection"))
+
+        device.executeShellCommand("svc wifi enable")
+        Thread.sleep(10000) // Wifi takes a LONG time to turn on
     }
 
     private fun allowCameraPermission() {

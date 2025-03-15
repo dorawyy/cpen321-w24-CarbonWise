@@ -139,4 +139,16 @@ class ScanProductsTest {
         allowCameraPermission()
         processMockScan(createMockBarcodeScanner("009800895007"), "Nutella")
     }
+
+    @Test
+    fun testScanProductE_ConnectionError() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val device = UiDevice.getInstance(instrumentation)
+        device.executeShellCommand("svc wifi disable")
+        Thread.sleep(5000)
+        allowCameraPermission()
+        processMockScan(createMockBarcodeScanner("009800895007"), "Nutella")
+        device.executeShellCommand("svc wifi enable")
+        Thread.sleep(10000) // Wifi takes a LONG time to turn on
+    }
 }

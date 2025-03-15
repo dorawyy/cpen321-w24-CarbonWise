@@ -69,6 +69,34 @@ class HistoryTest {
         pressDeleteButton()
     }
 
+    // TODO: This test currently fails because history component lacks proper error display
+    @Test
+    fun testHistoryConnectionError() {
+
+        allowCameraPermission()
+
+        navigateToLoginFragment()
+
+        val googleSignInButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/loginButton"))
+        assertTrue("Google Sign-In button not found", googleSignInButton.waitForExists(5000))
+        googleSignInButton.click()
+
+        handleGoogleSignIn()
+
+        device.executeShellCommand("svc wifi disable")
+        Thread.sleep(5000)
+
+        navigateToHistoryFragment()
+
+        Thread.sleep(5000)
+
+        val logs = device.executeShellCommand("logcat -d | grep Toast")
+        assertTrue("Expected toast message not found", logs.contains("No internet connection"))
+
+        device.executeShellCommand("svc wifi enable")
+        Thread.sleep(10000) // Wifi takes a LONG time to turn on
+    }
+
     @Test
     fun testViewFriendHistory() {
         allowCameraPermission()
@@ -91,7 +119,35 @@ class HistoryTest {
         assertTrue("No history items found for the friend!", historyRecyclerView.waitForExists(5000))
 
         checkFriendHistoryAppears()
+    }
 
+    // TODO: This test currently fails because friends component lacks proper error display
+    @Test
+    fun testViewFriendHistoryConnectionError() {
+        allowCameraPermission()
+
+        navigateToLoginFragment()
+
+        val googleSignInButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/loginButton"))
+        assertTrue("Google Sign-In button not found", googleSignInButton.waitForExists(5000))
+        googleSignInButton.click()
+
+        handleGoogleSignIn()
+
+        device.executeShellCommand("svc wifi disable")
+        Thread.sleep(10000) // Wifi takes a LONG time to turn on
+
+        navigateToFriendsFragment()
+
+        pressFirstFriendItem()
+
+        Thread.sleep(5000)
+
+        val historyRecyclerView = UiScrollable(UiSelector().resourceId("com.example.carbonwise:id/recyclerViewHistory"))
+        assertTrue("No history items found for the friend!", historyRecyclerView.waitForExists(5000))
+
+        device.executeShellCommand("svc wifi enable")
+        Thread.sleep(10000) // Wifi takes a LONG time to turn on
     }
 
     private fun allowCameraPermission() {
