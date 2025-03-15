@@ -38,13 +38,6 @@ export interface Product {
     [key: string]: unknown;
 }
 
-export interface OpenFoodFactsProduct {
-    data?: {
-        status?: number;
-        product?: Product;
-    }
-}
-
 export interface DetailedProduct extends Product {
     product: {
         _id?: string;

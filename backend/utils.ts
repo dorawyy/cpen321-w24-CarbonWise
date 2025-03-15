@@ -10,7 +10,6 @@ import dotenv from "dotenv";
 import passport from "passport";
 import session from "express-session";
 import { router as authRoutes, authenticateJWT } from "./auth";
-import { Product } from './types';
 
 dotenv.config();
 
@@ -34,7 +33,7 @@ function createServer() {
             route.route,
             route.validation,
             route.protected ? authenticateJWT : [],
-            async (req: Request, res: Response, next: NextFunction) => {
+            async (req: Request, res: Response) => {
                 const errors = validationResult(req);
                 if (!errors.isEmpty()) {
                     return res.status(400).send({ errors: errors.array() });

@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import { client } from "../services";
-import { Collection, MongoClient } from "mongodb";
+import { Collection } from "mongodb";
 import axios from "axios";
 import { Buffer } from "buffer";
-import { Product, OpenFoodFactsProduct } from "../types";
+import { Product } from "../types";
 import { RECOMMENDATIONS_UPPER_LIMIT, RECOMMENDATIONS_LOWER_LIMIT, OPENFOODFACTS_API_URL, OPENFOODFACTS_IMAGE_API_URL } from "../constants";
 
 export class ProductsController {
