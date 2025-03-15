@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Filter, Document } from "mongodb";
+import { Filter, Document, Collection } from "mongodb";
 import { fetchProductById, fetchProductImageById } from "./ProductsController";
 import { getMessaging, TokenMessage } from 'firebase-admin/messaging';
 import { client, getFirebaseApp } from "../services";
@@ -164,7 +164,7 @@ export class FriendsController {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+        const friendsCollection: Collection<Friends> = client.db("users_db").collection<Friends>("friends");
 
         const outgoingRequests = await friendsCollection.find({ "incoming_requests.user_uuid": user_uuid }).toArray();
 
@@ -308,7 +308,7 @@ export class FriendsController {
         const user_uuid = user.user_uuid;
         const { user_uuid: friend_uuid } = req.params;
 
-        const friendsCollection = client.db("users_db").collection<Friends>("friends");
+        const friendsCollection: Collection<Friends> = client.db("users_db").collection<Friends>("friends");
 
         const userFriends = await friendsCollection.findOne({ user_uuid });
         const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === friend_uuid);

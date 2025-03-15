@@ -229,7 +229,7 @@ export class UsersController {
 
 // Helper function to fetch history entries for a user
 export async function getHistoryByUserUUID(user_uuid: string) {
-    const historyCollection = client.db("users_db").collection<History>("history");
+    const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
     const query: any = { user_uuid };
 
