@@ -35,7 +35,7 @@ passport.use(
           google_id: profile.id,
           email: profile.emails?.[0].value || "",
           name: profile.displayName,
-          user_uuid: user_uuid,
+          user_uuid,
           fcm_registration_token: "",
         };
         await userCollection.insertOne(user);
@@ -100,7 +100,7 @@ router.post("/auth/google", asyncHandler(async (req, res) => {
         google_id: payload.sub,
         email: payload.email || "",
         name: payload.name || "",
-        user_uuid: user_uuid,
+        user_uuid,
         fcm_registration_token: "",
       };
       await userCollection.insertOne(user);

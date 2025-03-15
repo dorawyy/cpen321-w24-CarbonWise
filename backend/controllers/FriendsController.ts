@@ -37,7 +37,7 @@ export class FriendsController {
         if (!targetFriends?.incoming_requests?.some(request => request.user_uuid === user_uuid)) {
             await friendsCollection.updateOne(
                 { user_uuid: friend_uuid },
-                { $addToSet: { incoming_requests: { user_uuid: user_uuid, name: user.name } } },
+                { $addToSet: { incoming_requests: { user_uuid, name: user.name } } },
                 { upsert: true }
             );
 
@@ -80,7 +80,7 @@ export class FriendsController {
 
             await friendsCollection.updateOne(
                 { user_uuid: friend_uuid },
-                { $addToSet: { friends: { user_uuid: user_uuid, name: user.name } } }
+                { $addToSet: { friends: { user_uuid, name: user.name } } }
             );
 
             // Send notification to the target user
