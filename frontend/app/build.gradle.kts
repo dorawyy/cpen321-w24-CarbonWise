@@ -65,6 +65,9 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.espresso.intents)
+    implementation(libs.androidx.uiautomator)
+    implementation(libs.androidx.espresso.contrib)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -89,4 +92,6 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation ("com.google.android.material:material:1.12.0")
+
+    androidTestImplementation("org.mockito:mockito-android:5.3.1")
 }
