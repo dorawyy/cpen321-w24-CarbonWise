@@ -122,7 +122,7 @@ export class UsersController {
         const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
         const userHistory = await historyCollection.findOne(
-            { user_uuid: user_uuid, "products.scan_uuid": scan_uuid }
+            { user_uuid, "products.scan_uuid": scan_uuid }
         );
 
         // Fetch product details for the product with the given scan UUID
