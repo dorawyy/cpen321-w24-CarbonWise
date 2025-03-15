@@ -25,7 +25,7 @@ export class FriendsController {
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
 
-        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const userFriends = await friendsCollection.findOne({ user_uuid });
         const targetFriends = await friendsCollection.findOne({ user_uuid: friend_uuid });
 
         // Check if users are already friends
@@ -62,13 +62,13 @@ export class FriendsController {
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
 
-        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const userFriends = await friendsCollection.findOne({ user_uuid });
         const friend = await client.db("users_db").collection<User>("users").findOne({ user_uuid: friend_uuid });
 
         // Check if friend request exists
         if (userFriends?.incoming_requests?.some(request => request.user_uuid === friend_uuid)) {
             await friendsCollection.updateOne(
-                { user_uuid: user_uuid },
+                { user_uuid },
                 { $pull: { incoming_requests: { user_uuid: friend_uuid } }, $addToSet: { friends: { user_uuid: friend_uuid, name: friend?.name || "" } } }
             );
 
@@ -105,13 +105,13 @@ export class FriendsController {
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
     
         const result = await friendsCollection.updateOne(
-            { user_uuid: user_uuid },
+            { user_uuid },
             { $pull: { friends: { user_uuid: friend_uuid } } as Filter<Document> }
         );
 
         const result2 = await friendsCollection.updateOne(
             { user_uuid: friend_uuid },
-            { $pull: { friends: { user_uuid: user_uuid } } as Filter<Document> }
+            { $pull: { friends: { user_uuid } } as Filter<Document> }
         );
 
         if (result.modifiedCount > 0 && result2.modifiedCount > 0) {
@@ -134,7 +134,7 @@ export class FriendsController {
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
 
         const result = await friendsCollection.updateOne(
-            { user_uuid: user_uuid },
+            { user_uuid },
             { $pull: { incoming_requests: { user_uuid: friend_uuid as string } } }
         );
 
@@ -151,7 +151,7 @@ export class FriendsController {
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
 
-        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const userFriends = await friendsCollection.findOne({ user_uuid });
 
         if (userFriends?.incoming_requests) {
             res.status(200).send(userFriends.incoming_requests);
@@ -179,7 +179,7 @@ export class FriendsController {
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
 
-        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const userFriends = await friendsCollection.findOne({ user_uuid });
 
         if (userFriends?.friends) {
             res.status(200).send(userFriends.friends);
@@ -195,7 +195,7 @@ export class FriendsController {
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
 
-        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const userFriends = await friendsCollection.findOne({ user_uuid });
         const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === friend_uuid);
 
         // Check if user is already friends with the target user
@@ -243,7 +243,7 @@ export class FriendsController {
         const userCollection = client.db("users_db").collection<User>("users");
         const historyCollection = client.db("users_db").collection<History>("history");
 
-        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const userFriends = await friendsCollection.findOne({ user_uuid });
         const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === friend_uuid);
 
         // Check if user is already friends with the target user
@@ -310,7 +310,7 @@ export class FriendsController {
 
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
 
-        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const userFriends = await friendsCollection.findOne({ user_uuid });
         const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === friend_uuid);
 
         // Check if user is already friends with the target user
@@ -334,7 +334,7 @@ async function sendNotification(user_uuid: string, messageBody: string) {
     getFirebaseApp();
 
     const userCollection = client.db("users_db").collection<User>("users");
-    const targetUser = await userCollection.findOne({ user_uuid: user_uuid });
+    const targetUser = await userCollection.findOne({ user_uuid });
 
     if (!targetUser?.fcm_registration_token) {
         return;

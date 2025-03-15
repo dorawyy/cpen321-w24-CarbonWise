@@ -29,7 +29,7 @@ export class UsersController {
         };
 
         await historyCollection.updateOne(
-            { user_uuid: user_uuid },
+            { user_uuid },
             { 
                 $push: { products: historyEntry } 
             },
@@ -80,7 +80,7 @@ export class UsersController {
         const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
         const result = await historyCollection.updateOne(
-            { user_uuid: user_uuid },
+            { user_uuid },
             { $pull: { products: { scan_uuid: scan_uuid as string } } }
         );
 
@@ -102,7 +102,7 @@ export class UsersController {
         const userCollection: Collection<User>  = client.db("users_db").collection<User>("users");
 
         const result = await userCollection.updateOne(
-            { user_uuid: user_uuid },
+            { user_uuid },
             { $set: { fcm_registration_token } },
             { upsert: true }
         );
@@ -162,7 +162,7 @@ export class UsersController {
 
         const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
-        const userHistory = await historyCollection.findOne({ user_uuid: user_uuid });
+        const userHistory = await historyCollection.findOne({ user_uuid });
         if (userHistory && userHistory.products.length > 0) {
             const recentProducts = userHistory.products
                 .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -195,7 +195,7 @@ export class UsersController {
         const friendsCollection: Collection<Friends> = client.db("users_db").collection("friends");
         const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
-        const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
+        const userFriends = await friendsCollection.findOne({ user_uuid });
         const friendRelationship = userFriends?.friends?.find((friend: { user_uuid: string }) => friend.user_uuid === friend_uuid);
 
         // Check if user is friends with the target user
@@ -234,7 +234,7 @@ export class UsersController {
 export async function getHistoryByUserUUID(user_uuid: string) {
     const historyCollection = client.db("users_db").collection<History>("history");
 
-    const query: any = { user_uuid: user_uuid };
+    const query: any = { user_uuid };
 
     return await historyCollection.find(query).toArray();
 }
@@ -244,7 +244,7 @@ export async function getHistoryByUserUUID(user_uuid: string) {
 async function updateEcoscoreAverage(user_uuid: string) {
     const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
-    const userHistory = await historyCollection.findOne({ user_uuid: user_uuid });
+    const userHistory = await historyCollection.findOne({ user_uuid });
     if (userHistory && userHistory.products.length > 0) {
         const recentProducts = userHistory.products
             .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -264,7 +264,7 @@ async function updateEcoscoreAverage(user_uuid: string) {
         const averageEcoscore = productCount > 0 ? totalEcoscore / productCount : 0;
 
         await historyCollection.updateOne(
-            { user_uuid: user_uuid },
+            { user_uuid },
             { $set: { ecoscore_score: averageEcoscore } }
         );
     }
