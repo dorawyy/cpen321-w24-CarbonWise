@@ -42,7 +42,11 @@ export class FriendsController {
             );
 
             // Send notification to the target user
-            void sendNotification(friend_uuid, `${user.name} has sent you a friend request`);
+            sendNotification(friend_uuid, `${user.name} has sent you a friend request`).catch((error: any) => {
+                console.error("Error sending notification:", error);
+            });
+
+            
 
             res.status(200).send({message: "Friend request sent"});
         } else {
@@ -84,7 +88,9 @@ export class FriendsController {
             );
 
             // Send notification to the target user
-            void sendNotification(friend_uuid, `${user.name} has accepted your friend request`);
+            sendNotification(friend_uuid, `${user.name} has accepted your friend request`).catch((error: any) => {
+                console.error("Error sending notification:", error);
+            });
 
             res.status(200).send({message: "Friend request accepted"});
         } else {
