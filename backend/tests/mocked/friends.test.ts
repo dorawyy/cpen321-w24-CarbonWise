@@ -196,9 +196,6 @@ describe("Mocked: POST /friends/requests", () => {
     
 });
 
-
-
-
 // Interface POST /friends/requests/accept
 describe("Mocked: POST /friends/requests/accept", () => {
     let friendsCollection: jest.Mocked<Collection<Friends>>;
@@ -380,6 +377,121 @@ describe("Mocked: POST /friends/requests/accept", () => {
             }); 
         });
 
+});
 
+// Interface GET /friends/requests
+describe("Mocked: GET /friends/requests", () => {
+    let friendsCollection: jest.Mocked<Collection<Friends>>;
 
+    beforeEach(() => {
+        friendsCollection = (services.client.db as jest.Mock)().collection("friends");
+
+        (jwt.verify as jest.Mock).mockImplementation(() => user);
+
+        friendsCollection.findOne.mockClear();
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    afterAll(() => {
+        jest.clearAllMocks();
+    });
+
+    const user: User = {
+        _id: "user-123",
+        google_id: "google-123",
+        email: "john.doe@example.com",
+        fcm_registration_token: "fcm-token-123",
+        user_uuid: "user-123",
+        name: "John Doe",
+    };
+
+    // Input: User has incoming friend requests
+    // Expected status code: 200
+    // Expected behavior: Returns list of incoming friend requests
+    // Expected output: List of user UUIDs and names of users who sent friend requests
+    test("User has incoming friend requests", async () => {
+        const mockFriends: Friends = {
+            user_uuid: user.user_uuid,
+            friends: [],
+            incoming_requests: [
+                { user_uuid: "friend-123", name: "Jane Doe" },
+                { user_uuid: "friend-456", name: "Mike Smith" },
+            ],
+        };
+
+        friendsCollection.findOne.mockResolvedValueOnce(mockFriends);
+
+        const res = await supertest(app)
+            .get("/friends/requests")
+            .set("token", "mock_token");
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(mockFriends.incoming_requests);
+    });
+
+    // Input: User has no incoming friend requests
+    // Expected status code: 200
+    // Expected behavior: Returns an empty array
+    // Expected output: []
+    test("User has no incoming friend requests", async () => {
+        const mockFriends: Friends = {
+            user_uuid: user.user_uuid,
+            friends: [],
+            incoming_requests: [],
+        };
+
+        friendsCollection.findOne.mockResolvedValueOnce(mockFriends);
+
+        const res = await supertest(app)
+            .get("/friends/requests")
+            .set("token", "mock_token");
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual([]);
+    });
+
+    // Input: User does not have a friends document
+    // Expected status code: 200
+    // Expected behavior: Returns an empty array
+    // Expected output: []
+    test("User does not have a friends document", async () => {
+        friendsCollection.findOne.mockResolvedValueOnce(null);
+
+        const res = await supertest(app)
+            .get("/friends/requests")
+            .set("token", "mock_token");
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual([]);
+    });
+
+    // Input: User has multiple pending friend requests
+    // Expected status code: 200
+    // Expected behavior: Returns all pending friend requests
+    // Expected output: List of all incoming friend requests
+    test("User has multiple pending friend requests", async () => {
+        const mockFriends: Friends = {
+            user_uuid: user.user_uuid,
+            friends: [],
+            incoming_requests: [
+                { user_uuid: "friend-123", name: "Jane Doe" },
+                { user_uuid: "friend-456", name: "Mike Smith" },
+                { user_uuid: "friend-789", name: "Alice Johnson" },
+                { user_uuid: "friend-101", name: "Bob Williams" },
+            ],
+        };
+
+        friendsCollection.findOne.mockResolvedValueOnce(mockFriends);
+
+        const res = await supertest(app)
+            .get("/friends/requests")
+            .set("token", "mock_token");
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(mockFriends.incoming_requests);
+        expect(res.body.length).toBe(4);
+    });
 });

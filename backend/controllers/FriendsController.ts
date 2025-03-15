@@ -10,7 +10,6 @@ interface FriendRequestBody {
     user_uuid: string;
 }
 
-
 export class FriendsController {
     
     async sendFriendRequest(req: Request<object, object, FriendRequestBody>, res: Response) {
