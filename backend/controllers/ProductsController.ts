@@ -100,45 +100,55 @@ export class ProductsController {
 export async function fetchProductById(product_id: string): Promise<Product | null> {
     const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
 
-    // Required fields that must be present
-    const requiredFields: (keyof Product)[] = [
-        "product_name",
-        "ecoscore_grade",
-        "ecoscore_score",
-        "ecoscore_data",
-        "categories_tags",
-        "categories_hierarchy",
-        "countries_tags",
-        "lang"
-    ];
-
-    // Helper function to validate required fields
-    const hasRequiredFields = (product: Partial<Product> | null): product is Product =>
-        !!product && requiredFields.every(field => product[field] != null);
-
-    // Try to fetch product from the database
-    let product: Product | null = await collection.findOne({ _id: product_id });
-
-    // If product is not found in DB, fetch from OpenFoodFacts API
-    if (!product) {
-        const apiUrl = `${OPENFOODFACTS_API_URL}api/v2/product/${product_id}.json`;
-
-        try {
-            const response = await axios.get(apiUrl);
-            const fetchedProduct: Product | null = response.data?.status === 1 ? response.data.product : null;
-
-            if (hasRequiredFields(fetchedProduct)) {
-                product = { _id: product_id, ...fetchedProduct };
-                await collection.insertOne(product);
-            }
-        } catch (error) {
-            return null;
+    // Try to fetch product from the database with all required fields present
+    let product: Product | null = await collection.findOne(
+        { 
+            _id: product_id, 
+            product_name: { $exists: true },
+            ecoscore_grade: { $exists: true },
+            ecoscore_score: { $exists: true },
+            ecoscore_data: { $exists: true },
+            categories_tags: { $exists: true },
+            categories_hierarchy: { $exists: true },
+            countries_tags: { $exists: true },
+            lang: { $exists: true }
         }
+    );
+
+    // If product is found in DB and has all required fields, return it
+    if (product) return product;
+
+    // Fetch from OpenFoodFacts API if not found in DB
+    const apiUrl = `${OPENFOODFACTS_API_URL}api/v2/product/${product_id}.json`;
+
+    try {
+        const response = await axios.get(apiUrl);
+        if (response.data?.status !== 1 || !response.data.product) return null;
+
+        const fetchedProduct: Product = response.data.product;
+
+        // Ensure fetched product has all required fields BEFORE inserting
+        if (
+            fetchedProduct.product_name &&
+            fetchedProduct.ecoscore_grade &&
+            fetchedProduct.ecoscore_score &&
+            fetchedProduct.ecoscore_data &&
+            fetchedProduct.categories_tags &&
+            fetchedProduct.categories_hierarchy &&
+            fetchedProduct.countries_tags &&
+            fetchedProduct.lang
+        ) {
+            const updatedProduct: Product = { _id: product_id, ...fetchedProduct };
+            await collection.insertOne(updatedProduct);
+            return updatedProduct;
+        }
+    } catch (error) {
+        return null;
     }
 
-    // Final validation before returning product
-    return hasRequiredFields(product) ? product : null;
+    return null;
 }
+
 
 
 export async function fetchProductImageById(product_id: string): Promise<string | null> {
