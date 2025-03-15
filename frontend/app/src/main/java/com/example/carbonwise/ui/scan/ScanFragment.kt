@@ -65,14 +65,10 @@ class ScanFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        resetScanner()
-        startCamera()
-    }
-
-    private fun resetScanner() {
         lastScannedResult = null
         isDialogDisplayed = false
         isScanningLocked = false
+        startCamera()
     }
 
     private fun requestCameraPermission() {
@@ -156,15 +152,11 @@ class ScanFragment : Fragment() {
             if (flashEnabled) {
                 isFlashOn = !isFlashOn
                 it.cameraControl.enableTorch(isFlashOn)
-                updateFlashButtonUI()
+                binding.buttonFlash.text = if (isFlashOn) "Turn Flash Off" else "Turn Flash On"
             } else {
                 Toast.makeText(requireContext(), "Flash not available", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    private fun updateFlashButtonUI() {
-        binding.buttonFlash.text = if (isFlashOn) "Turn Flash Off" else "Turn Flash On"
     }
 
     @OptIn(ExperimentalGetImage::class)
