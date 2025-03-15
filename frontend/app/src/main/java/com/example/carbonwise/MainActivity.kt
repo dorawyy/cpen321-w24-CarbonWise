@@ -171,7 +171,6 @@ class MainActivity : AppCompatActivity() {
         setupNavigation()
     }
 
-
     private fun showLogoutConfirmationDialog() {
         val builder = android.app.AlertDialog.Builder(this)
         builder.setTitle("Log Out")
@@ -282,7 +281,12 @@ class MainActivity : AppCompatActivity() {
                         val newJwtToken = jsonObject.optString("token")
 
                         if (newJwtToken.isNotEmpty()) {
-                            saveJWTToken(this@MainActivity, newJwtToken)
+                            val sharedPref = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                            with(sharedPref.edit()) {
+                                putString("jwt_token", newJwtToken)
+                                apply()
+                            }
+                            friendsViewModel.updateToken(newJwtToken)
                             Log.d("MainActivity", "JWT Token refreshed successfully")
                         } else {
                             Log.e("MainActivity", "Failed to extract JWT token from response")
@@ -293,15 +297,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-    }
-
-    private fun saveJWTToken(context: Context, jwtToken: String) {
-        val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("jwt_token", jwtToken)
-            apply()
-        }
-        friendsViewModel.updateToken(jwtToken)
     }
 
     private val broadcastReceiver = object : BroadcastReceiver() {
