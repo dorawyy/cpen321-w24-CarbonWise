@@ -4,3 +4,9 @@ export const OPENFOODFACTS_API_URL = "https://world.openfoodfacts.org/";
 export const OPENFOODFACTS_IMAGE_API_URL = "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/";
 export const JWT_EXPIRATION_TIME = "7d";
 export const HISTORY_ECOSCORE_AVERAGE_COUNT = 10;
+
+export const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+if (!GOOGLE_REDIRECT_URI) {
+  throw new Error("Missing GOOGLE_REDIRECT_URI in environment variables");
+}
+

@@ -7,7 +7,7 @@ import { nanoid } from "nanoid";
 import { client, oauthClient } from "./services";
 import { Collection } from "mongodb";
 import { User } from "./types";
-import { JWT_EXPIRATION_TIME } from "./constants";
+import { GOOGLE_REDIRECT_URI, JWT_EXPIRATION_TIME } from "./constants";
 import asyncHandler from "express-async-handler";
 
 dotenv.config();
@@ -20,7 +20,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      callbackURL: process.env.GOOGLE_REDIRECT_URI!,
+      callbackURL: GOOGLE_REDIRECT_URI,
     },
     async (_accessToken, _refreshToken, profile, done) => {
       const userCollection: Collection<User> = client.db("users_db").collection("users");
