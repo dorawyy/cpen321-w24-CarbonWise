@@ -147,7 +147,7 @@ export class UsersController {
         }
     }
 
-    async getUserUUID(req: Request, res: Response) {
+    getUserUUID(req: Request, res: Response) {
         const user = req.user as User;
         if (!user || !user.user_uuid) {
             return res.status(400).send({ message: "User UUID not found" });
