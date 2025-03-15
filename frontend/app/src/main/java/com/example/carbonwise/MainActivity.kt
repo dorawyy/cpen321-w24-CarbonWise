@@ -191,13 +191,7 @@ class MainActivity : AppCompatActivity() {
         private const val JWT_TOKEN_KEY = "jwt_token"
 
 
-        fun saveToken(context: Context, token: String) {
-            val sharedPref = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            with(sharedPref.edit()) {
-                putString(TOKEN_KEY, token)
-                apply()
-            }
-        }
+
 
         fun getToken(context: Context): String? {
             val sharedPref = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
