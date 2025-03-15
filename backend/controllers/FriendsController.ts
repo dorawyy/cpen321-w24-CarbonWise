@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Filter, Document } from "mongodb";
 import { fetchProductById, fetchProductImageById } from "./ProductsController";
 import { getMessaging, TokenMessage } from 'firebase-admin/messaging';
-import { client } from "../services";
+import { client, getFirebaseApp } from "../services";
 import { User, Friends, History } from "../types";
 import { getHistoryByUserUUID } from "./UsersController";
 
@@ -228,6 +228,9 @@ export class FriendsController {
     }
 
     async sendProductNotification(req: Request, res: Response) {
+
+        getFirebaseApp();
+
         const { user_uuid: friend_uuid, scan_uuid, message_type } = req.body;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -327,6 +330,8 @@ export class FriendsController {
 }
 
 async function sendNotification(user_uuid: string, messageBody: string) {
+
+    getFirebaseApp();
 
     const userCollection = client.db("users_db").collection<User>("users");
     const targetUser = await userCollection.findOne({ user_uuid: user_uuid });
