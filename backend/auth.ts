@@ -9,6 +9,7 @@ import { client, oauthClient } from "./services";
 import { Collection } from "mongodb";
 import { User } from "./types";
 import { JWT_EXPIRATION_TIME } from "./constants";
+import asyncHandler from "express-async-handler";
 
 dotenv.config();
 
@@ -76,7 +77,7 @@ router.get(
 
 
 // Verify Google OAuth Token
-router.post("/auth/google", async (req, res) => {
+router.post("/auth/google", asyncHandler(async (req, res) => {
   const { google_id_token } = req.body;
 
   try {
@@ -116,7 +117,7 @@ router.post("/auth/google", async (req, res) => {
   } catch (error) {
     res.status(401).json({ message: "Invalid token" });
   }
-});
+}));
 
 const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers.token;

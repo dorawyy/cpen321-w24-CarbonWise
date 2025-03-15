@@ -47,7 +47,6 @@ function createServer() {
                         next,
                     );
                 } catch (err) {
-                    console.log(err)
                     return res.sendStatus(500);
                 }
             },
@@ -58,7 +57,7 @@ function createServer() {
 }
 
 function hasRequiredProductFields(product: Partial<Product> | null): product is Product {
-    if (!product) return false;
+    if (!product || typeof product !== "object") return false;
 
     const requiredFields: (keyof Product)[] = [
         "product_name",
@@ -71,8 +70,11 @@ function hasRequiredProductFields(product: Partial<Product> | null): product is 
         "lang"
     ];
 
-    return requiredFields.every(field => product[field] != null);
+    return requiredFields.every(field => 
+        Object.prototype.hasOwnProperty.call(product, field) && product[field] !== null
+    );
 }
+
 
 
 export {createServer, hasRequiredProductFields};

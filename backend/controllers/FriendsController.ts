@@ -10,11 +10,6 @@ interface FriendRequestBody {
     user_uuid: string;
 }
 
-interface ReactionRequest {
-    user_uuid: string;
-    scan_uuid: string;
-    message_type: string;
-}
 
 export class FriendsController {
     
