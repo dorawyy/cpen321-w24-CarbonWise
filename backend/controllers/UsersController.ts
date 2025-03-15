@@ -149,9 +149,6 @@ export class UsersController {
 
     getUserUUID(req: Request, res: Response) {
         const user = req.user as User;
-        if (!user) {
-            return res.status(400).send({ message: "User UUID not found" });
-        }
         const user_uuid = user.user_uuid;
         res.status(200).send({ user_uuid });
     }
