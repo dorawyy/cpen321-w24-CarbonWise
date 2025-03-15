@@ -45,8 +45,9 @@ export interface OpenFoodFactsProduct {
     }
 }
 
-export interface ExtendedProduct extends Product {
+export interface DetailedProduct extends Product {
     product: {
+        _id?: string;
         product_name?: string;
         ecoscore_grade?: string;
         ecoscore_score?: number;
@@ -58,3 +59,9 @@ export interface ExtendedProduct extends Product {
         image?: string;
     };
 }
+
+export interface DetailedHistoryEntry extends HistoryEntry {
+    products: DetailedProduct[];
+}
+
+

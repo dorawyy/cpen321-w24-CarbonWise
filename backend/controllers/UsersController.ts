@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { client } from "../services";
 import { fetchEcoscoresByProductId, fetchProductById, fetchProductImageById } from "./ProductsController";
-import { User, History, Product, HistoryEntry, Friends, ExtendedProduct } from "../types";
+import { User, History, Product, HistoryEntry, Friends } from "../types";
 import { v4 as uuidv4 } from 'uuid';
 import { HISTORY_ECOSCORE_AVERAGE_COUNT } from "../constants";
 import { Collection } from "mongodb";
@@ -53,18 +53,13 @@ export class UsersController {
                 const detailedProducts = await Promise.all(entry.products.map(async (product) => {
                     const productDetails = await fetchProductById(product.product_id);
                     const productImage = await fetchProductImageById(product.product_id);
-
-
-
-                    const result: ExtendedProduct = {
+                    return {
                         ...product,
-                        product: {
+                        "product": {
                             ...productDetails,
-                            image: typeof productImage === "string" ? productImage : undefined
+                            image: productImage
                         }
                     };
-                    
-                    return result;
                 }));
                 return {
                     ...entry,
