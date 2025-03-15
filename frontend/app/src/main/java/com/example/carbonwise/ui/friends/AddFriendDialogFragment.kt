@@ -56,22 +56,25 @@ class AddFriendDialogFragment : BottomSheetDialogFragment() {
 
         binding.buttonAddFriend.setOnClickListener {
             val friendCode = binding.editFriendCode.text.toString().trim()
-            if (friendCode == binding.textFriendCode.text.toString()) {
-                Snackbar.make(
-                    binding.root,
-                    "You cannot send a friend request to yourself!",
-                    Snackbar.LENGTH_INDEFINITE
-                ).setAction("Dismiss") {}
-                    .show()
-                Toast.makeText(requireContext(), "You cannot send a friend request to yourself!", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            } else if (friendCode.isNotEmpty()) {
-                friendsViewModel.sendFriendRequest(friendCode)
-                hideKeyboardAndClearFocus()
-                binding.editFriendCode.text.clear()
-                Toast.makeText(requireContext(), "Friend request sent!", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "Enter a valid friend code", Toast.LENGTH_SHORT).show()
+
+            when {
+                friendCode.isEmpty() -> {
+                    Toast.makeText(requireContext(), "Enter a valid friend code", Toast.LENGTH_SHORT).show()
+                }
+                friendCode == binding.textFriendCode.text.toString() -> {
+                    Snackbar.make(
+                        binding.root,
+                        "You cannot send a friend request to yourself!",
+                        Snackbar.LENGTH_INDEFINITE
+                    ).setAction("Dismiss") {}.show()
+                    Toast.makeText(requireContext(), "You cannot send a friend request to yourself!", Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                    friendsViewModel.sendFriendRequest(friendCode)
+                    hideKeyboardAndClearFocus()
+                    binding.editFriendCode.text.clear()
+                    Toast.makeText(requireContext(), "Friend request sent!", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
