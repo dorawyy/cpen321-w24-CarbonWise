@@ -96,21 +96,18 @@ class LoginFragment : Fragment() {
                                 )
                             } catch (e: IntentSender.SendIntentException) {
                                 Log.e(TAG, "Error starting IntentSender", e)
-                                fallbackToRegularSignIn()
+                                val signInIntent = googleSignInClient.signInIntent
+                                startActivityForResult(signInIntent, REQ_SIGN_IN)
                             }
                         }
                     }
                     .addOnFailureListener(activity) { e ->
                         Log.e(TAG, "Google One Tap Sign-In failed", e)
-                        fallbackToRegularSignIn()
+                        val signInIntent = googleSignInClient.signInIntent
+                        startActivityForResult(signInIntent, REQ_SIGN_IN)
                     }
             }
         }
-    }
-
-    private fun fallbackToRegularSignIn() {
-        val signInIntent = googleSignInClient.signInIntent
-        startActivityForResult(signInIntent, REQ_SIGN_IN)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
