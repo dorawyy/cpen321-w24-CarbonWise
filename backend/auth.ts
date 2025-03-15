@@ -20,7 +20,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      callbackURL: process.env.GOOGLE_REDIRECT_URI as string,
+      callbackURL: process.env.GOOGLE_REDIRECT_URI!,
     },
     async (_accessToken, _refreshToken, profile, done) => {
       const userCollection: Collection<User> = client.db("users_db").collection("users");
