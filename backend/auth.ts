@@ -66,7 +66,7 @@ passport.serializeUser((user, done) => {
   done(null, user);
 });
 
-passport.deserializeUser((user: any, done) => {
+passport.deserializeUser((user: User, done) => {
   done(null, user);
 });
 
