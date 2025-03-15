@@ -20,6 +20,7 @@ export class ProductsController {
 
             // Fetch product data
             const baseProduct = await fetchProductById(product_id);
+
             
             if (!baseProduct?.categories_hierarchy) {
                 return res.status(404).json({ message: "Product not found or missing required fields." });
@@ -28,10 +29,6 @@ export class ProductsController {
             // Fetch product image
             const baseProductImage = await fetchProductImageById(product_id);
   
-
-            if (!client || !(client instanceof MongoClient)) {
-                throw new Error("Database connection error.");
-            }
             const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
             
             let remainingTags = [...baseProduct.categories_hierarchy];
@@ -55,8 +52,7 @@ export class ProductsController {
                 matchingProducts = await collection
                     .find(query, {
                         projection: {
-                            _id: 1, product_name: 1, ecoscore_grade: 1, ecoscore_score: 1, 
-                            categories_tags: 1, categories_hierarchy: 1, countries_tags: 1
+                            _id: 1, product_name: 1, ecoscore_grade: 1, ecoscore_score: 1, categories_tags: 1
                         }
                     })
                     .limit(RECOMMENDATIONS_UPPER_LIMIT)
@@ -123,6 +119,7 @@ export async function fetchProductById(product_id: string): Promise<Product | nu
 
     try {
         const response = await axios.get(apiUrl);
+
         if (response.data?.status !== 1 || !response.data.product) return null;
 
         const fetchedProduct: Product = response.data.product;
