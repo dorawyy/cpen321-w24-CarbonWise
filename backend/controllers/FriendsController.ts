@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Filter, Document } from "mongodb";
 import { fetchProductById, fetchProductImageById } from "./ProductsController";
 import { getMessaging, TokenMessage } from 'firebase-admin/messaging';
-import { client, getFirebaseApp } from "../services";
+import { client } from "../services";
 import { User, Friends, History } from "../types";
 import { getHistoryByUserUUID } from "./UsersController";
 
@@ -236,9 +236,6 @@ export class FriendsController {
             return res.status(400).send({message: "Cannot send notification to yourself"});
         }
 
-        // Ensure firebase app is initialized
-        getFirebaseApp();
-
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
         const userCollection = client.db("users_db").collection<User>("users");
         const historyCollection = client.db("users_db").collection<History>("history");
@@ -330,8 +327,6 @@ export class FriendsController {
 }
 
 async function sendNotification(user_uuid: string, messageBody: string) {
-    // Ensure firebase app is initialized
-    getFirebaseApp();
 
     const userCollection = client.db("users_db").collection<User>("users");
     const targetUser = await userCollection.findOne({ user_uuid: user_uuid });
