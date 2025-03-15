@@ -68,11 +68,11 @@ export class FriendsController {
         const friend = await usersCollection.findOne({ user_uuid: friend_uuid });
 
         // Check if friend request exists
-        if (userFriends && userFriends.incoming_requests.some(request => request.user_uuid === friend_uuid)) {
+        if (friend && userFriends && userFriends.incoming_requests.some(request => request.user_uuid === friend_uuid)) {
 
             await friendsCollection.updateOne(
                 { user_uuid },
-                { $pull: { incoming_requests: { user_uuid: friend_uuid } }, $addToSet: { friends: { user_uuid: friend_uuid, name: friend?.name || "" } } }
+                { $pull: { incoming_requests: { user_uuid: friend_uuid } }, $addToSet: { friends: { user_uuid: friend_uuid, name: friend.name } } }
             );
 
             // Ensure the other user has a friends document

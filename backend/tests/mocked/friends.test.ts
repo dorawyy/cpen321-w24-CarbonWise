@@ -2,14 +2,14 @@ import { createServer } from "../../utils";
 import supertest from "supertest";
 import * as services from "../../services";
 import { Friends, User } from "../../types";
-import { Collection } from "mongodb";
+import { Collection, ObjectId } from "mongodb";
 import jwt from "jsonwebtoken";
 
 jest.mock("../../services", () => {
     const findOneMockFriends = jest.fn();
     const updateOneMockFriends = jest.fn();
     const findOneMockUsers = jest.fn();
-
+    const insertOneMockFriends = jest.fn();
     return {
         client: {
             db: jest.fn(() => ({
@@ -18,6 +18,7 @@ jest.mock("../../services", () => {
                         return {
                             findOne: findOneMockFriends,
                             updateOne: updateOneMockFriends,
+                            insertOne: insertOneMockFriends,
                         };
                     } else if (name === "users") {
                         return {
@@ -213,6 +214,8 @@ describe("Mocked: POST /friends/requests/accept", () => {
 
         friendsCollection.findOne.mockClear();
         friendsCollection.updateOne.mockClear();
+        friendsCollection.insertOne.mockClear();
+
         usersCollection.findOne.mockClear();
 
         sendMock.mockClear();
@@ -275,7 +278,10 @@ describe("Mocked: POST /friends/requests/accept", () => {
 
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty("message", "Friend request accepted.");
-        expect(friendsCollection.updateOne).toHaveBeenCalled();
+        expect(friendsCollection.updateOne).toHaveBeenCalledWith(
+            { user_uuid: user.user_uuid },
+            { $pull: { incoming_requests: { user_uuid: friend.user_uuid } }, $addToSet: { friends: { user_uuid: friend.user_uuid, name: friend.name } } }
+        );
 
         await expect(sendMock).toHaveBeenCalledWith({
             notification: {
@@ -317,4 +323,63 @@ describe("Mocked: POST /friends/requests/accept", () => {
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty("message", "No such friend request.");
     });
+
+    // Input: Friend does not have a friends document
+    // Expected status code: 200
+    // Expected behavior: Friend request is accepted successfully, and a new friends document is created for the friend
+    // Expected output: Confirmation message and notification sent
+    test("Accept Friend Request when friend has no friends document", async () => {
+            const userFriends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [{ user_uuid: friend.user_uuid }] };
+            const targetFriends = null;
+    
+            friendsCollection.findOne
+                .mockResolvedValueOnce(userFriends)
+                .mockResolvedValueOnce(targetFriends);
+    
+            friendsCollection.updateOne.mockResolvedValueOnce({
+                acknowledged: true,
+                modifiedCount: 1,
+                matchedCount: 1,
+                upsertedCount: 0,
+                upsertedId: null,
+            });
+
+            friendsCollection.insertOne.mockResolvedValueOnce({
+                acknowledged: true,
+                insertedId: new ObjectId(),
+            });
+    
+            usersCollection.findOne
+                .mockResolvedValueOnce(friend)
+                .mockResolvedValueOnce(friend);
+    
+            const res = await supertest(app)
+                .post("/friends/requests/accept")
+                .set("token", `mock_token`)
+                .send({ user_uuid: friend.user_uuid });
+    
+            expect(res.status).toBe(200);
+            expect(res.body).toHaveProperty("message", "Friend request accepted.");
+            expect(friendsCollection.updateOne).toHaveBeenCalledWith(
+                { user_uuid: user.user_uuid },
+                { $pull: { incoming_requests: { user_uuid: friend.user_uuid } }, $addToSet: { friends: { user_uuid: friend.user_uuid, name: friend.name } } }
+            );
+
+            expect(friendsCollection.insertOne).toHaveBeenCalledWith({
+                user_uuid: friend.user_uuid,
+                friends: [],
+                incoming_requests: [],
+            });
+    
+            await expect(sendMock).toHaveBeenCalledWith({
+                notification: {
+                    title: "CarbonWise",
+                    body: "John Doe has accepted your friend request",
+                },
+                token: friend.fcm_registration_token,
+            }); 
+        });
+
+
+
 });
