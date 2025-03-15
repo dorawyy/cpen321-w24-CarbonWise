@@ -5,7 +5,6 @@ import { createServer } from "./utils";
 dotenv.config();
 
 client.connect().then(() => {
-    console.log("MongoDB Client Connected");
 
     const app = createServer();
 

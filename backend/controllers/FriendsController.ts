@@ -13,7 +13,7 @@ interface FriendRequestBody {
 
 export class FriendsController {
     
-    async sendFriendRequest(req: Request<{}, {}, FriendRequestBody>, res: Response) {
+    async sendFriendRequest(req: Request<object, object, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.body;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -50,7 +50,7 @@ export class FriendsController {
         }
     }
 
-    async acceptFriendRequest(req: Request<{}, {}, FriendRequestBody>, res: Response) {
+    async acceptFriendRequest(req: Request<object, object, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.body;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -92,7 +92,7 @@ export class FriendsController {
         }
     }
 
-    async removeFriend(req: Request<{}, {}, FriendRequestBody>, res: Response) {
+    async removeFriend(req: Request<object, object, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.query;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -121,7 +121,7 @@ export class FriendsController {
         }
     }
 
-    async rejectFriendRequest(req: Request<{}, {}, FriendRequestBody>, res: Response) {
+    async rejectFriendRequest(req: Request<object, object, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.query;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -145,7 +145,7 @@ export class FriendsController {
         }
     }
 
-    async getFriendRequests(req: Request<{}, {}, FriendRequestBody>, res: Response) {
+    async getFriendRequests(req: Request<object, object, FriendRequestBody>, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
@@ -160,7 +160,7 @@ export class FriendsController {
         }
     }
 
-    async getOutgoingFriendRequests(req: Request<{}, {}, FriendRequestBody>, res: Response) {
+    async getOutgoingFriendRequests(req: Request<object, object, FriendRequestBody>, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
@@ -173,7 +173,7 @@ export class FriendsController {
         res.status(200).send(outgoingRequestUUIDs);
     }
 
-    async getCurrentFriends(req: Request<{}, {}, FriendRequestBody>, res: Response) {
+    async getCurrentFriends(req: Request<object, object, FriendRequestBody>, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
