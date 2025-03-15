@@ -7,7 +7,7 @@ export const UsersRoutes = [
     {
         method: "post",
         route: "/users/history",
-        action: controller.addToHistory,
+        action: controller.addToHistory.bind(controller),
         validation: [
             body("product_id").isString().withMessage("Product ID should be a string")
         ],
@@ -16,7 +16,7 @@ export const UsersRoutes = [
     {
         method: "get",
         route: "/users/history",
-        action: controller.getHistory,
+        action: controller.getHistory.bind(controller),
         validation: [
             query("timestamp").optional().isISO8601().withMessage("Timestamp should be a valid ISO 8601 date string")
         ],
@@ -25,7 +25,7 @@ export const UsersRoutes = [
     {
         method: "delete",
         route: "/users/history",
-        action: controller.deleteFromHistory,
+        action: controller.deleteFromHistory.bind(controller),
         validation: [
             query("scan_uuid").isString().withMessage("Scan UUID should be a string")
         ],
@@ -34,7 +34,7 @@ export const UsersRoutes = [
     {
         method: "post",
         route: "/users/fcm_registration_token",
-        action: controller.setFCMRegistrationToken,
+        action: controller.setFCMRegistrationToken.bind(controller),
         validation: [
             body("fcm_registration_token").isString().withMessage("FCM Registration Token should be a string")
         ],
@@ -43,14 +43,14 @@ export const UsersRoutes = [
     {
         method: "get",
         route: "/users/uuid",
-        action: controller.getUserUUID,
+        action: controller.getUserUUID.bind(controller),
         validation: [],
         protected: true
     },
     {
         method: "get",
         route: "/users/ecoscore_score",
-        action: controller.getEcoscoreAverage,
+        action: controller.getEcoscoreAverage.bind(controller),
         validation: [],
         protected: true
     }
