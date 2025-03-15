@@ -97,7 +97,7 @@ router.get(
 
 
 // Verify Google OAuth Token
-router.post("/auth/google", asyncHandler(async (req, res) => {
+router.post("/auth/google", asyncHandler(async (req: Request, res: Response) => {
   const { google_id_token } = req.body;
 
   try {
