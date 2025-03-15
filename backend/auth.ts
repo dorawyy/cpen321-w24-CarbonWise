@@ -29,11 +29,6 @@ if (!GOOGLE_CLIENT_SECRET) {
   throw new Error("Missing GOOGLE_CLIENT_SECRET in environment variables");
 }
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error("Missing JWT_SECRET in environment variables");
-}
-
 //=========================== FOR BROWSER TESTING ===========================
 passport.use(
   new GoogleStrategy(
@@ -87,6 +82,12 @@ router.get(
   passport.authenticate("google", { session: false }),
   (req, res) => {
     const user = req.user as User;
+
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+      throw new Error("Missing JWT_SECRET in environment variables");
+    }
+
     const token = jwt.sign(user, JWT_SECRET, { expiresIn: JWT_EXPIRATION_TIME });
 
     res.json({ token, user });
@@ -126,9 +127,14 @@ router.post("/auth/google", asyncHandler(async (req, res) => {
       await userCollection.insertOne(user);
     }
 
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+      throw new Error("Missing JWT_SECRET in environment variables");
+    }
+
     const jwtToken = jwt.sign(
       user,
-      process.env.JWT_SECRET as string,
+      JWT_SECRET,
       { expiresIn: JWT_EXPIRATION_TIME }
     );
 
@@ -146,7 +152,12 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    const decoded = jwt.verify(token as string, process.env.JWT_SECRET as string);
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+      throw new Error("Missing JWT_SECRET in environment variables");
+    }
+
+    const decoded = jwt.verify(token as string, JWT_SECRET);
     (req as any).user = decoded;
     next();
   } catch (err) {
