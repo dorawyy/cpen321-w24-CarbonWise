@@ -1,31 +1,29 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { client } from "../services";
 import { fetchEcoscoresByProductId, fetchProductById, fetchProductImageById } from "./ProductsController";
-import { User, History } from "../types";
+import { User, History, Product, HistoryEntry, Friends } from "../types";
 import { v4 as uuidv4 } from 'uuid';
 import { HISTORY_ECOSCORE_AVERAGE_COUNT } from "../constants";
-
+import { Collection } from "mongodb";
 
 
 export class UsersController {
-    async addToHistory(req: Request, res: Response, nextFunction: NextFunction) {
+    async addToHistory(req: Request, res: Response) {
         const { product_id } = req.body;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        const productCollection = client.db("products_db").collection("products");
-        const historyCollection = client.db("users_db").collection<History>("history");
+        const productCollection: Collection<Product> = client.db("products_db").collection("products");
+        const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
         // Check if product exists and has required fields
-        const product = await productCollection.findOne({ _id: product_id });
-        if (!product || !product.product_name || !product.ecoscore_grade || !product.ecoscore_score || !product.ecoscore_data || !product.categories_tags || !product.categories_hierarchy) {
+        const product: Product | null = await productCollection.findOne({ _id: product_id });
+        if (!product?.product_name || !product.ecoscore_grade || !product.ecoscore_score || !product.ecoscore_data || !product.categories_tags || !product.categories_hierarchy) {
             return res.status(404).send({message: "Product not found"});
         }
 
-        const ecoscore = product.ecoscore_score || 0;
-
-        const historyEntry = {
-            product_id: product_id,
+        const historyEntry: HistoryEntry = {
+            product_id,
             timestamp: new Date(),
             scan_uuid: uuidv4()
         };
@@ -43,7 +41,7 @@ export class UsersController {
         res.status(200).json(historyEntry);
     }
 
-    async getHistory(req: Request, res: Response, nextFunction: NextFunction) {
+    async getHistory(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
@@ -74,12 +72,12 @@ export class UsersController {
         }
     }
 
-    async deleteFromHistory(req: Request, res: Response, nextFunction: NextFunction) {
+    async deleteFromHistory(req: Request, res: Response) {
         const { scan_uuid } = req.query;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        const historyCollection = client.db("users_db").collection<History>("history");
+        const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
         const result = await historyCollection.updateOne(
             { user_uuid: user_uuid },
@@ -96,16 +94,16 @@ export class UsersController {
 
 
     // Update the Firebase Cloud Messaging (FCM) registration token for the user
-    async setFCMRegistrationToken(req: Request, res: Response, nextFunction: NextFunction) {
+    async setFCMRegistrationToken(req: Request, res: Response) {
         const { fcm_registration_token } = req.body;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        const userCollection = client.db("users_db").collection<User>("users");
+        const userCollection: Collection<User>  = client.db("users_db").collection<User>("users");
 
         const result = await userCollection.updateOne(
             { user_uuid: user_uuid },
-            { $set: { fcm_registration_token: fcm_registration_token } },
+            { $set: { fcm_registration_token } },
             { upsert: true }
         );
         
@@ -116,12 +114,12 @@ export class UsersController {
         }
     }
 
-    async getHistoryByScanUUID(req: Request, res: Response, nextFunction: NextFunction) {
+    async getHistoryByScanUUID(req: Request, res: Response) {
         const { scan_uuid } = req.query;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        const historyCollection = client.db("users_db").collection<History>("history");
+        const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
         const userHistory = await historyCollection.findOne(
             { user_uuid: user_uuid, "products.scan_uuid": scan_uuid }
@@ -149,7 +147,7 @@ export class UsersController {
         }
     }
 
-    async getUserUUID(req: Request, res: Response, nextFunction: NextFunction) {
+    async getUserUUID(req: Request, res: Response) {
         const user = req.user as User;
         if (!user || !user.user_uuid) {
             return res.status(400).send({ message: "User UUID not found" });
@@ -158,11 +156,11 @@ export class UsersController {
         res.status(200).send({ user_uuid });
     }
 
-    async getEcoscoreAverage(req: Request, res: Response, nextFunction: NextFunction) {
+    async getEcoscoreAverage(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        const historyCollection = client.db("users_db").collection<History>("history");
+        const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
         const userHistory = await historyCollection.findOne({ user_uuid: user_uuid });
         if (userHistory && userHistory.products.length > 0) {
@@ -189,13 +187,13 @@ export class UsersController {
         }
     }
 
-    async getFriendEcoscore(req: Request, res: Response, nextFunction: NextFunction) {
+    async getFriendEcoscore(req: Request, res: Response) {
         const { friend_uuid } = req.query;
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        const friendsCollection = client.db("users_db").collection("friends");
-        const historyCollection = client.db("users_db").collection<History>("history");
+        const friendsCollection: Collection<Friends> = client.db("users_db").collection("friends");
+        const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
         const userFriends = await friendsCollection.findOne({ user_uuid: user_uuid });
         const friendRelationship = userFriends?.friends?.find((friend: { user_uuid: string }) => friend.user_uuid === friend_uuid);
@@ -244,7 +242,7 @@ export async function getHistoryByUserUUID(user_uuid: string) {
 
 // Helper function to update the average ecoscore for a user
 async function updateEcoscoreAverage(user_uuid: string) {
-    const historyCollection = client.db("users_db").collection<History>("history");
+    const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
     const userHistory = await historyCollection.findOne({ user_uuid: user_uuid });
     if (userHistory && userHistory.products.length > 0) {

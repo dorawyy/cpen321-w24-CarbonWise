@@ -13,6 +13,12 @@ export interface History {
     products: { product_id: string, timestamp: Date, scan_uuid: string }[];
 }
 
+export interface HistoryEntry {
+    product_id: string;
+    timestamp: Date;
+    scan_uuid: string;
+}
+
 export interface Friends {
     user_uuid: string;
     friends: { user_uuid: string, name: string }[];
