@@ -127,7 +127,11 @@ export class UsersController {
 
         // Fetch product details for the product with the given scan UUID
         if (userHistory) {
-            const product = userHistory.products.find(p => p.scan_uuid === scan_uuid);
+            const product: HistoryEntry = userHistory.products.find(p => p.scan_uuid === scan_uuid) ?? {
+                product_id: "",
+                timestamp: new Date(),
+                scan_uuid: "",
+            };
             if (product) {
                 const productDetails = await fetchProductById(product.product_id);
                 const productImage = await fetchProductImageById(product.product_id);
