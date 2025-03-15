@@ -1,9 +1,8 @@
-import express from "express";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { nanoid } from "nanoid";
 import { client, oauthClient } from "./services";
 import { Collection } from "mongodb";
