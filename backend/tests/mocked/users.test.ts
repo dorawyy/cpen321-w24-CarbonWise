@@ -4,7 +4,6 @@ import * as services from "../../services";
 import { User, Product, History } from "../../types";
 import jwt from "jsonwebtoken";
 import { Collection, FindCursor } from "mongodb";
-import axios from "axios";
 
 jest.mock("../../services", () => {
     const findOneMockUsers = jest.fn();
@@ -34,6 +33,17 @@ jest.mock("../../services", () => {
         return cursor as FindCursor;
     });
 
+    const findMockFriends = jest.fn(() => {
+        const cursor: Partial<FindCursor> = {
+            limit: jest.fn().mockReturnThis(),
+            toArray: jest.fn(),
+        };
+        return cursor as FindCursor;
+    });
+
+
+    const findOneMockFriends = jest.fn();
+
     return {
         client: {
             db: jest.fn(() => ({
@@ -56,6 +66,11 @@ jest.mock("../../services", () => {
                             findOne: findOneMockProducts,
                             insertOne: insertOneMockProducts,
                             find: findMockProducts,
+                        };
+                    } else if (name === "friends") {
+                        return {
+                            findOne: findOneMockFriends,
+                            find: findMockFriends,
                         };
                     }
                     return {};
@@ -94,8 +109,6 @@ const mockProduct: Product = {
     countries_tags: ["france"],
     lang: "en",
 };
-
-
 
 // Interface POST /users/history
 describe("Mocked: POST /users/history", () => {
@@ -173,7 +186,6 @@ describe("Mocked: POST /users/history", () => {
 
 });
 
-
 // Interface GET /users/history
 describe("Mocked: GET /users/history", () => {
     let historyCollection: jest.Mocked<Collection<History>>;
@@ -230,6 +242,262 @@ describe("Mocked: GET /users/history", () => {
 
         const res: Response = await supertest(app)
             .get("/users/history")
+            .set("token", `mock_token`);
+
+        expect(res.status).toBe(404);
+        expect(res.body).toHaveProperty("message", "No history found for the user.");
+    });
+});
+
+// Interface DELETE /users/history
+describe("Mocked: DELETE /users/history", () => {
+    let historyCollection: jest.Mocked<Collection<History>>;
+
+    beforeEach(() => {
+        historyCollection = (services.client.db as jest.Mock)().collection("history");
+
+        (jwt.verify as jest.Mock).mockImplementation(() => user);
+
+        historyCollection.updateOne.mockClear();
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    afterAll(() => {
+        jest.clearAllMocks();
+    });
+
+    test("Delete Product from User's History Successfully", async () => {
+        historyCollection.updateOne.mockResolvedValueOnce({
+            acknowledged: true,
+            modifiedCount: 1,
+            matchedCount: 1,
+            upsertedCount: 0,
+            upsertedId: null,
+        });
+
+        const res: Response = await supertest(app)
+            .delete("/users/history")
+            .set("token", `mock_token`)
+            .query({ scan_uuid: "scan-123" });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("message", "History entry deleted");
+        expect(historyCollection.updateOne).toHaveBeenCalledWith(
+            { user_uuid: user.user_uuid },
+            { $pull: { products: { scan_uuid: "scan-123" } } }
+        );
+    });
+
+    test("Fail to Delete Product from User's History - History Entry Not Found", async () => {
+        historyCollection.updateOne.mockResolvedValueOnce({
+            acknowledged: true,
+            modifiedCount: 0,
+            matchedCount: 0,
+            upsertedCount: 0,
+            upsertedId: null,
+        });
+
+        const res: Response = await supertest(app)
+            .delete("/users/history")
+            .set("token", `mock_token`)
+            .query({ scan_uuid: "nonexistent_scan_uuid" });
+
+        expect(res.status).toBe(404);
+        expect(res.body).toHaveProperty("message", "History entry not found.");
+        expect(historyCollection.updateOne).toHaveBeenCalledWith(
+            { user_uuid: user.user_uuid },
+            { $pull: { products: { scan_uuid: "nonexistent_scan_uuid" } } }
+        );
+    });
+});
+
+// Interface POST /users/fcm_registration_token
+describe("Mocked: POST /users/fcm_registration_token", () => {
+    let userCollection: jest.Mocked<Collection<User>>;
+
+    beforeEach(() => {
+        userCollection = (services.client.db as jest.Mock)().collection("users");
+
+        (jwt.verify as jest.Mock).mockImplementation(() => user);
+
+        userCollection.updateOne.mockClear();
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    afterAll(() => {
+        jest.clearAllMocks();
+    });
+
+    test("Update FCM Registration Token Successfully", async () => {
+        userCollection.updateOne.mockResolvedValueOnce({
+            acknowledged: true,
+            matchedCount: 1,
+            modifiedCount: 1,
+            upsertedCount: 0,
+            upsertedId: null,
+        });
+
+        const res: Response = await supertest(app)
+            .post("/users/fcm_registration_token")
+            .set("token", `mock_token`)
+            .send({ fcm_registration_token: "new_fcm_token" });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("message", "FCM registration token updated.");
+        expect(userCollection.updateOne).toHaveBeenCalledWith(
+            { user_uuid: user.user_uuid },
+            { $set: { fcm_registration_token: "new_fcm_token" } },
+            { upsert: true }
+        );
+    });
+
+    test("Fail to Update FCM Registration Token - User Not Found", async () => {
+        userCollection.updateOne.mockResolvedValueOnce({
+            acknowledged: true,
+            matchedCount: 0,
+            modifiedCount: 0,
+            upsertedCount: 0,
+            upsertedId: null,
+        });
+
+        const res: Response = await supertest(app)
+            .post("/users/fcm_registration_token")
+            .set("token", `mock_token`)
+            .send({ fcm_registration_token: "new_fcm_token" });
+
+        expect(res.status).toBe(404);
+        expect(res.body).toHaveProperty("message", "User not found.");
+        expect(userCollection.updateOne).toHaveBeenCalledWith(
+            { user_uuid: user.user_uuid },
+            { $set: { fcm_registration_token: "new_fcm_token" } },
+            { upsert: true }
+        );
+    });
+});
+
+// Interface GET /users/uuid
+describe("Mocked: GET /users/uuid", () => {
+    beforeEach(() => {
+        (jwt.verify as jest.Mock).mockImplementation(() => user);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    afterAll(() => {
+        jest.clearAllMocks();
+    });
+
+    test("Get User UUID Successfully", async () => {
+        const res: Response = await supertest(app)
+            .get("/users/uuid")
+            .set("token", `mock_token`);
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("user_uuid", user.user_uuid);
+    });
+});
+
+// Interface GET /users/ecoscore_score
+describe("Mocked: GET /users/ecoscore_score", () => {
+    let historyCollection: jest.Mocked<Collection<History>>;
+
+    beforeEach(() => {
+        historyCollection = (services.client.db as jest.Mock)().collection("history");
+
+        (jwt.verify as jest.Mock).mockImplementation(() => user);
+
+        historyCollection.findOne.mockClear();
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    afterAll(() => {
+        jest.clearAllMocks();
+    });
+
+    test("Get User Ecoscore Average Successfully", async () => {
+        const mockHistory = {
+            user_uuid: user.user_uuid,
+            products: [
+                { product_id: mockProduct._id, timestamp: new Date() }
+            ]
+        };
+
+        historyCollection.findOne.mockResolvedValueOnce(mockHistory);
+
+        const res: Response = await supertest(app)
+            .get("/users/ecoscore_score")
+            .set("token", `mock_token`);
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("ecoscore_score");
+    });
+
+    test("Fail to Get User Ecoscore Average - No History Found", async () => {
+        historyCollection.findOne.mockResolvedValueOnce(null);
+
+        const res: Response = await supertest(app)
+            .get("/users/ecoscore_score")
+            .set("token", `mock_token`);
+
+        expect(res.status).toBe(404);
+        expect(res.body).toHaveProperty("message", "No history found for the user.");
+    });
+});
+
+// Interface GET /users/ecoscore_score
+describe("Mocked: GET /users/ecoscore_score", () => {
+    let historyCollection: jest.Mocked<Collection<History>>;
+
+    beforeEach(() => {
+        historyCollection = (services.client.db as jest.Mock)().collection("history");
+
+        (jwt.verify as jest.Mock).mockImplementation(() => user);
+
+        historyCollection.findOne.mockClear();
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    afterAll(() => {
+        jest.clearAllMocks();
+    });
+
+    test("Get User Ecoscore Average Successfully", async () => {
+        const mockHistory = {
+            user_uuid: user.user_uuid,
+            products: [
+                { product_id: mockProduct._id, timestamp: new Date() }
+            ]
+        };
+
+        historyCollection.findOne.mockResolvedValueOnce(mockHistory);
+
+        const res: Response = await supertest(app)
+            .get("/users/ecoscore_score")
+            .set("token", `mock_token`);
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("ecoscore_score");
+    });
+
+    test("Fail to Get User Ecoscore Average - No History Found", async () => {
+        historyCollection.findOne.mockResolvedValueOnce(null);
+
+        const res: Response = await supertest(app)
+            .get("/users/ecoscore_score")
             .set("token", `mock_token`);
 
         expect(res.status).toBe(404);

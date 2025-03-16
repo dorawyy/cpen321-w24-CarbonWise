@@ -115,39 +115,6 @@ export class UsersController {
         }
     }
 
-    async getHistoryByScanUUID(req: Request, res: Response) {
-        const { scan_uuid } = req.query;
-        const user = req.user as User;
-        const user_uuid = user.user_uuid;
-
-        const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
-
-        const userHistory = await historyCollection.findOne(
-            { user_uuid, "products.scan_uuid": scan_uuid }
-        );
-
-        // Fetch product details for the product with the given scan UUID
-        if (userHistory) {
-            const product: HistoryEntry | undefined = userHistory.products.find(p => p.scan_uuid === scan_uuid);
-            if (product) {
-                const productDetails = await fetchProductById(product.product_id);
-                const productImage = await fetchProductImageById(product.product_id);
-                const detailedProduct = {
-                    ...product,
-                    "product": {
-                        ...productDetails,
-                        image: productImage
-                    }
-                };
-                res.status(200).send(detailedProduct);
-            } else {
-                res.status(404).send({message: "No product found with the given scan UUID."});
-            }
-        } else {
-            res.status(404).send({message: "No history found for the user."});
-        }
-    }
-
     getUserUUID(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
