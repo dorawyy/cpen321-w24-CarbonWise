@@ -180,8 +180,8 @@ export class FriendsController {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        const friendsCollection = client.db("users_db").collection<Friends>("friends");
-
+        const friendsCollection: Collection<Friends> = client.db("users_db").collection<Friends>("friends");
+        
         const userFriends = await friendsCollection.findOne({ user_uuid });
 
         if (userFriends?.friends) {
@@ -199,16 +199,19 @@ export class FriendsController {
         const friendsCollection = client.db("users_db").collection<Friends>("friends");
 
         const userFriends = await friendsCollection.findOne({ user_uuid });
-        const friendRelationship = userFriends?.friends?.find(friend => friend.user_uuid === friend_uuid);
 
-        // Check if user is already friends with the target user
-        if (!friendRelationship) {
+        if (!userFriends) {
             return res.status(404).send({message: "User does not exist or is not a friend."});
         }
 
+        const friendRelationship = userFriends.friends.find(friend => friend.user_uuid === friend_uuid);
+
+        if (!friendRelationship) {
+            return res.status(404).send({message: "User does not exist or is not a friend."});
+        }
+        
         const friendHistory = await getHistoryByUserUUID(friend_uuid);
 
-        // Fetch detailed product information for each product
         const detailedHistory = await Promise.all(friendHistory.map(async (entry) => {
             const detailedProducts = await Promise.all(entry.products.map(async (product) => {
                 const productDetails = await fetchProductById(product.product_id);
@@ -269,8 +272,8 @@ export class FriendsController {
 
         const productDetails = await fetchProductById(productEntry.product_id);
 
-        if (!productDetails || !productDetails.product_name) {
-            return res.status(404).send({message: "Product name not found."});
+        if (!productDetails) {
+            return res.status(404).send({message: "Product not found."});
         }
         const productName = productDetails.product_name;
 
@@ -280,11 +283,9 @@ export class FriendsController {
             messageBody = `${user.name} has praised you for buying ${productName}`;
         } else if (message_type === "shame") {
             messageBody = `${user.name} has shamed you for buying ${productName}`;
-        } else {
-            return res.status(400).send({message: "Invalid message type."});
         }
 
-        if (!targetUser?.fcm_registration_token) {
+        if (!targetUser || !targetUser.fcm_registration_token) {
             return res.status(404).send({message: "Target user does not have notifications enabled."});
         }
 
@@ -293,7 +294,7 @@ export class FriendsController {
                 title: 'CarbonWise',
                 body: messageBody
             },
-            token: targetUser?.fcm_registration_token
+            token: targetUser.fcm_registration_token
         };
 
         // Send notification to target user
@@ -331,3 +332,4 @@ export class FriendsController {
         res.status(200).send({ ecoscore_score: friendHistory.ecoscore_score });
     }
 }
+
