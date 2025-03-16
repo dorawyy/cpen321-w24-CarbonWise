@@ -88,7 +88,7 @@ jest.mock("jsonwebtoken", () => ({
 }));
 
 jest.mock("axios", () => ({
-    get: jest.fn((url) => {
+    get: jest.fn((url: string) => {
         if (url.includes("/api/v2/product/")) {
             return Promise.resolve({
                 data: {
@@ -961,8 +961,8 @@ describe("Mocked: GET /friends (Get Current Friends)", () => {
         jest.clearAllMocks();
     });
 
-    const friend1 = { user_uuid: "friend-123", name: "Jane Doe" };
-    const friend2 = { user_uuid: "friend-456", name: "Mike Smith" };
+    const friend1: Friends["friends"][0] = { user_uuid: "friend-123", name: "Jane Doe" };
+    const friend2: Friends["friends"][0] = { user_uuid: "friend-456", name: "Mike Smith" };
 
     // Input: User has friends
     // Expected status code: 200
@@ -990,8 +990,9 @@ describe("Mocked: GET /friends (Get Current Friends)", () => {
     // Expected behavior: Returns an empty array
     // Expected output: []
     test("User has no friends", async () => {
-        const userFriends = {
+        const userFriends: Friends = {
             user_uuid: user.user_uuid,
+            friends: [],
             incoming_requests: [],
         };
 
@@ -1175,12 +1176,12 @@ describe("Mocked: POST /friends/notifications", () => {
         ],
     };
 
-    const productDetails = {
+    const productDetails: Partial<Product> = {
         _id: "12345",
         product_name: "Eco-Friendly Product",
     };
 
-    const mockProduct = {
+    const mockProduct: Product = {
         _id: "12345",
         product_name: "Mock Product",
         ecoscore_grade: "A",
@@ -1192,7 +1193,7 @@ describe("Mocked: POST /friends/notifications", () => {
         lang: "en"
     };
 
-    const mockRecommendationA = {
+    const mockRecommendationA: Product = {
         _id: "67890",
         product_name: "Recommended Product A",
         ecoscore_grade: "B",
@@ -1307,7 +1308,7 @@ describe("Mocked: POST /friends/notifications", () => {
     });
 
     test("Return 404 when product is not found in friend's history", async () => {
-        const emptyHistory = { user_uuid: friend.user_uuid, ecoscore_score: 75, products: [] };
+        const emptyHistory: History = { user_uuid: friend.user_uuid, ecoscore_score: 75, products: [] };
 
         friendsCollection.findOne.mockResolvedValueOnce({
             user_uuid: user.user_uuid,
@@ -1346,7 +1347,7 @@ describe("Mocked: POST /friends/notifications", () => {
     });
 
     test("Return 404 when friend is not found due to friend collection not returning a document", async () => {
-        const emptyHistory = { user_uuid: friend.user_uuid, ecoscore_score: 75, products: [] };
+        const emptyHistory: History = { user_uuid: friend.user_uuid, ecoscore_score: 75, products: [] };
 
         friendsCollection.findOne.mockResolvedValueOnce(null);
 
@@ -1383,7 +1384,7 @@ describe("Mocked: POST /friends/notifications", () => {
     });
 
     test("Return 404 when target user has no fcm_registration_token", async () => {
-        const friendWithoutToken = { ...friend, fcm_registration_token: undefined };
+        const friendWithoutToken: User = { ...friend, fcm_registration_token: ""  };
 
         friendsCollection.findOne.mockResolvedValueOnce({
             user_uuid: user.user_uuid,
