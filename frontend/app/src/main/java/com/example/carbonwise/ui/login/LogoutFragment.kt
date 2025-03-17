@@ -24,7 +24,7 @@ class LogoutFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Call logout in MainActivity when this fragment is opened
-        (activity as? MainActivity)?.logout()
+        (activity as? MainActivity)?.showLogoutConfirmationDialog()
     }
 
     override fun onDestroyView() {

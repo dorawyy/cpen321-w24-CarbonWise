@@ -171,7 +171,7 @@ class MainActivity : AppCompatActivity() {
         setupNavigation()
     }
 
-    private fun showLogoutConfirmationDialog() {
+    fun showLogoutConfirmationDialog() {
         val builder = android.app.AlertDialog.Builder(this)
         builder.setTitle("Log Out")
         builder.setMessage("Are you sure you want to log out?")
@@ -180,6 +180,8 @@ class MainActivity : AppCompatActivity() {
         }
         builder.setNegativeButton("Cancel") { dialog, _ ->
             dialog.dismiss()
+            val navController = findNavController(R.id.nav_host_fragment_activity_main)
+            navController.navigate(R.id.navigation_scan)
         }
         builder.show()
     }

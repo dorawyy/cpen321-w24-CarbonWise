@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContentProviderCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -35,7 +36,16 @@ class HistoryFragment : Fragment() {
             onDeleteClick = { scanUuid ->
                 val token = MainActivity.getJWTToken(requireContext())
                 if (!token.isNullOrEmpty()) {
-                    historyViewModel.removeHistoryItem(token, scanUuid)
+                    val builder = android.app.AlertDialog.Builder(requireContext())
+                    builder.setTitle("Delete Item")
+                    builder.setMessage("Are you sure you want to delete this item?")
+                    builder.setPositiveButton("Delete") { _, _ ->
+                        historyViewModel.removeHistoryItem(token, scanUuid)
+                    }
+                    builder.setNegativeButton("Cancel") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    builder.show()
                 } else {
                     Toast.makeText(context, "No JWT token found", Toast.LENGTH_SHORT).show()
                 }
