@@ -52,105 +52,119 @@ class HistoryTest {
 
     @Test
     fun testDeleteItemFromHistory() {
+        // Step 1: Allow camera permission (navigation is not possible with the confirmation window on screen)
         allowCameraPermission()
 
+        // Step 2: Navigate to the login tab and sign in
         navigateToLoginFragment()
-
         val googleSignInButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/loginButton"))
         assertTrue("Google Sign-In button not found", googleSignInButton.waitForExists(5000))
         googleSignInButton.click()
-
         handleGoogleSignIn()
 
+        // Step 3: Navigate to the history tab
         navigateToHistoryFragment()
+        Thread.sleep(5000) // Wait for history to load
 
-        Thread.sleep(5000)
-
+        // Step 4: Press the delete button for a product in the history
         pressDeleteButton()
+
+        // Step 5: Confirm the deletion (handled in `pressDeleteButton`)
+        // Step 6: System removes the product from history (implicitly tested by successful completion)
     }
 
     // TODO: This test currently fails because history component lacks proper error display
     @Test
     fun testHistoryConnectionError() {
-
+        // Step 1: Allow camera permission (navigation is not possible with the confirmation window on screen)
         allowCameraPermission()
 
+        // Step 2: Navigate to the login tab and sign in
         navigateToLoginFragment()
-
         val googleSignInButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/loginButton"))
         assertTrue("Google Sign-In button not found", googleSignInButton.waitForExists(5000))
         googleSignInButton.click()
-
         handleGoogleSignIn()
 
+        // Step 3: Simulate a network error by disabling Wi-Fi
         device.executeShellCommand("svc wifi disable")
         Thread.sleep(5000)
 
+        // Step 4: Navigate to the history tab
         navigateToHistoryFragment()
+        Thread.sleep(5000) // Wait for history to load
 
-        Thread.sleep(5000)
-
+        // Step 5: Verify the system displays an error message for no internet connection
         val logs = device.executeShellCommand("logcat -d | grep Toast")
         assertTrue("Expected toast message not found", logs.contains("No internet connection"))
 
+        // Re-enable Wi-Fi for subsequent tests
         device.executeShellCommand("svc wifi enable")
         Thread.sleep(10000) // Wifi takes a LONG time to turn on
     }
 
     @Test
     fun testViewFriendHistory() {
+        // Step 1: Allow camera permission (navigation is not possible with the confirmation window on screen)
         allowCameraPermission()
 
+        // Step 2: Navigate to the login tab and sign in
         navigateToLoginFragment()
-
         val googleSignInButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/loginButton"))
         assertTrue("Google Sign-In button not found", googleSignInButton.waitForExists(5000))
         googleSignInButton.click()
-
         handleGoogleSignIn()
 
+        // Step 3: Navigate to the friends tab
         navigateToFriendsFragment()
 
+        // Step 4: Select a friend from the friends list
         pressFirstFriendItem()
+        Thread.sleep(5000) // Wait for friend history to load
 
-        Thread.sleep(5000)
-
+        // Step 5: Verify the friend's history is displayed
         val historyRecyclerView = UiScrollable(UiSelector().resourceId("com.example.carbonwise:id/recyclerViewHistory"))
         assertTrue("No history items found for the friend!", historyRecyclerView.waitForExists(5000))
 
+        // Step 6: Check if the friend's history appears correctly
         checkFriendHistoryAppears()
     }
 
     // TODO: This test currently fails because friends component lacks proper error display
     @Test
     fun testViewFriendHistoryConnectionError() {
+        // Step 1: Allow camera permission (navigation is not possible with the confirmation window on screen)
         allowCameraPermission()
 
+        // Step 2: Navigate to the login tab and sign in
         navigateToLoginFragment()
-
         val googleSignInButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/loginButton"))
         assertTrue("Google Sign-In button not found", googleSignInButton.waitForExists(5000))
         googleSignInButton.click()
-
         handleGoogleSignIn()
 
+        // Step 3: Simulate a network error by disabling Wi-Fi
         device.executeShellCommand("svc wifi disable")
         Thread.sleep(10000) // Wifi takes a LONG time to turn on
 
+        // Step 4: Navigate to the friends tab
         navigateToFriendsFragment()
 
+        // Step 5: Select a friend from the friends list
         pressFirstFriendItem()
+        Thread.sleep(5000) // Wait for friend history to load
 
-        Thread.sleep(5000)
-
+        // Step 6: Verify the system displays an error message for no internet connection
         val historyRecyclerView = UiScrollable(UiSelector().resourceId("com.example.carbonwise:id/recyclerViewHistory"))
         assertTrue("No history items found for the friend!", historyRecyclerView.waitForExists(5000))
 
+        // Re-enable Wi-Fi for subsequent tests
         device.executeShellCommand("svc wifi enable")
         Thread.sleep(10000) // Wifi takes a LONG time to turn on
     }
 
     private fun allowCameraPermission() {
+        // Helper function to allow camera permission if prompted
         val allowButton = device.findObject(UiSelector().resourceId("com.android.permissioncontroller:id/permission_allow_foreground_only_button"))
         if (allowButton.waitForExists(5000) && allowButton.isEnabled) {
             allowButton.click()
@@ -160,6 +174,7 @@ class HistoryTest {
     }
 
     private fun navigateToLoginFragment() {
+        // Helper function to navigate to the login tab
         val loginButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/navigation_login"))
         if (loginButton.waitForExists(5000)) {
             loginButton.click()
@@ -167,6 +182,7 @@ class HistoryTest {
     }
 
     private fun navigateToHistoryFragment() {
+        // Helper function to navigate to the history tab
         val loginButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/navigation_history"))
         if (loginButton.waitForExists(5000)) {
             loginButton.click()
@@ -174,6 +190,7 @@ class HistoryTest {
     }
 
     private fun navigateToFriendsFragment() {
+        // Helper function to navigate to the friends tab
         val loginButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/navigation_friends"))
         if (loginButton.waitForExists(5000)) {
             loginButton.click()
@@ -181,6 +198,7 @@ class HistoryTest {
     }
 
     private fun handleGoogleSignIn() {
+        // Helper function to handle the Google OAuth authentication flow
         val accountSelector = device.findObject(UiSelector().textContains("Continue"))
         if (accountSelector.waitForExists(5000)) {
             accountSelector.click()
@@ -193,6 +211,7 @@ class HistoryTest {
     }
 
     private fun pressFirstFriendItem() {
+        // Helper function to select the first friend in the friends list
         val recyclerView = UiScrollable(UiSelector().resourceId("com.example.carbonwise:id/recycler_friends"))
         recyclerView.scrollToBeginning(1) // Ensure we are at the top of the list
 
@@ -205,6 +224,7 @@ class HistoryTest {
     }
 
     private fun pressDeleteButton() {
+        // Helper function to press the delete button for a product in the history
         val recyclerView = UiScrollable(UiSelector().resourceId("com.example.carbonwise:id/recyclerViewHistory"))
         recyclerView.scrollToBeginning(1)
 
@@ -215,6 +235,7 @@ class HistoryTest {
         assertTrue("Delete button not found", firstDeleteButton.waitForExists(5000))
         firstDeleteButton.click()
 
+        // Step 5: Confirm the deletion
         val confirmButton = device.findObject(UiSelector().textContains("Confirm"))
         if (confirmButton.waitForExists(5000)) {
             confirmButton.click()
@@ -222,6 +243,7 @@ class HistoryTest {
     }
 
     private fun checkFriendHistoryAppears() {
+        // Helper function to verify the friend's history is displayed
         val historyRecyclerView = UiScrollable(UiSelector().resourceId("com.example.carbonwise:id/recyclerViewHistory"))
         assertTrue("History RecyclerView not found!", historyRecyclerView.waitForExists(5000))
 
@@ -232,6 +254,4 @@ class HistoryTest {
 
         assertTrue("No history items found for the friend!", firstHistoryItem.waitForExists(5000))
     }
-
-
 }

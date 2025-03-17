@@ -50,19 +50,24 @@ class ScanProductsTest {
 
     @Before
     fun setUp() {
-        scenario = ActivityScenario.launch(MainActivity::class.java) // Launch manually
+        // Launch the MainActivity manually
+        scenario = ActivityScenario.launch(MainActivity::class.java)
+        // Register Espresso IdlingResource for async operations
         IdlingRegistry.getInstance().register(idlingResource)
+        // Initialize Intents for intent mocking
         Intents.init()
     }
 
     @After
     fun tearDown() {
-        scenario.close() // Ensure activity is properly cleaned up
+        // Close the activity and clean up resources
+        scenario.close()
         IdlingRegistry.getInstance().unregister(idlingResource)
         Intents.release()
     }
 
     private fun denyCameraPermission() {
+        // Helper function to deny camera permission if prompted
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         val denyButton: UiObject = device.findObject(UiSelector().resourceId("com.android.permissioncontroller:id/permission_deny_button"))
         if (denyButton.exists() && denyButton.isEnabled) {
@@ -73,6 +78,7 @@ class ScanProductsTest {
     }
 
     private fun allowCameraPermission() {
+        // Helper function to allow camera permission if prompted
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         val allowButton: UiObject = device.findObject(UiSelector().resourceId("com.android.permissioncontroller:id/permission_allow_foreground_only_button"))
         if (allowButton.exists() && allowButton.isEnabled) {
@@ -83,6 +89,7 @@ class ScanProductsTest {
     }
 
     private fun createMockBarcodeScanner(barcodeValue: String?): BarcodeScanner {
+        // Helper function to create a mock BarcodeScanner with a specified barcode value
         val mockBarcode = mock(Barcode::class.java)
         `when`(mockBarcode.rawValue).thenReturn(barcodeValue)
 
@@ -94,6 +101,7 @@ class ScanProductsTest {
     }
 
     private fun processMockScan(mockBarcodeScanner: BarcodeScanner, expectedText: String) {
+        // Helper function to simulate a barcode scan and verify the result
         val mockBitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         val inputImage = InputImage.fromBitmap(mockBitmap, 0)
 
@@ -111,43 +119,50 @@ class ScanProductsTest {
             }
     }
 
-
-
-
     @Test
     fun testScanProductA_CameraPermissionDenied() {
+        // Step 3a: Simulate the user denying camera permissions
         denyCameraPermission()
-        Thread.sleep(2000)
+        Thread.sleep(2000) // Wait for the permission dialog to be handled
+
+        // Step 3a1: Verify the system displays a message that camera permissions are required
         onView(withText("Camera permission is required to scan barcodes. Please enable it in Settings."))
             .check(matches(isDisplayed()))
     }
 
     @Test
     fun testScanProductB_NoBarcodeDetected_ShowsErrorMessage() {
+        // Step 4a: Simulate a scenario where no barcode is detected
         allowCameraPermission()
         processMockScan(createMockBarcodeScanner(null), "No barcode detected.")
     }
 
     @Test
     fun testScanProductC_NoProductInfo_ShowsErrorMessage() {
+        // Step 5a: Simulate a scenario where the barcode is valid but no product information is found
         allowCameraPermission()
         processMockScan(createMockBarcodeScanner("123456789"), "Product information not found.")
     }
 
     @Test
     fun testScanProductD_ProductInDB_NoErrorMessage() {
+        // Step 5: Simulate a successful scan where product information is found in the database
         allowCameraPermission()
         processMockScan(createMockBarcodeScanner("009800895007"), "Nutella")
     }
 
     @Test
     fun testScanProductE_ConnectionError() {
+        // Step 5b: Simulate a server error due to no internet connection
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val device = UiDevice.getInstance(instrumentation)
-        device.executeShellCommand("svc wifi disable")
-        Thread.sleep(5000)
+        device.executeShellCommand("svc wifi disable") // Disable Wi-Fi to simulate a connection error
+        Thread.sleep(5000) // Wait for Wi-Fi to be disabled
+
         allowCameraPermission()
         processMockScan(createMockBarcodeScanner("009800895007"), "Nutella")
+
+        // Re-enable Wi-Fi for subsequent tests
         device.executeShellCommand("svc wifi enable")
         Thread.sleep(10000) // Wifi takes a LONG time to turn on
     }
