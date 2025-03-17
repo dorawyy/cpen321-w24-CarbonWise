@@ -131,7 +131,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Valid product_id found in the database
     // Expected status code: 200
-    // Expected behavior: Product is retrieved successfully
+    // Expected behavior: Product is retrieved successfully with recommendations
     // Expected output: Product details with recommendations
     test("Valid Product ID (Found in DB with Recommendations)", async () => {
         const product_id = "12345";

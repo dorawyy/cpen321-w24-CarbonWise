@@ -134,7 +134,10 @@ describe("Mocked: POST /users/history", () => {
         jest.clearAllMocks();
     });
 
-    
+    // Input: Mock product found in the collection
+    // Expected status code: 200
+    // Expected output: Product added to user's history
+    // Behavior: Send POST request to add product to history
     test("Add Product to User's History Successfully", async () => {
         productCollection.findOne.mockResolvedValueOnce(mockProduct);
 
@@ -161,6 +164,10 @@ describe("Mocked: POST /users/history", () => {
         );
     });
 
+    // Input: Nonexistent product ID
+    // Expected status code: 404
+    // Expected output: Error message indicating product not found
+    // Behavior: Send POST request to add nonexistent product to history
     test("Fail to Add Product to User's History - Product Not Found", async () => {
         productCollection.findOne.mockResolvedValueOnce(null);
 
@@ -174,6 +181,10 @@ describe("Mocked: POST /users/history", () => {
         expect(historyCollection.updateOne).not.toHaveBeenCalled();
     });
 
+    // Input: Missing product ID in request body
+    // Expected status code: 400
+    // Expected output: Error message indicating missing product ID
+    // Behavior: Send POST request without product ID
     test("Fail to Add Product to User's History - Missing Product ID", async () => {
         const res: Response = await supertest(app)
             .post("/users/history")
@@ -185,6 +196,10 @@ describe("Mocked: POST /users/history", () => {
         expect(historyCollection.updateOne).not.toHaveBeenCalled();
     });
 
+    // Input: Mock product found in the collection
+    // Expected status code: 200
+    // Expected output: Product added to user's history, ecoscore_score not updated
+    // Behavior: Send POST request to add product to history
     test("Update Ecoscore Average Successfully, fails to get ecoscore_score", async () => {
         productCollection.findOne.mockResolvedValueOnce(mockProduct);
 
@@ -217,6 +232,10 @@ describe("Mocked: POST /users/history", () => {
         );
     });
 
+    // Input: Mock product found in the collection
+    // Expected status code: 200
+    // Expected output: Product added to user's history, ecoscore_score updated
+    // Behavior: Send POST request to add product to history
     test("Update Ecoscore Average Successfully, successfully gets ecoscore_score", async () => {
         productCollection.findOne.mockResolvedValueOnce(mockProduct);
 
@@ -254,6 +273,10 @@ describe("Mocked: POST /users/history", () => {
         );
     });
 
+    // Input: Mock product found in the collection
+    // Expected status code: 200
+    // Expected output: Product added to user's history, timestamps sorted
+    // Behavior: Send POST request to add product to history
     test("Update Ecoscore Average Successfully, timestamp sorting", async () => {
         productCollection.findOne.mockResolvedValueOnce(mockProduct);
 
@@ -290,6 +313,10 @@ describe("Mocked: POST /users/history", () => {
         );
     });
 
+    // Input: Mock database error
+    // Expected status code: 500
+    // Expected output: Error message indicating database error
+    // Behavior: Send POST request to add product to history
     test("Database error", async () => {
         productCollection.findOne.mockRejectedValueOnce(new Error("Database error"));
 
@@ -327,6 +354,10 @@ describe("Mocked: GET /users/history", () => {
         jest.clearAllMocks();
     });
 
+    // Input: Valid token
+    // Expected status code: 200
+    // Expected output: User's history retrieved successfully
+    // Behavior: Send GET request to retrieve user's history
     test("Get User's History Successfully", async () => {
         const mockHistory = [
             {
@@ -352,6 +383,10 @@ describe("Mocked: GET /users/history", () => {
         expect(res.body[0].products[0].product).toHaveProperty("product_name", mockProduct.product_name);
     });
 
+    // Input: Valid token, no history found
+    // Expected status code: 404
+    // Expected output: Error message indicating no history found
+    // Behavior: Send GET request to retrieve user's history
     test("Fail to Get User's History - No History Found", async () => {
         historyCollection.find.mockReturnValueOnce({
             limit: jest.fn().mockReturnThis(),
@@ -366,8 +401,11 @@ describe("Mocked: GET /users/history", () => {
         expect(res.body).toHaveProperty("message", "No history found for the user.");
     });
 
+    // Input: No token provided
+    // Expected status code: 401
+    // Expected output: Error message indicating no token provided
+    // Behavior: Send GET request to retrieve user's history without token
     test("Fail to Get User's History, no token provided", async () => {
- 
         const res: Response = await supertest(app)
             .get("/users/history")
 
@@ -375,17 +413,11 @@ describe("Mocked: GET /users/history", () => {
         expect(res.body).toHaveProperty("message", "No token provided.");
     });
 
-    test("Fail to Get User's History, no token provided", async () => {
- 
-        const res: Response = await supertest(app)
-            .get("/users/history")
-
-        expect(res.status).toBe(401);
-        expect(res.body).toHaveProperty("message", "No token provided.");
-    });
-
+    // Input: Invalid token
+    // Expected status code: 403
+    // Expected output: Error message indicating authentication error
+    // Behavior: Send GET request to retrieve user's history with invalid token
     test("Fail to Get User's History, token error", async () => {
- 
         (jwt.verify as jest.Mock).mockImplementation(() => {
             throw new Error("Token error");
         });
@@ -398,7 +430,6 @@ describe("Mocked: GET /users/history", () => {
         expect(res.body).toHaveProperty("message", "Authentication error.");
     });
 
-    
 });
 
 // Interface DELETE /users/history
@@ -421,6 +452,10 @@ describe("Mocked: DELETE /users/history", () => {
         jest.clearAllMocks();
     });
 
+    // Input: Valid token, valid scan_uuid
+    // Expected status code: 200
+    // Expected output: Success message indicating history entry deleted
+    // Behavior: Send DELETE request to delete product from user's history
     test("Delete Product from User's History Successfully", async () => {
         historyCollection.updateOne.mockResolvedValueOnce({
             acknowledged: true,
@@ -443,6 +478,10 @@ describe("Mocked: DELETE /users/history", () => {
         );
     });
 
+    // Input: Valid token, nonexistent scan_uuid
+    // Expected status code: 404
+    // Expected output: Error message indicating history entry not found
+    // Behavior: Send DELETE request to delete nonexistent product from user's history
     test("Fail to Delete Product from User's History - History Entry Not Found", async () => {
         historyCollection.updateOne.mockResolvedValueOnce({
             acknowledged: true,
@@ -486,6 +525,10 @@ describe("Mocked: POST /users/fcm_registration_token", () => {
         jest.clearAllMocks();
     });
 
+    // Input: Valid token, new FCM registration token
+    // Expected status code: 200
+    // Expected output: Success message indicating FCM registration token updated
+    // Behavior: Send POST request to update FCM registration token
     test("Update FCM Registration Token Successfully", async () => {
         userCollection.updateOne.mockResolvedValueOnce({
             acknowledged: true,
@@ -509,6 +552,10 @@ describe("Mocked: POST /users/fcm_registration_token", () => {
         );
     });
 
+    // Input: Valid token, new FCM registration token, user not found
+    // Expected status code: 404
+    // Expected output: Error message indicating user not found
+    // Behavior: Send POST request to update FCM registration token
     test("Fail to Update FCM Registration Token - User Not Found", async () => {
         userCollection.updateOne.mockResolvedValueOnce({
             acknowledged: true,
@@ -547,6 +594,10 @@ describe("Mocked: GET /users/uuid", () => {
         jest.clearAllMocks();
     });
 
+    // Input: Valid token
+    // Expected status code: 200
+    // Expected output: User UUID retrieved successfully
+    // Behavior: Send GET request to retrieve user UUID
     test("Get User UUID Successfully", async () => {
         const res: Response = await supertest(app)
             .get("/users/uuid")
@@ -577,6 +628,10 @@ describe("Mocked: GET /users/ecoscore_score", () => {
         jest.clearAllMocks();
     });
 
+    // Input: Valid token
+    // Expected status code: 200
+    // Expected output: User's ecoscore average retrieved successfully
+    // Behavior: Send GET request to retrieve user's ecoscore average
     test("Get User Ecoscore Average Successfully", async () => {
         const mockHistory = {
             user_uuid: user.user_uuid,
@@ -595,6 +650,10 @@ describe("Mocked: GET /users/ecoscore_score", () => {
         expect(res.body).toHaveProperty("ecoscore_score");
     });
 
+    // Input: Valid token, no history found
+    // Expected status code: 404
+    // Expected output: Error message indicating no history found
+    // Behavior: Send GET request to retrieve user's ecoscore average
     test("Fail to Get User Ecoscore Average - No History Found", async () => {
         historyCollection.findOne.mockResolvedValueOnce(null);
 
@@ -629,6 +688,10 @@ describe("Mocked: GET /users/ecoscore_score", () => {
         jest.clearAllMocks();
     });
 
+    // Input: Valid token
+    // Expected status code: 200
+    // Expected output: User's ecoscore average retrieved successfully
+    // Behavior: Send GET request to retrieve user's ecoscore average
     test("Get User Ecoscore Average Successfully", async () => {
         const mockHistory = {
             user_uuid: user.user_uuid,
@@ -647,6 +710,10 @@ describe("Mocked: GET /users/ecoscore_score", () => {
         expect(res.body).toHaveProperty("ecoscore_score");
     });
 
+    // Input: Valid token, no history found
+    // Expected status code: 404
+    // Expected output: Error message indicating no history found
+    // Behavior: Send GET request to retrieve user's ecoscore average
     test("Fail to Get User Ecoscore Average - No History Found", async () => {
         historyCollection.findOne.mockResolvedValueOnce(null);
 
@@ -658,7 +725,10 @@ describe("Mocked: GET /users/ecoscore_score", () => {
         expect(res.body).toHaveProperty("message", "No history found for the user.");
     });
 
-
+    // Input: Valid token, product exists but missing ecoscore_grade
+    // Expected status code: 200
+    // Expected output: User's ecoscore average retrieved successfully with default score
+    // Behavior: Send GET request to retrieve user's ecoscore average
     test("Fail to Get User Ecoscore Average - Product Exists but Missing ecoscore_grade", async () => {
         const mockHistory = {
             user_uuid: user.user_uuid,
@@ -680,6 +750,10 @@ describe("Mocked: GET /users/ecoscore_score", () => {
         expect(res.body).toHaveProperty("ecoscore_score", 85);
     });
 
+    // Input: Valid token, product exists but missing ecoscore_score
+    // Expected status code: 200
+    // Expected output: User's ecoscore average retrieved successfully with default score
+    // Behavior: Send GET request to retrieve user's ecoscore average
     test("Fail to Get User Ecoscore Average - Product Exists but Missing ecoscore_score", async () => {
         const mockHistory = {
             user_uuid: user.user_uuid,
@@ -701,6 +775,8 @@ describe("Mocked: GET /users/ecoscore_score", () => {
         expect(res.body).toHaveProperty("ecoscore_score", 0);
     });
 
+    // Input: Valid token, product exists with ecoscore_score and ecoscore_grade
+    // Expected status code: 200
     test("Success to Get User Ecoscore Average - Product Exists and has ecoscore_score and ecoscore_grade", async () => {
         const mockHistory = {
             user_uuid: user.user_uuid,

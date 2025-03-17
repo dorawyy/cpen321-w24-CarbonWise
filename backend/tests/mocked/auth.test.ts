@@ -148,7 +148,11 @@ describe("Mocked: POST /auth/google", () => {
     });
 
     
-    test("Valid Google ID Token for Existing User, invalid payload", async () => {
+    // Input: Valid Google ID Token for Existing User with invalid payload
+    // Expected status code: 401
+    // Expected behavior: User is not authenticated
+    // Expected output: Error message indicating invalid token
+    test("Rejects authentication with invalid payload in Google ID token", async () => {
         const mockUser = {
             google_id: "valid-google-id",
             email: "user@example.com",
@@ -175,8 +179,12 @@ describe("Mocked: POST /auth/google", () => {
         expect(userCollection.insertOne).not.toHaveBeenCalled();
     });
 
-    test("Valid Google ID Token for Existing User, missing email and name in payload", async () => {
-        const mockUser = {
+    // Input: google_id_token is an invalid Google ID token
+    // Expected status code: 401
+    // Expected behavior: user is not authenticated
+    // Expected output: error message
+    test("Invalid Google ID Token with missing email and name in payload", async () => {
+        const mockUser: { google_id: string; email: string; name: string; user_uuid: string } = {
             google_id: "valid-google-id",
             email: "user@example.com",
             name: "Test User",
@@ -186,20 +194,20 @@ describe("Mocked: POST /auth/google", () => {
         oauthClient.verifyIdToken.mockImplementationOnce(() =>
             Promise.resolve({
                 getPayload: () => ({
-                    sub: mockUser.google_id
+                    sub: mockUser.google_id,
                 }),
             })
         );
 
         userCollection.findOne.mockResolvedValueOnce(mockUser);
 
-        const res = await supertest(app)
+        const res: supertest.Response = await supertest(app)
             .post("/auth/google")
             .send({ google_id_token: "valid_google_id_token" });
 
-        expect(res.status).toStrictEqual(401);
+        expect(res.status).toBe(401);
         expect(res.body).toHaveProperty("message");
-        expect(res.body.message).toStrictEqual("Invalid Google OAuth token.");
+        expect(res.body.message).toBe("Invalid Google OAuth token.");
         expect(userCollection.findOne).not.toHaveBeenCalled();
         expect(userCollection.insertOne).not.toHaveBeenCalled();
     });
