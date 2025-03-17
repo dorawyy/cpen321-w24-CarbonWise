@@ -24,7 +24,7 @@ router.post("/auth/google", asyncHandler(async (req: Request, res: Response) => 
     });
 
     const payload = ticket.getPayload();
-    if (!payload) throw new Error("Invalid Google OAuth token");
+    if (!payload || !payload.sub || !payload.email || !payload.name) throw new Error("Invalid Google OAuth token");
 
     const userCollection: Collection<User> = client.db("users_db").collection("users");
     let user = await userCollection.findOne({ google_id: payload.sub });
@@ -35,22 +35,17 @@ router.post("/auth/google", asyncHandler(async (req: Request, res: Response) => 
       user = {
         _id: user_uuid,
         google_id: payload.sub,
-        email: payload.email || "",
-        name: payload.name || "",
+        email: payload.email,
+        name: payload.name,
         user_uuid,
         fcm_registration_token: "",
       };
       await userCollection.insertOne(user);
     }
 
-    const JWT_SECRET = process.env.JWT_SECRET;
-    if (!JWT_SECRET) {
-      throw new Error("Missing JWT_SECRET in environment variables");
-    }
-
     const jwtToken = jwt.sign(
       user,
-      JWT_SECRET,
+      process.env.JWT_SECRET as string,
       { expiresIn: JWT_EXPIRATION_TIME }
     );
 
@@ -68,12 +63,7 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    const JWT_SECRET = process.env.JWT_SECRET;
-    if (!JWT_SECRET) {
-      throw new Error("Missing JWT_SECRET in environment variables");
-    }
-
-    const decoded = jwt.verify(token as string, JWT_SECRET);
+    const decoded = jwt.verify(token as string, process.env.JWT_SECRET as string);
 
     (req as any).user = decoded;
 

@@ -23,12 +23,8 @@ function createServer() {
     app.use(express.json());
     app.use(morgan('tiny'));
 
-    const JWT_SECRET = process.env.JWT_SECRET;
-    if (!JWT_SECRET) {
-        throw new Error("Missing JWT_SECRET in environment variables");
-    }
-
-    app.use(session({ secret: JWT_SECRET, resave: false, saveUninitialized: false }));
+    
+    app.use(session({ secret: process.env.JWT_SECRET as string, resave: false, saveUninitialized: false }));
     app.use(passport.initialize());
     app.use(passport.session());
 
@@ -70,7 +66,7 @@ async function sendNotification(user_uuid: string, messageBody: string) {
     const userCollection = client.db("users_db").collection<User>("users");
     const targetUser = await userCollection.findOne({ user_uuid });
 
-    if (!targetUser?.fcm_registration_token) {
+    if (!targetUser || targetUser.fcm_registration_token == "") {
         return;
     }
 
@@ -79,14 +75,16 @@ async function sendNotification(user_uuid: string, messageBody: string) {
             title: 'CarbonWise',
             body: messageBody
         },
-        token: targetUser?.fcm_registration_token
+        token: targetUser.fcm_registration_token
     };
 
 
     getMessaging().send(message as TokenMessage)
         .catch((error: any) => {
-            console.error("Error sending notification:", error);
+            return false;
         });
+
+    return true;
 }
 
 

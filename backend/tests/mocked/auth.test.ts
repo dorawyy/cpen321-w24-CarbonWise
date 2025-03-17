@@ -3,7 +3,6 @@ import supertest from "supertest";
 import { v4 as uuidv4 } from "uuid";
 import * as services from "../../services";
 
-
 jest.mock("../../services", () => {
     const findOneMock = jest.fn();
     const insertOneMock = jest.fn();
@@ -147,5 +146,64 @@ describe("Mocked: POST /auth/google", () => {
         expect(userCollection.findOne).not.toHaveBeenCalled();
         expect(userCollection.insertOne).not.toHaveBeenCalled();
     });
+
+    
+    test("Valid Google ID Token for Existing User, invalid payload", async () => {
+        const mockUser = {
+            google_id: "valid-google-id",
+            email: "user@example.com",
+            name: "Test User",
+            user_uuid: uuidv4(),
+        };
+
+        oauthClient.verifyIdToken.mockImplementationOnce(() =>
+            Promise.resolve({
+                getPayload: () => null,
+            })
+        );
+
+        userCollection.findOne.mockResolvedValueOnce(mockUser);
+
+        const res = await supertest(app)
+            .post("/auth/google")
+            .send({ google_id_token: "valid_google_id_token" });
+
+        expect(res.status).toStrictEqual(401);
+        expect(res.body).toHaveProperty("message");
+        expect(res.body.message).toStrictEqual("Invalid Google OAuth token.");
+        expect(userCollection.findOne).not.toHaveBeenCalled();
+        expect(userCollection.insertOne).not.toHaveBeenCalled();
+    });
+
+    test("Valid Google ID Token for Existing User, missing email and name in payload", async () => {
+        const mockUser = {
+            google_id: "valid-google-id",
+            email: "user@example.com",
+            name: "Test User",
+            user_uuid: uuidv4(),
+        };
+
+        oauthClient.verifyIdToken.mockImplementationOnce(() =>
+            Promise.resolve({
+                getPayload: () => ({
+                    sub: mockUser.google_id
+                }),
+            })
+        );
+
+        userCollection.findOne.mockResolvedValueOnce(mockUser);
+
+        const res = await supertest(app)
+            .post("/auth/google")
+            .send({ google_id_token: "valid_google_id_token" });
+
+        expect(res.status).toStrictEqual(401);
+        expect(res.body).toHaveProperty("message");
+        expect(res.body.message).toStrictEqual("Invalid Google OAuth token.");
+        expect(userCollection.findOne).not.toHaveBeenCalled();
+        expect(userCollection.insertOne).not.toHaveBeenCalled();
+    });
+    
+    
 
 });

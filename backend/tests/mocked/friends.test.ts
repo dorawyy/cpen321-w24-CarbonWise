@@ -5,6 +5,7 @@ import { Friends, User, Product, History } from "../../types";
 import { Collection, ObjectId } from "mongodb";
 import jwt from "jsonwebtoken";
 import axios from "axios";
+import { getMessaging } from "firebase-admin/messaging";
 
 jest.mock("../../services", () => {
     const findOneMockFriends = jest.fn();
@@ -40,6 +41,7 @@ jest.mock("../../services", () => {
     });
 
     return {
+        ...jest.requireActual("../../services"),
         client: {
             db: jest.fn(() => ({
                 collection: jest.fn((name: string) => {
@@ -70,7 +72,6 @@ jest.mock("../../services", () => {
                 }),
             })),
         },
-        getFirebaseApp: jest.fn(),
     };
 });
 
@@ -111,6 +112,11 @@ jest.mock("axios", () => ({
         }
         return Promise.reject(new Error("Unknown API call"));
     }),
+}));
+
+jest.mock("firebase-admin/app", () => ({
+    getApps: jest.fn(() => []),
+    initializeApp: jest.fn(),
 }));
 
 const app = createServer();
@@ -238,12 +244,12 @@ describe("Mocked: POST /friends/requests", () => {
             token: friend.fcm_registration_token,
         });
     });
-
+    
     // Input: User tries to send a friend request to themselves
     // Expected status code: 400
     // Expected behavior: Request is rejected
     // Expected output: Error message
-    test("Send Friend Request to Self", async () => {
+    test("Send Friend Request, to Self", async () => {
         const res: Response = await supertest(app)
             .post("/friends/requests")
             .set("token", `mock_token`)
@@ -257,7 +263,7 @@ describe("Mocked: POST /friends/requests", () => {
     // Expected status code: 400
     // Expected behavior: Request is rejected
     // Expected output: Error message
-    test("Send Friend Request to Existing Friend", async () => {
+    test("Send Friend Request, to Existing Friend", async () => {
         const userFriends: Friends = { user_uuid: user.user_uuid, friends: [{ user_uuid: friend.user_uuid, name: "Lebron James" }], incoming_requests: [] };
         const targetFriends: Friends = { user_uuid: friend.user_uuid, friends: [{ user_uuid: user.user_uuid, name: "Stephen Curry" }], incoming_requests: [] };
 
@@ -278,7 +284,7 @@ describe("Mocked: POST /friends/requests", () => {
     // Expected status code: 400
     // Expected behavior: Request is rejected
     // Expected output: Error message
-    test("Send Duplicate Friend Request", async () => {
+    test("Send Friend Request, Duplicate Request", async () => {
         const userFriends: Friends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [] };
         const targetFriends: Friends = { user_uuid: friend.user_uuid, friends: [], incoming_requests: [{ user_uuid: user.user_uuid, name: "Stephen Curry" }] };
 
@@ -294,6 +300,52 @@ describe("Mocked: POST /friends/requests", () => {
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty("message", "Friend request already sent.");
     });
+
+    // Input: Valid user_uuid for friend request, firebase error
+    // Expected status code: 200
+    // Expected behavior: Friend request is sent successfully, but notification fails
+    // Expected output: Confirmation message
+    test("Send Friend Request, Firebase Error", async () => {
+        const userFriends: Friends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [] };
+        const targetFriends: Friends = { user_uuid: friend.user_uuid, friends: [], incoming_requests: [] };
+
+        friendsCollection.findOne
+            .mockResolvedValueOnce(userFriends)
+            .mockResolvedValueOnce(targetFriends);
+
+        friendsCollection.updateOne.mockResolvedValueOnce({
+            acknowledged: true,
+            modifiedCount: 1,
+            matchedCount: 1,
+            upsertedCount: 0,
+            upsertedId: null,
+        });
+
+        usersCollection.findOne.mockResolvedValueOnce({
+            user_uuid: friend.user_uuid,
+            fcm_registration_token: friend.fcm_registration_token,
+        });
+
+        sendMock.mockRejectedValueOnce(new Error("Firebase error"));
+
+        const res: Response = await supertest(app)
+            .post("/friends/requests")
+            .set("token", `mock_token`)
+            .send({ user_uuid: friend.user_uuid });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("message", "Friend request sent.");
+        expect(friendsCollection.updateOne).toHaveBeenCalled();
+
+        await expect(sendMock).toHaveBeenCalledWith({
+            notification: {
+                title: "CarbonWise",
+                body: "John Doe has sent you a friend request",
+            },
+            token: friend.fcm_registration_token,
+        });
+    });
+    
 });
 
 // Interface POST /friends/requests/accept
@@ -375,7 +427,7 @@ describe("Mocked: POST /friends/requests/accept", () => {
     // Expected status code: 400
     // Expected behavior: Request is rejected
     // Expected output: Error message
-    test("Accept Friend Request from Self", async () => {
+    test("Accept Friend Request, from Self", async () => {
         const res: Response = await supertest(app)
             .post("/friends/requests/accept")
             .set("token", `mock_token`)
@@ -389,7 +441,7 @@ describe("Mocked: POST /friends/requests/accept", () => {
     // Expected status code: 400
     // Expected behavior: Request is rejected
     // Expected output: Error message
-    test("Accept Non-existent Friend Request", async () => {
+    test("Accept Friend Request, Non-existent Request", async () => {
         const userFriends: Friends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [] };
 
         friendsCollection.findOne.mockResolvedValueOnce(userFriends);
@@ -407,7 +459,7 @@ describe("Mocked: POST /friends/requests/accept", () => {
     // Expected status code: 200
     // Expected behavior: Friend request is accepted successfully, and a new friends document is created for the friend
     // Expected output: Confirmation message and notification sent
-    test("Accept Friend Request when friend has no friends document", async () => {
+    test("Accept Friend Request, Friend has no Friends Document", async () => {
         const userFriends: Friends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [{ user_uuid: friend.user_uuid, name: "Lebron James" }] };
         const targetFriends: Friends | null = null;
 
@@ -458,6 +510,55 @@ describe("Mocked: POST /friends/requests/accept", () => {
             token: friend.fcm_registration_token,
         }); 
     });
+
+    // Input: Valid user_uuid for accepting friend request, no fcm_registration_token
+    // Expected status code: 200
+    // Expected behavior: Friend request is accepted successfully, but no notification is sent
+    // Expected output: Confirmation message
+    test("Accept Friend Request, No fcm_registration_token", async () => {
+        const userFriends: Friends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [{ user_uuid: friend.user_uuid, name: "Lebron James" }] };
+        const targetFriends: Friends = { user_uuid: friend.user_uuid, friends: [], incoming_requests: [] };
+
+        friendsCollection.findOne
+            .mockResolvedValueOnce(userFriends)
+            .mockResolvedValueOnce(targetFriends);
+
+        friendsCollection.updateOne.mockResolvedValueOnce({
+            acknowledged: true,
+            modifiedCount: 1,
+            matchedCount: 1,
+            upsertedCount: 0,
+            upsertedId: null,
+        });
+
+        const friendWithoutToken = {
+            _id: "user-123",
+            google_id: "google-123",
+            email: "john.doe@example.com",
+            user_uuid: "user-123",
+            name: "John Doe",
+            fcm_registration_token: "",
+        };
+
+        usersCollection.findOne
+            .mockResolvedValueOnce(friend)
+            .mockResolvedValueOnce(friendWithoutToken);
+
+        const res: Response = await supertest(app)
+            .post("/friends/requests/accept")
+            .set("token", `mock_token`)
+            .send({ user_uuid: friend.user_uuid });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("message", "Friend request accepted.");
+        expect(friendsCollection.updateOne).toHaveBeenCalledWith(
+            { user_uuid: user.user_uuid },
+            { $pull: { incoming_requests: { user_uuid: friend.user_uuid } }, $addToSet: { friends: { user_uuid: friend.user_uuid, name: friend.name } } }
+        );
+
+        await expect(sendMock).not.toHaveBeenCalled();
+    });
+    
 });
 
 // Interface GET /friends/requests
@@ -626,6 +727,7 @@ describe("Mocked: GET /friends/requests/outgoing", () => {
         expect(res.status).toBe(200);
         expect(res.body).toEqual([]);
     });
+    
 });
 
 // Interface GET /friends/history/:user_uuid
@@ -799,7 +901,7 @@ describe("Mocked: DELETE /friends/requests (Reject Friend Request)", () => {
     // Expected status code: 404
     // Expected behavior: Request is rejected
     // Expected output: Error message
-    test("Return 404 when rejecting a non-existent friend request", async () => {
+    test("Reject Friend Request, Non-existent Request", async () => {
         const userFriends: Friends = {
             user_uuid: user.user_uuid,
             friends: [],
@@ -826,7 +928,7 @@ describe("Mocked: DELETE /friends/requests (Reject Friend Request)", () => {
     // Expected status code: 400
     // Expected behavior: Request is rejected
     // Expected output: Error message
-    test("Return 400 when user tries to reject a friend request from themselves", async () => {
+    test("Reject Friend Request, from Self", async () => {
         const res: Response = await supertest(app)
             .delete("/friends/requests")
             .set("token", "mock_token")
@@ -1224,6 +1326,8 @@ describe("Mocked: POST /friends/notifications", () => {
             .set("token", "mock_token")
             .send({ user_uuid: friend.user_uuid, scan_uuid: "scan-123", message_type: "praise" });
 
+        
+
         expect(res.status).toBe(200);
         expect(res.body).toEqual({ message: "Notification sent." });
 
@@ -1463,5 +1567,3 @@ describe("Mocked: POST /friends/notifications", () => {
     
 
 });
-
-

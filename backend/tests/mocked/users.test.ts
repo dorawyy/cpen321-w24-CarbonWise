@@ -134,6 +134,7 @@ describe("Mocked: POST /users/history", () => {
         jest.clearAllMocks();
     });
 
+    
     test("Add Product to User's History Successfully", async () => {
         productCollection.findOne.mockResolvedValueOnce(mockProduct);
 
@@ -181,6 +182,123 @@ describe("Mocked: POST /users/history", () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty("errors");
+        expect(historyCollection.updateOne).not.toHaveBeenCalled();
+    });
+
+    test("Update Ecoscore Average Successfully, fails to get ecoscore_score", async () => {
+        productCollection.findOne.mockResolvedValueOnce(mockProduct);
+
+        historyCollection.updateOne.mockResolvedValueOnce({
+            acknowledged: true,
+            modifiedCount: 1,
+            matchedCount: 1,
+            upsertedCount: 0,
+            upsertedId: null,
+        });
+
+        historyCollection.findOne.mockResolvedValueOnce({
+            user_uuid: user.user_uuid,
+            products: [{ product_id: mockProduct._id, timestamp: new Date() }],
+            ecoscore_score: 0,
+        });
+
+        const res: Response = await supertest(app)
+            .post("/users/history")
+            .set("token", `mock_token`)
+            .send({ product_id: mockProduct._id });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("product_id", mockProduct._id);
+        expect(res.body).toHaveProperty("scan_uuid");
+        expect(historyCollection.updateOne).toHaveBeenCalledWith(
+            { user_uuid: user.user_uuid },
+            { $push: { products: expect.objectContaining({ product_id: mockProduct._id }) } },
+            { upsert: true }
+        );
+    });
+
+    test("Update Ecoscore Average Successfully, successfully gets ecoscore_score", async () => {
+        productCollection.findOne.mockResolvedValueOnce(mockProduct);
+
+        historyCollection.updateOne.mockResolvedValueOnce({
+            acknowledged: true,
+            modifiedCount: 1,
+            matchedCount: 1,
+            upsertedCount: 0,
+            upsertedId: null,
+        });
+
+        historyCollection.findOne.mockResolvedValueOnce({
+            user_uuid: user.user_uuid,
+            products: [{ product_id: mockProduct._id, timestamp: new Date() }],
+            ecoscore_score: 20,
+        });
+
+        productCollection.findOne.mockResolvedValueOnce({
+            _id: mockProduct._id,
+            ecoscore_score: 20,
+        });
+
+        const res: Response = await supertest(app)
+            .post("/users/history")
+            .set("token", `mock_token`)
+            .send({ product_id: mockProduct._id });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("product_id", mockProduct._id);
+        expect(res.body).toHaveProperty("scan_uuid");
+        expect(historyCollection.updateOne).toHaveBeenCalledWith(
+            { user_uuid: user.user_uuid },
+            { $push: { products: expect.objectContaining({ product_id: mockProduct._id }) } },
+            { upsert: true }
+        );
+    });
+
+    test("Update Ecoscore Average Successfully, timestamp sorting", async () => {
+        productCollection.findOne.mockResolvedValueOnce(mockProduct);
+
+        historyCollection.updateOne.mockResolvedValueOnce({
+            acknowledged: true,
+            modifiedCount: 1,
+            matchedCount: 1,
+            upsertedCount: 0,
+            upsertedId: null,
+        });
+
+        historyCollection.findOne.mockResolvedValueOnce({
+            user_uuid: user.user_uuid,
+            products: [
+                { product_id: mockProduct._id, timestamp: new Date("2023-01-01T12:00:00Z") },
+                { product_id: mockProduct._id, timestamp: new Date("2023-01-02T12:00:00Z") },
+                { product_id: mockProduct._id, timestamp: new Date("2023-01-03T12:00:00Z") }
+            ],
+            ecoscore_score: 20,
+        });
+
+        const res: Response = await supertest(app)
+            .post("/users/history")
+            .set("token", `mock_token`)
+            .send({ product_id: mockProduct._id });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("product_id", mockProduct._id);
+        expect(res.body).toHaveProperty("scan_uuid");
+        expect(historyCollection.updateOne).toHaveBeenCalledWith(
+            { user_uuid: user.user_uuid },
+            { $push: { products: expect.objectContaining({ product_id: mockProduct._id }) } },
+            { upsert: true }
+        );
+    });
+
+    test("Database error", async () => {
+        productCollection.findOne.mockRejectedValueOnce(new Error("Database error"));
+
+        const res: Response = await supertest(app)
+            .post("/users/history")
+            .set("token", `mock_token`)
+            .send({ product_id: "nonexistent_product_id" });
+
+        expect(res.status).toBe(500);
         expect(historyCollection.updateOne).not.toHaveBeenCalled();
     });
 
@@ -247,6 +365,40 @@ describe("Mocked: GET /users/history", () => {
         expect(res.status).toBe(404);
         expect(res.body).toHaveProperty("message", "No history found for the user.");
     });
+
+    test("Fail to Get User's History, no token provided", async () => {
+ 
+        const res: Response = await supertest(app)
+            .get("/users/history")
+
+        expect(res.status).toBe(401);
+        expect(res.body).toHaveProperty("message", "No token provided.");
+    });
+
+    test("Fail to Get User's History, no token provided", async () => {
+ 
+        const res: Response = await supertest(app)
+            .get("/users/history")
+
+        expect(res.status).toBe(401);
+        expect(res.body).toHaveProperty("message", "No token provided.");
+    });
+
+    test("Fail to Get User's History, token error", async () => {
+ 
+        (jwt.verify as jest.Mock).mockImplementation(() => {
+            throw new Error("Token error");
+        });
+
+        const res: Response = await supertest(app)
+            .get("/users/history")
+            .set("token", `invalid_token`);
+
+        expect(res.status).toBe(403);
+        expect(res.body).toHaveProperty("message", "Authentication error.");
+    });
+
+    
 });
 
 // Interface DELETE /users/history
@@ -458,13 +610,15 @@ describe("Mocked: GET /users/ecoscore_score", () => {
 // Interface GET /users/ecoscore_score
 describe("Mocked: GET /users/ecoscore_score", () => {
     let historyCollection: jest.Mocked<Collection<History>>;
+    let productCollection: jest.Mocked<Collection<Product>>;
 
     beforeEach(() => {
         historyCollection = (services.client.db as jest.Mock)().collection("history");
-
+        productCollection = (services.client.db as jest.Mock)().collection("products");
         (jwt.verify as jest.Mock).mockImplementation(() => user);
 
         historyCollection.findOne.mockClear();
+        productCollection.findOne.mockClear();
     });
 
     afterEach(() => {
@@ -503,4 +657,101 @@ describe("Mocked: GET /users/ecoscore_score", () => {
         expect(res.status).toBe(404);
         expect(res.body).toHaveProperty("message", "No history found for the user.");
     });
+
+
+    test("Fail to Get User Ecoscore Average - Product Exists but Missing ecoscore_grade", async () => {
+        const mockHistory = {
+            user_uuid: user.user_uuid,
+            products: [{ product_id: "product-missing-grade", timestamp: new Date() }]
+        };
+
+        historyCollection.findOne.mockResolvedValueOnce(mockHistory);
+
+        productCollection.findOne.mockResolvedValueOnce({
+            _id: "product-missing-grade",
+            ecoscore_score: 85,
+        });
+
+        const res: Response = await supertest(app)
+            .get("/users/ecoscore_score")
+            .set("token", `mock_token`);
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("ecoscore_score", 85);
+    });
+
+    test("Fail to Get User Ecoscore Average - Product Exists but Missing ecoscore_score", async () => {
+        const mockHistory = {
+            user_uuid: user.user_uuid,
+            products: [{ product_id: "product-missing-score", timestamp: new Date() }]
+        };
+
+        historyCollection.findOne.mockResolvedValueOnce(mockHistory);
+
+        productCollection.findOne.mockResolvedValueOnce({
+            _id: "product-missing-score",
+            ecoscore_grade: "A", // ecoscore_score is missing
+        });
+
+        const res: Response = await supertest(app)
+            .get("/users/ecoscore_score")
+            .set("token", `mock_token`);
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("ecoscore_score", 0);
+    });
+
+    test("Success to Get User Ecoscore Average - Product Exists and has ecoscore_score and ecoscore_grade", async () => {
+        const mockHistory = {
+            user_uuid: user.user_uuid,
+            products: [{ product_id: "product-with-score-and-grade", timestamp: new Date() }]
+        };
+
+        historyCollection.findOne.mockResolvedValueOnce(mockHistory);
+
+        productCollection.findOne.mockResolvedValueOnce({
+            _id: "product-with-score-and-grade",
+            ecoscore_grade: "A",
+            ecoscore_score: 85,
+        });
+
+        const res: Response = await supertest(app)
+            .get("/users/ecoscore_score")
+            .set("token", `mock_token`);
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("ecoscore_score", 85);
+    });
+
+    test("Verify Sorting by Timestamp Works Correctly", async () => {
+        const mockHistory = {
+            user_uuid: user.user_uuid,
+            products: [
+                { product_id: "p1", timestamp: new Date("2023-01-01T12:00:00Z") },
+                { product_id: "p2", timestamp: new Date("2023-01-02T12:00:00Z") },
+                { product_id: "p3", timestamp: new Date("2023-01-03T12:00:00Z") }
+            ]
+        };
+
+        historyCollection.findOne.mockResolvedValueOnce(mockHistory);
+
+        productCollection.findOne.mockImplementation(async (query) => {
+            if (query._id === "p1") return { ecoscore_grade: "B", ecoscore_score: 50 };
+            if (query._id === "p2") return { ecoscore_grade: "A", ecoscore_score: 90 };
+            if (query._id === "p3") return { ecoscore_grade: "C", ecoscore_score: 30 };
+            return null;
+        });
+
+        const res: Response = await supertest(app)
+            .get("/users/ecoscore_score")
+            .set("token", `mock_token`);
+
+        expect(res.status).toBe(200);
+        expect(historyCollection.findOne).toHaveBeenCalled();
+        expect(res.body).toHaveProperty("ecoscore_score");
+
+        // Ensure sorting order: p3 (latest), p2, p1
+        expect(mockHistory.products.map(p => p.product_id)).toEqual(["p3", "p2", "p1"]);
+    });
+    
 });

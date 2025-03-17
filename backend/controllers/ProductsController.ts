@@ -159,20 +159,21 @@ export async function fetchProductImageById(product_id: string): Promise<string 
 }
 
 
-export async function fetchEcoscoresByProductId(product_id: string): Promise<{ ecoscore_grade: string, ecoscore_score: number } | null> {
+export async function fetchEcoscoresByProductId(product_id: string): Promise<{ ecoscore_score: number } | null> {
 
     // Try to fetch product from the database
     const product: Product | null = await fetchProductById(product_id);
 
-    if (!product?.ecoscore_grade || !product.ecoscore_score) {
+    if (!product?.ecoscore_score) {
         return null;
     }
-
-    return {
-        ecoscore_grade: product.ecoscore_grade,
+    
+    const result = {
         ecoscore_score: product.ecoscore_score
     };
 
+
+    return result;
 }
 
 function calculateTagDifference(baseTags: string[], productTags: string[]): number {
