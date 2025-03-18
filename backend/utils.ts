@@ -81,6 +81,7 @@ async function sendNotification(user_uuid: string, messageBody: string) {
 
     getMessaging().send(message as TokenMessage)
         .catch((error: Error) => {
+            console.error('Error sending notification:', error);
             return false;
         });
 
