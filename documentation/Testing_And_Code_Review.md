@@ -1,9 +1,9 @@
-# Example M5: Testing and Code Review
+# M5: Testing and Code Review
 
 ## 1. Change History
 
-| **Change Date**   | **Modified Sections** | **Rationale** |
-| ----------------- | --------------------- | ------------- |
+| **Change Date** | **Modified Sections** | **Rationale** |
+| -------------- | --------------------- | ------------- |
 | _Nothing to show_ |
 
 ---
@@ -14,12 +14,26 @@
 
 #### 2.1.1. Tests
 
-| **Interface**                 | **Describe Group Location, No Mocks**                | **Describe Group Location, With Mocks**            | **Mocked Components**              |
-| ----------------------------- | ---------------------------------------------------- | -------------------------------------------------- | ---------------------------------- |
-| **POST /user/login**          | [`tests/unmocked/authenticationLogin.test.js#L1`](#) | [`tests/mocked/authenticationLogin.test.js#L1`](#) | Google Authentication API, User DB |
-| **POST /study-groups/create** | ...                                                  | ...                                                | Study Group DB                     |
-| ...                           | ...                                                  | ...                                                | ...                                |
-| ...                           | ...                                                  | ...                                                | ...                                |
+| **Interface**                                   | **Describe Group Location, No Mocks**                 | **Describe Group Location, With Mocks**            | **Mocked Components**                  |
+| ---------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------- | -------------------------------------- |
+| **POST /users/history**                        | [`tests/unmocked/usersHistory.test.js#L1`](#)        | [`tests/mocked/usersHistory.test.js#L1`](#)       | User Database                          |
+| **GET /users/history**                         | [`tests/unmocked/getUsersHistory.test.js#L1`](#)     | [`tests/mocked/getUsersHistory.test.js#L1`](#)    | User Database                          |
+| **DELETE /users/history**                      | [`tests/unmocked/deleteUsersHistory.test.js#L1`](#)  | [`tests/mocked/deleteUsersHistory.test.js#L1`](#) | User Database                          |
+| **GET /users/uuid**                            | [`tests/unmocked/getUserUUID.test.js#L1`](#)         | [`tests/mocked/getUserUUID.test.js#L1`](#)        | User Authentication                    |
+| **GET /users/ecoscore_score**                  | [`tests/unmocked/getUserEcoscore.test.js#L1`](#)     | [`tests/mocked/getUserEcoscore.test.js#L1`](#)    | User Database                          |
+| **POST /users/fcm_registration_token**         | [`tests/unmocked/setFCMToken.test.js#L1`](#)         | [`tests/mocked/setFCMToken.test.js#L1`](#)        | Firebase Cloud Messaging, User DB      |
+| **POST /friends/requests**                     | [`tests/unmocked/friendRequests.test.js#L1`](#)      | [`tests/mocked/friendRequests.test.js#L1`](#)     | Friends Database                       |
+| **POST /friends/requests/accept**              | [`tests/unmocked/acceptFriendRequest.test.js#L1`](#) | [`tests/mocked/acceptFriendRequest.test.js#L1`](#) | Friends Database, Notifications        |
+| **DELETE /friends**                            | [`tests/unmocked/removeFriend.test.js#L1`](#)        | [`tests/mocked/removeFriend.test.js#L1`](#)       | Friends Database                       |
+| **DELETE /friends/requests**                   | [`tests/unmocked/rejectFriendRequest.test.js#L1`](#) | [`tests/mocked/rejectFriendRequest.test.js#L1`](#) | Friends Database                       |
+| **GET /friends/requests**                      | [`tests/unmocked/getFriendRequests.test.js#L1`](#)   | [`tests/mocked/getFriendRequests.test.js#L1`](#)  | Friends Database                       |
+| **GET /friends/requests/outgoing**             | [`tests/unmocked/getOutgoingRequests.test.js#L1`](#) | [`tests/mocked/getOutgoingRequests.test.js#L1`](#) | Friends Database                       |
+| **GET /friends**                               | [`tests/unmocked/getCurrentFriends.test.js#L1`](#)   | [`tests/mocked/getCurrentFriends.test.js#L1`](#)  | Friends Database                       |
+| **POST /friends/notifications**                | [`tests/unmocked/sendFriendNotification.test.js#L1`](#) | [`tests/mocked/sendFriendNotification.test.js#L1`](#) | Firebase Cloud Messaging, User DB  |
+| **GET /friends/ecoscore_score/:user_uuid**     | [`tests/unmocked/getFriendEcoscore.test.js#L1`](#)   | [`tests/mocked/getFriendEcoscore.test.js#L1`](#)  | Friends Database, User DB              |
+| **GET /friends/history/:user_uuid**            | [`tests/unmocked/getFriendHistory.test.js#L1`](#)    | [`tests/mocked/getFriendHistory.test.js#L1`](#)   | Friends Database, User History         |
+| **GET /products/:product_id**                  | [`tests/unmocked/getProduct.test.js#L1`](#)          | [`tests/mocked/getProduct.test.js#L1`](#)         | Product Database, OpenFoodFacts API    |
+| **POST /auth/google**                          | [`tests/unmocked/auth.test.js#L1`](#)                | [`tests/mocked/auth.test.js#L1`](#)         | Google OAuth, User Database            |
 
 #### 2.1.2. Commit Hash Where Tests Run
 
@@ -34,7 +48,63 @@
      git clone https://github.com/example/your-project.git
      ```
 
-2. **...**
+    - Navigate to the backend directory:
+     ```
+     cd backend
+     ```
+
+2. **Set Up MongoDB Container**:
+
+   - Start the MongoDB container using Docker Compose:
+     ```
+     docker-compose up -d mongo
+     ```
+
+3. **Download and Restore OpenFoodFacts API Database**:
+
+   - Download the OpenFoodFacts MongoDB dump:
+     ```
+     wget https://static.openfoodfacts.org/data/openfoodfacts-mongodbdump.gz
+     ```
+
+   - Restore the database into your MongoDB container:
+     ```
+     mongorestore -vvvvv --gzip --archive="./openfoodfacts-mongodbdump.gz" --nsFrom=off.products --nsTo=products_db.products --drop --host mongo_instance
+     ```
+
+4. **Install Dependencies**:
+
+   - Navigate to the `backend` directory:
+     ```
+     cd backend
+     ```
+
+   - Install the dependencies:
+     ```
+     npm install
+     ```
+
+5. **Run the Tests**:
+
+   - Run the tests without mocks:
+     ```
+     npm run test:unmocked
+     ```
+
+   - Run the tests with mocks:
+     ```
+     npm run test:mocked
+     ```
+
+   - Run all the tests:
+     ```
+     npm test
+     ```
+
+6. **View the Test Results**:
+
+   - The test results will be displayed in the terminal.
+   - You can also view the test results in the `coverage` directory.
 
 ### 2.2. GitHub Actions Configuration Location
 
