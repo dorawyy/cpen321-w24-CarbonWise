@@ -80,10 +80,11 @@ jest.mock("../../services", () => {
     };
 });
 
-jest.mock("jsonwebtoken", () => ({
-    ...jest.requireActual("jsonwebtoken"),
+jest.mock("jsonwebtoken", (): typeof jwt => ({
+    ...jest.requireActual<typeof jwt>("jsonwebtoken"),
     verify: jest.fn(),
 }));
+
 
 jest.mock("axios");
 
