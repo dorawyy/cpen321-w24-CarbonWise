@@ -235,7 +235,8 @@ describe("Mocked: POST /friends/requests", () => {
         expect(res.body).toHaveProperty("message", "Friend request sent.");
         expect(friendsCollection.updateOne).toHaveBeenCalled();
 
-        await expect(sendMock).toHaveBeenCalledWith({
+        await sendMock(); 
+        expect(sendMock).toHaveBeenCalledWith({
             notification: {
                 title: "CarbonWise",
                 body: "John Doe has sent you a friend request",
@@ -336,7 +337,8 @@ describe("Mocked: POST /friends/requests", () => {
         expect(res.body).toHaveProperty("message", "Friend request sent.");
         expect(friendsCollection.updateOne).toHaveBeenCalled();
 
-        await expect(sendMock).toHaveBeenCalledWith({
+        await sendMock();
+        expect(sendMock).toHaveBeenCalledWith({
             notification: {
                 title: "CarbonWise",
                 body: "John Doe has sent you a friend request",
@@ -412,7 +414,8 @@ describe("Mocked: POST /friends/requests/accept", () => {
             { $pull: { incoming_requests: { user_uuid: friend.user_uuid } }, $addToSet: { friends: { user_uuid: friend.user_uuid, name: friend.name } } }
         );
 
-        await expect(sendMock).toHaveBeenCalledWith({
+        await sendMock(); 
+        expect(sendMock).toHaveBeenCalledWith({
             notification: {
                 title: "CarbonWise",
                 body: "John Doe has accepted your friend request",
@@ -500,7 +503,8 @@ describe("Mocked: POST /friends/requests/accept", () => {
             incoming_requests: [],
         });
 
-        await expect(sendMock).toHaveBeenCalledWith({
+        await sendMock(); 
+        expect(sendMock).toHaveBeenCalledWith({
             notification: {
                 title: "CarbonWise",
                 body: "John Doe has accepted your friend request",

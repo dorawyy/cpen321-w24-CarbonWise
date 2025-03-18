@@ -18,7 +18,7 @@ jest.mock("../../services", () => {
             limit: jest.fn().mockReturnThis(),
             toArray: jest.fn(),
         };
-        return cursor as FindCursor;
+        return cursor;
     });
 
     const findOneMockProducts = jest.fn();
@@ -30,7 +30,7 @@ jest.mock("../../services", () => {
             limit: jest.fn().mockReturnThis(),
             toArray: toArrayMockProducts,
         };
-        return cursor as FindCursor;
+        return cursor;
     });
 
     const findMockFriends = jest.fn(() => {
@@ -38,7 +38,7 @@ jest.mock("../../services", () => {
             limit: jest.fn().mockReturnThis(),
             toArray: jest.fn(),
         };
-        return cursor as FindCursor;
+        return cursor;
     });
 
 

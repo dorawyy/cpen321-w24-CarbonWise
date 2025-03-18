@@ -80,7 +80,7 @@ async function sendNotification(user_uuid: string, messageBody: string) {
 
 
     getMessaging().send(message as TokenMessage)
-        .catch((error: any) => {
+        .catch(() => {
             return false;
         });
 
