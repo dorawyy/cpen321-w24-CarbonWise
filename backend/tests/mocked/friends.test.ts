@@ -1233,7 +1233,7 @@ describe("Mocked: GET /friends/ecoscore_score/:user_uuid", () => {
     });
 });
 
-// Interface POST /friends/notifications
+// Interface POST /users/history
 describe("Mocked: POST /friends/notifications", () => {
     let friendsCollection: jest.Mocked<Collection<Friends>>;
     let usersCollection: jest.Mocked<Collection<User>>;
