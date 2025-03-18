@@ -182,7 +182,7 @@ describe("Mocked: POST /friends/requests", () => {
         friendsCollection = (services.client.db as jest.Mock)().collection("friends");
         usersCollection = (services.client.db as jest.Mock)().collection("users");
 
-        (jwt.verify as jest.Mock).mockImplementation((token: string, secret: string) => {
+        (jwt.verify as jest.Mock).mockImplementation((_token: string, _secret: string) => {
             return user;
         });
 
@@ -358,7 +358,7 @@ describe("Mocked: POST /friends/requests/accept", () => {
         friendsCollection = (services.client.db as jest.Mock)().collection("friends");
         usersCollection = (services.client.db as jest.Mock)().collection("users");
 
-        (jwt.verify as jest.Mock).mockImplementation((token: string, secret: string) => {
+        (jwt.verify as jest.Mock).mockImplementation((_token: string, _secret: string) => {
             return user;
         });
 
