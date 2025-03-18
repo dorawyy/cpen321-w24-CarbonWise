@@ -12,14 +12,20 @@ describe("Non-Functional: Product Information Response Time", () => {
     // Expected status code: 200
     // Expected output: Product information is returned within 5 seconds
     test("Product response time is under 5 seconds and product is returned", async () => {
+        console.log("Starting test for product response time...");
         const start = performance.now();
         const res = await supertest(app).get("/products/1234567890123");
         const end = performance.now();
         const responseTime = end - start;
 
+        console.log(`Response time: ${responseTime} ms`);
+        console.log(`Response status: ${res.status}`);
+        console.log(`Response body: ${JSON.stringify(res.body)}`);
+
         expect(responseTime).toBeLessThanOrEqual(5000);
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty("product");
         expect(res.body.product).toHaveProperty("_id", "1234567890123");
+        console.log("Non-Functional Test: Product response time is under 5 seconds and product is returned.");
     });
 });

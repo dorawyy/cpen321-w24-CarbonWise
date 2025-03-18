@@ -2,4 +2,4 @@ cpen321-jelx-firebase-adminsdk*.json
 coverage
 node_modules
 eslint.config.json
-*.gz
+openfoodfacts-mongodbdump*
