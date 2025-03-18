@@ -45,7 +45,7 @@ router.post("/auth/google", asyncHandler(async (req: Request, res: Response) => 
 
     const jwtToken = jwt.sign(
       user,
-      process.env.JWT_SECRET as string,
+      process.env.JWT_SECRET!,
       { expiresIn: JWT_EXPIRATION_TIME }
     );
 
