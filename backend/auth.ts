@@ -24,7 +24,7 @@ router.post("/auth/google", asyncHandler(async (req: Request, res: Response) => 
     });
 
     const payload = ticket.getPayload();
-    if (!payload || !payload.sub || !payload.email || !payload.name) throw new Error("Invalid Google OAuth token");
+    if (!payload?.sub || !payload.email || !payload.name) throw new Error("Invalid Google OAuth token");
 
     const userCollection: Collection<User> = client.db("users_db").collection("users");
     let user = await userCollection.findOne({ google_id: payload.sub });

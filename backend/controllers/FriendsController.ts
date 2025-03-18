@@ -28,7 +28,7 @@ export class FriendsController {
         const targetFriends = await friendsCollection.findOne({ user_uuid: friend_uuid });
 
         // Check if users are already friends
-        if (userFriends && userFriends.friends.some(friend => friend.user_uuid === friend_uuid)) {
+        if (userFriends?.friends.some(friend => friend.user_uuid === friend_uuid)) {
             return res.status(400).send({message: "Already friends."});
         }
 

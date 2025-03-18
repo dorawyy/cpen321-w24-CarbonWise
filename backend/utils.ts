@@ -79,12 +79,12 @@ async function sendNotification(user_uuid: string, messageBody: string) {
     };
 
 
-    try {
-        await getMessaging().send(message as TokenMessage);
-        return true;
-    } catch {
-        return false;
-    }
+    getMessaging().send(message as TokenMessage)
+        .catch(() => {
+            return false;
+        });
+
+    return true;
 }
 
 
