@@ -72,6 +72,13 @@ class HistoryFragment : Fragment() {
             }
         }
 
+        historyViewModel.networkFailure.observe(viewLifecycleOwner) { failure ->
+            if (failure) {
+                Toast.makeText(context, "Network error, please try again later", Toast.LENGTH_SHORT).show()
+                historyViewModel.networkFailure.value = false
+            }
+        }
+
         val token = MainActivity.getJWTToken(requireContext())
         if (!token.isNullOrEmpty()) {
             historyViewModel.fetchHistory(token)

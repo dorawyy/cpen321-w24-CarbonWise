@@ -117,6 +117,7 @@ class InfoFragment : Fragment() {
                     activity?.runOnUiThread {
                         if (isAdded && _binding != null) {
                             binding.progressBar.visibility = View.GONE
+                            Toast.makeText(context, "Network error, please try again later", Toast.LENGTH_LONG).show()
                         }
                     }
                 }

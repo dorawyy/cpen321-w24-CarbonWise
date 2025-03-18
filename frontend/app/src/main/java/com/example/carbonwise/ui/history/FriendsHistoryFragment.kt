@@ -106,7 +106,7 @@ class FriendsHistoryFragment : Fragment() {
                 override fun onFailure(call: Call<List<HistoryItem>>, t: Throwable) {
                     if (_binding == null) return
                     Log.e("FriendsHistoryFragment", "Network error: ${t.message}")
-                    Toast.makeText(context, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Network error, please try again later", Toast.LENGTH_SHORT).show()
                 }
             })
         } ?: run {

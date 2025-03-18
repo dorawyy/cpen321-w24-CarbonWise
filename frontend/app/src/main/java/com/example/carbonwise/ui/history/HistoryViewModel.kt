@@ -30,6 +30,8 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
+    val networkFailure = MutableLiveData<Boolean>()
+
     private val apiService = retrofit.create(UsersApiService::class.java)
 
     fun fetchEcoScore(token: String, forceRefresh: Boolean = false) {
@@ -44,9 +46,11 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                     }
                 } else {
                     _ecoScore.postValue(0.0)
+                    networkFailure.postValue(true)
                 }
             } catch (e: IOException) {
                 Log.e("HistoryViewModel", "Error fetching ecoScore", e)
+                networkFailure.postValue(true)
             }
         }
     }
@@ -63,6 +67,8 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                     response.body()?.let { historyList ->
                         _historyItems.postValue(historyList.flatMap { it.products })
                     }
+                } else {
+                    networkFailure.postValue(true)
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -79,9 +85,12 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                 if (response.isSuccessful) {
                     _historyItems.postValue(_historyItems.value?.filterNot { it.scan_uuid == scanUuid })
                     fetchEcoScore(token, true)
+                } else {
+                    networkFailure.postValue(true)
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
+                networkFailure.postValue(true)
             }
         }
     }
