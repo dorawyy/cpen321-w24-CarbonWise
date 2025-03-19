@@ -19,7 +19,6 @@ import com.example.carbonwise.databinding.ActivityMainBinding
 import com.example.carbonwise.network.ApiService
 import com.example.carbonwise.network.FCMTokenManager
 import com.example.carbonwise.ui.friends.FriendsViewModel
-import com.example.carbonwise.ui.history.HistoryCacheManager
 import okhttp3.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -32,7 +31,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var isUserLoggedIn = false
     private var isReceiverRegistered = false
-
 
     private lateinit var friendsViewModel: FriendsViewModel
 
@@ -62,7 +60,6 @@ class MainActivity : AppCompatActivity() {
 
         if (isUserLoggedIn) {
             refreshJWTToken(token)
-            HistoryCacheManager.fetchHistoryInBackground(this)
         }
     }
 
@@ -77,7 +74,6 @@ class MainActivity : AppCompatActivity() {
                 RECEIVER_NOT_EXPORTED
             )
             isReceiverRegistered = true
-            HistoryCacheManager.fetchHistoryInBackground(this)
         }
     }
 
@@ -159,7 +155,6 @@ class MainActivity : AppCompatActivity() {
         isUserLoggedIn = true
         retrieveFCMToken()
         getJWTToken(this)?.let { friendsViewModel.updateToken(it) }
-        HistoryCacheManager.fetchHistoryInBackground(this)
         setupNavigation()
     }
 

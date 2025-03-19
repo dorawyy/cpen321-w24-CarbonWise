@@ -24,15 +24,6 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import com.example.carbonwise.network.ApiService
-import com.example.carbonwise.network.AddToHistoryRequest
-import com.example.carbonwise.MainActivity
-import com.example.carbonwise.ui.history.HistoryCacheManager
 import com.example.carbonwise.R
 
 class ScanFragment : Fragment() {
@@ -222,14 +213,13 @@ class ScanFragment : Fragment() {
             builder.setMessage("Scan result: $barcode\nDo you want to proceed?")
 
             builder.setPositiveButton("Accept") { _, _ ->
-                addToHistory(barcode)
 
-                binding?.let {
+                binding.let {
                     if (findNavController().currentDestination?.id == R.id.navigation_scan) {
-                        val action = ScanFragmentDirections.actionScanFragmentToInfoFragment(barcode)
+                        val action = ScanFragmentDirections.actionScanFragmentToInfoFragment(barcode, true)
                         findNavController().navigate(action)
                     }
-                } ?: Log.w("ScanFragment", "Binding is null, skipping navigation")
+                }
 
                 isDialogDisplayed = false
                 isScanningLocked = false
@@ -252,38 +242,6 @@ class ScanFragment : Fragment() {
             dialog.show()
         }
     }
-
-    private fun addToHistory(barcode: String) {
-        val token = MainActivity.getJWTToken(requireContext())
-        if (token.isNullOrEmpty()) {
-            return
-        }
-
-        val requestBody = AddToHistoryRequest(barcode)
-
-        // Initialize Retrofit instance
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://api.cpen321-jelx.com/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        val apiService = retrofit.create(ApiService::class.java)
-
-        // Call the addToHistory API
-        val call = apiService.addToHistory(token, requestBody)
-        call.enqueue(object : Callback<Void> {
-            override fun onResponse(call: Call<Void>, response: Response<Void>) {
-                if (response.isSuccessful) {
-                    HistoryCacheManager.invalidateCache(requireContext())
-                }
-            }
-
-            override fun onFailure(call: Call<Void>, t: Throwable) {
-                Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
 
     override fun onDestroyView() {
         super.onDestroyView()

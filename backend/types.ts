@@ -13,6 +13,12 @@ export interface History {
     products: { product_id: string, timestamp: Date, scan_uuid: string }[];
 }
 
+export interface HistoryEntry {
+    product_id: string;
+    timestamp: Date;
+    scan_uuid: string;
+}
+
 export interface Friends {
     user_uuid: string;
     friends: { user_uuid: string, name: string }[];
@@ -20,14 +26,35 @@ export interface Friends {
 }
 
 export interface Product {
-    _id: string;
+    _id?: string;
     product_name?: string;
     ecoscore_grade?: string;
     ecoscore_score?: number;
-    ecoscore_data?: Record<string, any>;
+    ecoscore_data?: Record<string, unknown>;
     categories_tags?: string[];
     categories_hierarchy?: string[];
     countries_tags?: string[];
     lang?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
+
+export interface DetailedProduct extends Product {
+    product: {
+        _id?: string;
+        product_name?: string;
+        ecoscore_grade?: string;
+        ecoscore_score?: number;
+        ecoscore_data?: Record<string, unknown>;
+        categories_tags?: string[];
+        categories_hierarchy?: string[];
+        countries_tags?: string[];
+        lang?: string;
+        image?: string;
+    };
+}
+
+export interface DetailedHistoryEntry extends HistoryEntry {
+    products: DetailedProduct[];
+}
+
+

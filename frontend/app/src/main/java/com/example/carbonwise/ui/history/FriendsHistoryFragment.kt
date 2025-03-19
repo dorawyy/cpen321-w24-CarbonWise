@@ -20,7 +20,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-
 class FriendsHistoryFragment : Fragment() {
 
     private var _binding: FragmentHistoryBinding? = null
@@ -94,6 +93,7 @@ class FriendsHistoryFragment : Fragment() {
 
                         response.body()?.let { historyItems ->
                             historyAdapter.submitList(historyItems)
+                            binding.progressBar.visibility = View.GONE
                             binding.textViewEmptyHistory.visibility = if (historyItems.isNullOrEmpty()) View.VISIBLE else View.GONE
                         }
                     } else {
