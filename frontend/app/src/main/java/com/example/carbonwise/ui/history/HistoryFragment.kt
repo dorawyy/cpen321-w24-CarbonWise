@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.content.ContentProviderCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -56,19 +55,17 @@ class HistoryFragment : Fragment() {
         historyViewModel.historyItems.observe(viewLifecycleOwner) { history ->
             historyAdapter.submitList(history)
             binding.textViewEmptyHistory.visibility = if (history.isEmpty()) View.VISIBLE else View.GONE
+            binding.ecoScoreCard.visibility = if (history.isEmpty()) View.GONE else View.VISIBLE
         }
 
         historyViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            binding.progressBar.visibility = if (isLoading && historyAdapter.itemCount == 0) View.VISIBLE else View.GONE
         }
 
         historyViewModel.ecoScore.observe(viewLifecycleOwner) { score ->
             if (score > 0) {
-                binding.ecoScoreCard.visibility = View.VISIBLE
                 binding.textEcoscoreValue.text = score.toInt().toString()
                 binding.progressEcoscore.setProgress(score.toInt(), true)
-            } else {
-                binding.ecoScoreCard.visibility = View.INVISIBLE
             }
         }
 
@@ -86,6 +83,15 @@ class HistoryFragment : Fragment() {
         }
 
         return root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val token = MainActivity.getJWTToken(requireContext())
+        if (!token.isNullOrEmpty()) {
+            historyViewModel.fetchHistory(token)
+            historyViewModel.fetchEcoScore(token)
+        }
     }
 
     private fun openProductInfoFragment(upcCode: String) {

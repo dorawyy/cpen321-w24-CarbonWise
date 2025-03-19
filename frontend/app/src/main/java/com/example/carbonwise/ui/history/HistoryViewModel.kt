@@ -46,11 +46,9 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                     }
                 } else {
                     _ecoScore.postValue(0.0)
-                    networkFailure.postValue(true)
                 }
             } catch (e: IOException) {
                 Log.e("HistoryViewModel", "Error fetching ecoScore", e)
-                networkFailure.postValue(true)
             }
         }
     }

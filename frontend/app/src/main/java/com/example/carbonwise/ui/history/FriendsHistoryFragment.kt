@@ -142,17 +142,20 @@ class FriendsHistoryFragment : Fragment() {
                         Log.d("FriendsHistoryFragment", "Friend's Ecoscore fetched successfully: $ecoscore")
                         binding.labelEcoscore.text = "Friend's Ecoscore"
                         binding.labelEcoscore.visibility = View.VISIBLE
+                        binding.ecoScoreCard.visibility = View.VISIBLE
 
                         binding.progressEcoscore.setProgressCompat(ecoscore.toInt(), false)
                         binding.textEcoscoreValue.text = ecoscore.toInt().toString()
                     } else {
                         Log.d("FriendsHistoryFragment", "No ecoscore available for friend")
                         binding.circularContainer.visibility = View.GONE
+                        binding.ecoScoreCard.visibility = View.GONE
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Log.e("FriendsHistoryFragment", "API Error: ${response.code()}, Body: $errorBody")
                     binding.circularContainer.visibility = View.GONE
+                    binding.ecoScoreCard.visibility = View.GONE
                 }
             }
 
