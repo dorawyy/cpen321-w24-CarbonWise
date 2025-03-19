@@ -23,6 +23,10 @@ jobs:
             # Ensure MongoDB is running
             docker-compose up -d mongo
 
+            # Ensure dependencies are installed, including jest-junit
+            echo "Installing dependencies..."
+            npm install
+
             # Run Jest tests and save output
             echo "Running Jest tests..."
             npm test -- --ci --reporters=default --reporters=jest-junit > test-results.log 2>&1
@@ -49,4 +53,3 @@ jobs:
         with:
           name: jest-test-results
           path: backend/junit.xml
-
