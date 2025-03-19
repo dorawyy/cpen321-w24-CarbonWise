@@ -8,6 +8,7 @@ services:
     volumes:
       - "mongo_data:/data/db"
 
+
   app:
     build: 
       context: .
@@ -24,6 +25,7 @@ services:
     depends_on:
       - mongo
     command: npm start
+
 
 volumes:
   mongo_data:

@@ -8,14 +8,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.carbonwise.MainActivity
 import com.example.carbonwise.R
 import com.example.carbonwise.databinding.FragmentInfoBinding
+import com.example.carbonwise.network.AddToHistoryRequest
+import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.ui.history.HistoryViewModel
 import okhttp3.*
 import org.json.JSONObject
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -23,6 +30,8 @@ class InfoFragment : Fragment() {
 
     private var _binding: FragmentInfoBinding? = null
     private val binding get() = _binding!!
+
+    private val historyViewModel: HistoryViewModel by activityViewModels()
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -33,11 +42,13 @@ class InfoFragment : Fragment() {
 
     companion object {
         private const val ARG_UPC_CODE = "upcCode"
+        private const val SHOW_ADD_BUTTON = "showButton"
 
         fun newInstance(upcCode: String): InfoFragment {
             val fragment = InfoFragment()
             val args = Bundle()
             args.putString(ARG_UPC_CODE, upcCode)
+            args.putBoolean(SHOW_ADD_BUTTON, false)
             fragment.arguments = args
             return fragment
         }
@@ -60,6 +71,21 @@ class InfoFragment : Fragment() {
         if (upcCode.isNotEmpty()) {
             Log.d("InfoFragment", "Fetching data for UPC: $upcCode")
             fetchProductInfo(upcCode)
+        }
+
+        val showButton = arguments?.getBoolean(SHOW_ADD_BUTTON, false) ?: false
+        if (showButton) {
+            binding.addToHistoryButton.visibility = View.VISIBLE
+            binding.addToHistoryButton.setOnClickListener {
+                addToHistory(upcCode)
+                binding.addToHistoryButton.apply {
+                    text = "Added to history!"
+                    isEnabled = false
+                    setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.dark_green)) // Change to darker shade
+                }
+            }
+        } else {
+            binding.addToHistoryButton.visibility = View.GONE
         }
 
         return binding.root
@@ -254,6 +280,38 @@ class InfoFragment : Fragment() {
                 container.addView(ingredientTextView)
             }
         }
+    }
+
+    private fun addToHistory(barcode: String) {
+        val token = MainActivity.getJWTToken(requireContext())
+        if (token.isNullOrEmpty()) {
+            return
+        }
+
+        val requestBody = AddToHistoryRequest(barcode)
+
+        // Initialize Retrofit instance
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.cpen321-jelx.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val apiService = retrofit.create(ApiService::class.java)
+
+        // Call the addToHistory API
+        val call = apiService.addToHistory(token, requestBody)
+        call.enqueue(object : retrofit2.Callback<Void> {
+            override fun onResponse(call: retrofit2.Call<Void>, response: retrofit2.Response<Void>) {
+                if (response.isSuccessful) {
+                    historyViewModel.fetchHistory(token, forceRefresh = true)
+                    historyViewModel.fetchEcoScore(token, forceRefresh = true)
+                }
+            }
+
+            override fun onFailure(call: retrofit2.Call<Void>, t: Throwable) {
+                Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     override fun onDestroyView() {

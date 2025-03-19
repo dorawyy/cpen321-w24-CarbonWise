@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { client } from "../services";
 import { Collection } from "mongodb";
 import axios from "axios";
@@ -8,7 +8,7 @@ import { RECOMMENDATIONS_UPPER_LIMIT, RECOMMENDATIONS_LOWER_LIMIT, OPENFOODFACTS
 
 export class ProductsController {
     
-    async getProductById(req: Request, res: Response, next: NextFunction) {
+    async getProductById(req: Request, res: Response) {
         try {
             const { product_id } = req.params;
             const queryParams = req.query;
@@ -16,20 +16,21 @@ export class ProductsController {
             // Parse query parameters
             const requestedLanguages: string[] = queryParams.languages ? (queryParams.languages as string).split(",") : [];
             const includedCountries: string[] = queryParams.countries ? (queryParams.countries as string).split(",") : [];
-            const excludedCountries: string[] = queryParams.exclude_countries ? (queryParams.exclude_countries as string).split(",") : [];
             const RESULT_LIMIT = parseInt(queryParams.num_recommendations as string) || 1;  
 
             // Fetch product data
             const baseProduct = await fetchProductById(product_id);
-            if (!baseProduct || !baseProduct.categories_hierarchy || !baseProduct.categories_tags) {
+
+            
+            if (!baseProduct?.categories_hierarchy) {
                 return res.status(404).json({ message: "Product not found or missing required fields." });
             }
 
             // Fetch product image
             const baseProductImage = await fetchProductImageById(product_id);
-
+  
             const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
-
+            
             let remainingTags = [...baseProduct.categories_hierarchy];
             let matchingProducts: Product[] = [];
 
@@ -39,119 +40,113 @@ export class ProductsController {
                     requestedLanguages.length === 0 || requestedLanguages.some(lang => tag.startsWith(`${lang}:`))
                 );
 
-                let query: any = {
+                const query = {
                     _id: { $ne: product_id },
-                    categories_tags: { $all: tagsToUse },
+                    categories_tags: (includedCountries.length > 0) ? { $in: includedCountries } : { $all: tagsToUse },
                     ecoscore_score: { $exists: true },
                     ecoscore_grade: { $exists: true },
                     product_name: { $exists: true, $ne: "" }
                 };
 
-                if (includedCountries.length > 0 && excludedCountries.length > 0) {
-                    query.countries_tags = { $in: includedCountries, $nin: excludedCountries };
-                } else if (includedCountries.length > 0) {
-                    query.countries_tags = { $in: includedCountries };
-                } else if (excludedCountries.length > 0) {
-                    query.countries_tags = { $nin: excludedCountries };
-                }
-
                 matchingProducts = await collection
                     .find(query, {
                         projection: {
-                            _id: 1, product_name: 1, ecoscore_grade: 1, ecoscore_score: 1, 
-                            categories_tags: 1, categories_hierarchy: 1, countries_tags: 1
+                            _id: 1, product_name: 1, ecoscore_grade: 1, ecoscore_score: 1, categories_tags: 1
                         }
                     })
                     .limit(RECOMMENDATIONS_UPPER_LIMIT)
-                    .toArray();
+                    .toArray() || [];
 
                 if (matchingProducts.length >= RECOMMENDATIONS_LOWER_LIMIT) break;
                 remainingTags.pop();
-            }
 
-            function calculateTagDifference(baseTags: string[], productTags: string[]): number {
-                return new Set([...baseTags, ...productTags]).size - new Set(baseTags).size;
             }
 
             // Sort products by tag difference
             matchingProducts = matchingProducts
                 .map(product => ({
                     ...product,
-                    categories_tags_difference: calculateTagDifference(baseProduct.categories_tags || [], product.categories_tags || [])
+                    categories_tags_difference: calculateTagDifference(baseProduct.categories_tags ?? [], product.categories_tags ?? [])
                 }))
                 .sort((a, b) => a.categories_tags_difference - b.categories_tags_difference);  
 
+          
             // Fetch products and their images
             const recommendationsWithImages = await Promise.all(
                 matchingProducts.slice(0, RESULT_LIMIT).map(async (product) => {
+                    if (!product._id) {
+                        return null
+                    }
                     const productImage = await fetchProductImageById(product._id);
-                    return { ...product, image: productImage || null };
+                    return { ...product, image: productImage ?? null };
                 })
             );
 
+
             return res.status(200).json({
-                product: { ...baseProduct, image: baseProductImage || null },
+                product: { ...baseProduct, image: baseProductImage ?? null },
                 recommendations: recommendationsWithImages
             });
         } catch (error) {
-            return res.status(500).json({ message: "Internal server error" });
+            return res.status(500).json({ message: "Internal server error." });
         }
     }
 }
-
 
 export async function fetchProductById(product_id: string): Promise<Product | null> {
     const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
 
-    // Try to fetch product from the database
-    let product = await collection.findOne({ _id: product_id });
-
-    // Fetch product data from OpenFoodFacts API if not found in the database
-    if (!product) {
-        const apiUrl = `${OPENFOODFACTS_API_URL}api/v2/product/${product_id}.json`;
-
-        try {
-            const response = await axios.get(apiUrl);
-            if (response.data?.status === 1 && response.data.product) {
-
-                const fetchedProduct = response.data.product;
-
-                if (!fetchedProduct.product_name || !fetchedProduct.ecoscore_grade || !fetchedProduct.ecoscore_score || !fetchedProduct.ecoscore_data || !fetchedProduct.categories_tags || !fetchedProduct.categories_hierarchy) {
-                    return null;
-                }
-
-                const updatedProduct: Product = {
-                    _id: product_id,
-                    ...fetchedProduct,
-                };
-
-                await collection.insertOne(updatedProduct);
-                product = updatedProduct;
-            } else {
-                return null;
-            }
-        } catch (error) {
-            return null;
+    // Try to fetch product from the database with all required fields present
+    let product: Product | null = await collection.findOne(
+        { 
+            _id: product_id, 
+            product_name: { $exists: true },
+            categories_tags: { $exists: true },
+            categories_hierarchy: { $exists: true },
+            countries_tags: { $exists: true },
+            lang: { $exists: true },
+            ingredients_tags: { $exists: true },
+            ecoscore_score: { $exists: true },
+            ecoscore_grade: { $exists: true }
         }
-    }
-    
-    // Check if product has required fields
-    if (!product.product_name || !product.ecoscore_grade || !product.ecoscore_score || !product.ecoscore_data || !product.categories_tags || !product.categories_hierarchy) {
+    );
+
+    // If product is found in DB and has all required fields, return it
+    if (product) return product;
+
+    // Fetch from OpenFoodFacts API if not found in DB
+    const apiUrl = `${OPENFOODFACTS_API_URL}api/v2/product/${product_id}.json`;
+
+    try {
+        const response = await axios.get(apiUrl);
+
+        if (response.data.status !== 1 || !response.data.product) return null;
+
+        const fetchedProduct: Product = response.data.product;
+
+        // Ensure fetched product has all required fields BEFORE inserting
+        if (
+            fetchedProduct.product_name &&
+            fetchedProduct.categories_tags &&
+            fetchedProduct.categories_hierarchy &&
+            fetchedProduct.countries_tags &&
+            fetchedProduct.lang &&
+            fetchedProduct.ingredients_tags &&
+            fetchedProduct.ecoscore_score &&
+            fetchedProduct.ecoscore_grade
+        ) {
+            const updatedProduct: Product = { _id: product_id, ...fetchedProduct };
+            await collection.insertOne(updatedProduct);
+            return updatedProduct;
+        }
+    } catch (error) {
         return null;
     }
 
-    return {
-        _id: product._id,
-        product_name: product.product_name,
-        ecoscore_grade: product.ecoscore_grade,
-        ecoscore_score: product.ecoscore_score,
-        ecoscore_data: product.ecoscore_data,
-        categories_tags: product.categories_tags,
-        categories_hierarchy: product.categories_hierarchy,
-        countries_tags: product.countries_tags || undefined,
-        lang: product.lang || undefined
-    };
+    return null;
 }
+
+
 
 export async function fetchProductImageById(product_id: string): Promise<string | null> {
     try {
@@ -163,55 +158,30 @@ export async function fetchProductImageById(product_id: string): Promise<string 
         const imageUrl = `${OPENFOODFACTS_IMAGE_API_URL}${imageKey}`;
 
         const imageResponse = await axios.get(imageUrl, { responseType: "arraybuffer" });
-        return Buffer.from(imageResponse.data, "binary").toString("base64");
+        return Buffer.from(imageResponse.data as string, "binary").toString("base64");
     } catch (error) {
         return null;
     }
 }
 
 
-export async function fetchEcoscoresByProductId(product_id: string): Promise<{ ecoscore_grade: string, ecoscore_score: number } | null> {
-    const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
+export async function fetchEcoscoresByProductId(product_id: string): Promise<{ ecoscore_score: number } | null> {
 
     // Try to fetch product from the database
-    let product = await collection.findOne({ _id: product_id });
+    const product: Product | null = await fetchProductById(product_id);
 
-    // Fetch product data from OpenFoodFacts API if not found in the database
-    if (!product) {
-        const apiUrl = `${OPENFOODFACTS_API_URL}api/v2/product/${product_id}.json`;
-
-        try {
-            const response = await axios.get(apiUrl);
-            if (response.data?.status === 1 && response.data.product) {
-
-                const fetchedProduct = response.data.product;
-
-                if (!fetchedProduct.ecoscore_grade || !fetchedProduct.ecoscore_score) {
-                    return null;
-                }
-
-                const updatedProduct: Product = {
-                    _id: product_id,
-                    ...fetchedProduct,
-                };
-
-                await collection.insertOne(updatedProduct);
-                product = updatedProduct;
-            } else {
-                return null;
-            }
-        } catch (error) {
-            return null;
-        }
-    }
-
-    // Check if product has required fields
-    if (!product.ecoscore_grade || !product.ecoscore_score) {
+    if (!product?.ecoscore_score) {
         return null;
     }
-
-    return {
-        ecoscore_grade: product.ecoscore_grade,
+    
+    const result = {
         ecoscore_score: product.ecoscore_score
     };
+
+
+    return result;
+}
+
+function calculateTagDifference(baseTags: string[], productTags: string[]): number {
+    return new Set([...baseTags, ...productTags]).size - new Set(baseTags).size;
 }

@@ -96,6 +96,21 @@
                 android:orientation="vertical"
                 android:padding="8dp">
 
+                <Button
+                    android:id="@+id/addToHistoryButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Add to History"
+                    android:visibility="visible"
+                    android:padding="12dp"
+                    android:textSize="16sp"
+                    android:backgroundTint="@color/green"
+                    android:textColor="@android:color/white"
+                    app:layout_constraintTop_toBottomOf="@id/subsectionContainer"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
                 <LinearLayout
                     android:id="@+id/ecoScoreSection"
                     android:layout_width="match_parent"
