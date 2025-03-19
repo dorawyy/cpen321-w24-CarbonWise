@@ -1,10 +1,8 @@
-name: Run Jest Tests on EC2
+name: Run Backend Tests on EC2
 
 on:
   workflow_run:
     workflows: ["Deploy to EC2"]
-    types:
-      - completed
   workflow_dispatch:
 
 jobs:
@@ -22,16 +20,6 @@ jobs:
             
             # Ensure MongoDB is running
             docker-compose up -d mongo
-            
-            # Optionally populate the database
-            if [[ "${{ secrets.POPULATE_DB }}" == "true" ]]; then
-              wget -O products_db.archive https://cpen321-jelx.s3.us-west-2.amazonaws.com/products_db.archive
-              docker cp products_db.archive mongo_instance:/products_db.archive
-              docker exec mongo_instance mongorestore --db products_db --archive=./products_db.archive --gzip --drop
-            fi
 
             # Run Jest tests
-            npm run test:mocked
-            npm run test:unmocked
-            npm run test:non-functional
             npm test

@@ -1,0 +1,49 @@
+name: Populate Database on EC2
+
+on:
+  workflow_dispatch:
+    inputs:
+      drop_user_db:
+        description: 'Drop the user database before restoring? (true/false)'
+        required: false
+        default: 'false'
+      restore_products_db:
+        description: 'Restore the products database? (true/false)'
+        required: false
+        default: 'false'
+
+jobs:
+  setup-db:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Connect to EC2 and Setup Database
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/cpen321-jelx/backend
+
+            # Ensure MongoDB is running
+            docker-compose up -d mongo
+
+            # Drop User Database if requested
+            if [[ "${{ github.event.inputs.drop_user_db }}" == "true" ]]; then
+              echo "Dropping user database..."
+              docker exec mongo_instance mongo user_db --eval "db.dropDatabase()"
+            else
+              echo "Skipping user database drop."
+            fi
+
+            # Restore Products Database if requested
+            if [[ "${{ github.event.inputs.restore_products_db }}" == "true" ]]; then
+              echo "Downloading and restoring products database..."
+              wget -O products_db.archive https://cpen321-jelx.s3.us-west-2.amazonaws.com/products_db.archive
+              docker cp products_db.archive mongo_instance:/products_db.archive
+              docker exec mongo_instance mongorestore --db products_db --archive=./products_db.archive --gzip --drop
+            else
+              echo "Skipping products database restoration."
+            fi
+
+            echo "Database setup completed successfully!"
