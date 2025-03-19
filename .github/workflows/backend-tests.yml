@@ -42,9 +42,9 @@ jobs:
             # Fail workflow if tests fail
             exit $TEST_EXIT_CODE
 
-      - name: Upload Jest Test Report (Optional)
-        if: always()
-        uses: actions/upload-artifact@v3
+      - name: Upload Jest Test Report
+        uses: actions/upload-artifact@v4
         with:
           name: jest-test-results
           path: backend/junit.xml
+
