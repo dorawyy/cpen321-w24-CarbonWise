@@ -1,0 +1,61 @@
+name: Run Jest Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Download OpenFoodFacts Database Dump
+        run: wget https://cpen321-jelx.s3.us-west-2.amazonaws.com/products_db.archive
+
+      - name: Restore MongoDB Database
+        run: |
+          docker cp products_db.archive $(docker ps -qf "ancestor=mongo"):/products_db.archive
+          docker exec $(docker ps -qf "ancestor=mongo") mongorestore --db products_db --archive=./products_db.archive --gzip --drop
+
+      - name: Run Mocked Tests
+        working-directory: backend
+        run: npm run test:mocked
+
+      - name: Run Unmocked Tests
+        working-directory: backend
+        run: npm run test:unmocked
+
+      - name: Run Non-functional Tests
+        working-directory: backend
+        run: npm run test:non-functional
+
+      - name: Run All Tests
+        working-directory: backend
+        run: npm test
