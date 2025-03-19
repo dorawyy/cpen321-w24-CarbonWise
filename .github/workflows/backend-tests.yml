@@ -1,61 +1,37 @@
-name: Run Jest Tests
+name: Run Jest Tests on EC2
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Deploy to EC2"]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      mongo:
-        image: mongo
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Run Tests on EC2
+        uses: appleboy/ssh-action@master
         with:
-          node-version: 18
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/cpen321-jelx/backend
+            
+            # Ensure MongoDB is running
+            docker-compose up -d mongo
+            
+            # Optionally populate the database
+            if [[ "${{ secrets.POPULATE_DB }}" == "true" ]]; then
+              wget -O products_db.archive https://cpen321-jelx.s3.us-west-2.amazonaws.com/products_db.archive
+              docker cp products_db.archive mongo_instance:/products_db.archive
+              docker exec mongo_instance mongorestore --db products_db --archive=./products_db.archive --gzip --drop
+            fi
 
-      - name: Install Dependencies
-        working-directory: backend
-        run: npm install
-
-      - name: Download OpenFoodFacts Database Dump
-        run: wget https://cpen321-jelx.s3.us-west-2.amazonaws.com/products_db.archive
-
-      - name: Restore MongoDB Database
-        run: |
-          docker cp products_db.archive $(docker ps -qf "ancestor=mongo"):/products_db.archive
-          docker exec $(docker ps -qf "ancestor=mongo") mongorestore --db products_db --archive=./products_db.archive --gzip --drop
-
-      - name: Run Mocked Tests
-        working-directory: backend
-        run: npm run test:mocked
-
-      - name: Run Unmocked Tests
-        working-directory: backend
-        run: npm run test:unmocked
-
-      - name: Run Non-functional Tests
-        working-directory: backend
-        run: npm run test:non-functional
-
-      - name: Run All Tests
-        working-directory: backend
-        run: npm test
+            # Run Jest tests
+            npm run test:mocked
+            npm run test:unmocked
+            npm run test:non-functional
+            npm test
