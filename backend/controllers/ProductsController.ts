@@ -104,7 +104,10 @@ export async function fetchProductById(product_id: string): Promise<Product | nu
             categories_tags: { $exists: true },
             categories_hierarchy: { $exists: true },
             countries_tags: { $exists: true },
-            lang: { $exists: true }
+            lang: { $exists: true },
+            ingredients_tags: { $exists: true },
+            ecoscore_score: { $exists: true },
+            ecoscore_grade: { $exists: true }
         }
     );
 
@@ -127,7 +130,10 @@ export async function fetchProductById(product_id: string): Promise<Product | nu
             fetchedProduct.categories_tags &&
             fetchedProduct.categories_hierarchy &&
             fetchedProduct.countries_tags &&
-            fetchedProduct.lang
+            fetchedProduct.lang &&
+            fetchedProduct.ingredients_tags &&
+            fetchedProduct.ecoscore_score &&
+            fetchedProduct.ecoscore_grade
         ) {
             const updatedProduct: Product = { _id: product_id, ...fetchedProduct };
             await collection.insertOne(updatedProduct);

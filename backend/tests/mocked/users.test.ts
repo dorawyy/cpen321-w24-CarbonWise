@@ -88,8 +88,6 @@ jest.mock("jsonwebtoken", (): typeof jwt => ({
 
 jest.mock("axios");
 
-const app = createServer();
-
 const user: User = {
     _id: "user-123",
     google_id: "google-123",
@@ -106,6 +104,7 @@ const mockProduct: Product = {
     ecoscore_score: 90,
     ecoscore_data: {},
     categories_tags: ["tag1", "tag2"],
+    ingredients_tags: ["tagC", "tagD"],
     categories_hierarchy: ["hierarchy1", "hierarchy2"],
     countries_tags: ["france"],
     lang: "en",
@@ -115,6 +114,7 @@ const mockProduct: Product = {
 describe("Mocked: POST /users/history", () => {
     let historyCollection: jest.Mocked<Collection<History>>;
     let productCollection: jest.Mocked<Collection<Product>>;
+    const app = createServer();
 
     beforeEach(() => {
         historyCollection = (services.client.db as jest.Mock)().collection("history");
@@ -336,6 +336,7 @@ describe("Mocked: POST /users/history", () => {
 describe("Mocked: GET /users/history", () => {
     let historyCollection: jest.Mocked<Collection<History>>;
     let productCollection: jest.Mocked<Collection<Product>>;
+    const app = createServer();
 
     beforeEach(() => {
         historyCollection = (services.client.db as jest.Mock)().collection("history");
@@ -436,6 +437,7 @@ describe("Mocked: GET /users/history", () => {
 // Interface DELETE /users/history
 describe("Mocked: DELETE /users/history", () => {
     let historyCollection: jest.Mocked<Collection<History>>;
+    const app = createServer();
 
     beforeEach(() => {
         historyCollection = (services.client.db as jest.Mock)().collection("history");
@@ -509,6 +511,7 @@ describe("Mocked: DELETE /users/history", () => {
 // Interface POST /users/fcm_registration_token
 describe("Mocked: POST /users/fcm_registration_token", () => {
     let userCollection: jest.Mocked<Collection<User>>;
+    const app = createServer();
 
     beforeEach(() => {
         userCollection = (services.client.db as jest.Mock)().collection("users");
@@ -583,6 +586,8 @@ describe("Mocked: POST /users/fcm_registration_token", () => {
 
 // Interface GET /users/uuid
 describe("Mocked: GET /users/uuid", () => {
+    const app = createServer();
+
     beforeEach(() => {
         (jwt.verify as jest.Mock).mockImplementation(() => user);
     });
@@ -612,6 +617,7 @@ describe("Mocked: GET /users/uuid", () => {
 // Interface GET /users/ecoscore_score
 describe("Mocked: GET /users/ecoscore_score", () => {
     let historyCollection: jest.Mocked<Collection<History>>;
+    const app = createServer();
 
     beforeEach(() => {
         historyCollection = (services.client.db as jest.Mock)().collection("history");
@@ -671,6 +677,7 @@ describe("Mocked: GET /users/ecoscore_score", () => {
 describe("Mocked: GET /users/ecoscore_score", () => {
     let historyCollection: jest.Mocked<Collection<History>>;
     let productCollection: jest.Mocked<Collection<Product>>;
+    const app = createServer();
 
     beforeEach(() => {
         historyCollection = (services.client.db as jest.Mock)().collection("history");
@@ -765,7 +772,7 @@ describe("Mocked: GET /users/ecoscore_score", () => {
 
         productCollection.findOne.mockResolvedValueOnce({
             _id: "product-missing-score",
-            ecoscore_grade: "A", // ecoscore_score is missing
+            ecoscore_grade: "A",
         });
 
         const res: Response = await supertest(app)
@@ -827,7 +834,6 @@ describe("Mocked: GET /users/ecoscore_score", () => {
         expect(historyCollection.findOne).toHaveBeenCalled();
         expect(res.body).toHaveProperty("ecoscore_score");
 
-        // Ensure sorting order: p3 (latest), p2, p1
         expect(mockHistory.products.map(p => p.product_id)).toEqual(["p3", "p2", "p1"]);
     });
     

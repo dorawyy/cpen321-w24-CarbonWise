@@ -48,6 +48,7 @@ jest.mock("axios", () => ({
                         ecoscore_grade: "B",
                         ecoscore_score: 75,
                         categories_tags: ["tagA", "tagB"],
+                        ingredients_tags: ["tagC", "tagD"],
                         categories_hierarchy: ["hierarchyA", "hierarchyB"],
                         countries_tags: ["usa"],
                     },
@@ -85,6 +86,7 @@ describe("Mocked: GET /products/:product_id", () => {
         ecoscore_score: 90,
         ecoscore_data: {},
         categories_tags: ["tag1", "tag2"],
+        ingredients_tags: ["tagC", "tagD"],
         categories_hierarchy: ["hierarchy1", "hierarchy2"],
         countries_tags: ["france"],
         lang: "en"
@@ -100,6 +102,7 @@ describe("Mocked: GET /products/:product_id", () => {
                 ecoscore_score: 75,
                 ecoscore_data: {},
                 categories_tags: ["tagA", "tagB"],
+                ingredients_tags: ["tagC", "tagD"],
                 categories_hierarchy: ["hierarchyA", "hierarchyB"],
                 countries_tags: ["usa"],
                 lang: "en"
@@ -113,6 +116,7 @@ describe("Mocked: GET /products/:product_id", () => {
         ecoscore_grade: "B",
         ecoscore_score: 75,
         categories_tags: ["tag1", "tag2"],
+        ingredients_tags: ["tagC", "tagD"],
         categories_hierarchy: ["hierarchy1", "hierarchy2"],
         countries_tags: ["france"],
         lang: "en"
@@ -124,6 +128,7 @@ describe("Mocked: GET /products/:product_id", () => {
         ecoscore_grade: "C",
         ecoscore_score: 70,
         categories_tags: ["tag1", "tag2"],
+        ingredients_tags: ["tagC", "tagD"],
         categories_hierarchy: ["hierarchy1", "hierarchy2"],
         countries_tags: ["france"],
         lang: "en"
@@ -293,6 +298,7 @@ describe("Mocked: GET /products/:product_id", () => {
             ecoscore_grade: "B",
             ecoscore_score: 70,
             categories_tags: ["tagA", "tagB"],
+            ingredients_tags: ["tagC", "tagD"],
             categories_hierarchy: ["hierarchyA", "hierarchyB"],
             countries_tags: ["usa"],
         };
@@ -377,7 +383,6 @@ describe("Mocked: GET /products/:product_id", () => {
             toArray: jest.fn().mockResolvedValueOnce([mockRecommendationA]),
         });
 
-        // Simulate axios image fetch failure
         (axios.get as jest.Mock).mockRejectedValueOnce(new Error("Image fetch error"));
 
         const res = await supertest(app).get(`/products/${product_id}`);
@@ -386,7 +391,6 @@ describe("Mocked: GET /products/:product_id", () => {
         expect(res.body).toHaveProperty("product");
         expect(res.body.product._id).toStrictEqual(product_id);
         
-        // The image fetch should fail and return null
         expect(res.body.product.image).toBeNull();
     });
 
@@ -435,6 +439,7 @@ describe("Mocked: GET /products/:product_id", () => {
             ecoscore_grade: "B",
             ecoscore_score: 75,
             categories_tags: ["en:tagA", "fr:tagB"],
+            ingredients_tags: ["tagC", "tagD"],
             categories_hierarchy: ["en:hierarchyA", "fr:hierarchyB"],
         };
 
@@ -465,6 +470,7 @@ describe("Mocked: GET /products/:product_id", () => {
             ecoscore_grade: "B",
             ecoscore_score: 75,
             categories_tags: ["tagA", "tagB"],
+            ingredients_tags: ["tagC", "tagD"],
             countries_tags: ["usa"],
         };
 
@@ -545,7 +551,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
         const incompleteProduct = {
             ...mockProduct,
-            categories_tags: undefined, // Simulating missing categories_tags
+            categories_tags: undefined,
         };
 
         const recommendationWithoutTags = {
@@ -553,7 +559,7 @@ describe("Mocked: GET /products/:product_id", () => {
             product_name: "Recommendation with No Tags",
             ecoscore_grade: "B",
             ecoscore_score: 75,
-            categories_tags: undefined, // Simulating missing categories_tags in recommended product
+            categories_tags: undefined,
         };
 
         productCollection.findOne.mockResolvedValueOnce(incompleteProduct);
@@ -583,6 +589,7 @@ describe("Mocked: GET /products/:product_id", () => {
             ecoscore_grade: "B",
             ecoscore_score: 75,
             categories_tags: ["tag1", "tag2"],
+            ingredients_tags: ["tagC", "tagD"]
         };
 
         productCollection.findOne.mockResolvedValueOnce(mockProduct);
@@ -591,7 +598,6 @@ describe("Mocked: GET /products/:product_id", () => {
             toArray: jest.fn().mockResolvedValueOnce([recommendation]),
         });
 
-        // Simulating multiple image fetch failures (one for the base product, one for the recommendation)
         (axios.get as jest.Mock)
             .mockRejectedValueOnce(new Error("Base product image fetch failed"))
             .mockRejectedValueOnce(new Error("Recommendation image fetch failed"));
@@ -600,11 +606,11 @@ describe("Mocked: GET /products/:product_id", () => {
 
         expect(res.status).toStrictEqual(200);
         expect(res.body).toHaveProperty("product");
-        expect(res.body.product.image).toBeNull(); // Ensures ?? null is triggered for base product
+        expect(res.body.product.image).toBeNull();
 
         expect(res.body.recommendations.length).toBe(1);
         expect(res.body.recommendations[0]._id).toStrictEqual("67890");
-        expect(res.body.recommendations[0].image).toBeNull(); // Ensures ?? null is triggered for recommendations
+        expect(res.body.recommendations[0].image).toBeNull();
     });
 
 });

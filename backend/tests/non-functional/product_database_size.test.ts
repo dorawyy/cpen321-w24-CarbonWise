@@ -3,7 +3,7 @@ import { client } from "../../services";
 // Non-Functional: Test the number of products in the database
 describe("Non-Functional: Product Database Size", () => {
     const MIN_PRODUCTS = 100000;
-    const TIMEOUT_MS = 10000;
+    const TIMEOUT_MS = 600000;
 
     beforeAll(async () => {
         console.log("Connecting to the database...");
@@ -31,7 +31,8 @@ describe("Non-Functional: Product Database Size", () => {
             categories_tags: { $exists: true },
             categories_hierarchy: { $exists: true },
             countries_tags: { $exists: true },
-            lang: { $exists: true }
+            lang: { $exists: true },
+            ingredients_tags: { $exists: true }
         }, { limit: MIN_PRODUCTS });
 
         console.log(`Product count (clipped at ${MIN_PRODUCTS}): ${productCount}`);

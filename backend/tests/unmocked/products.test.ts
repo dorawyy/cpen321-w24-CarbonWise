@@ -52,7 +52,7 @@ describe("Unmocked: GET /products/:product_id", () => {
     // Expected status code: 200
     // Expected output: Product with image and recommendations
     test("Valid Product ID with Images and Default Number of Recommendations", async () => {
-        const res = await supertest(app).get("/products/1234567890123");
+        const res = await supertest(app).get("/products/3017620422003");
         expect(res.status).toBe(200);
         expect(res.body.product).toHaveProperty("image");
         expect(res.body.product.image).toMatch(/^[A-Za-z0-9+/=]+$/);
@@ -65,7 +65,7 @@ describe("Unmocked: GET /products/:product_id", () => {
     // Expected status code: 200
     // Expected output: Product with image and multiple recommendations
     test("Valid Product ID with Multiple Recommendations Requested", async () => {
-        const res = await supertest(app).get("/products/1234567890123").query({ num_recommendations: 2 });
+        const res = await supertest(app).get("/products/3017620422003").query({ num_recommendations: 2 });
         expect(res.status).toBe(200);
         expect(res.body.product).toHaveProperty("image");
         expect(res.body.product.image).toMatch(/^[A-Za-z0-9+/=]+$/);
@@ -78,7 +78,7 @@ describe("Unmocked: GET /products/:product_id", () => {
     // Expected status code: 200
     // Expected output: Product with recommendations filtered by country
     test("Valid Product ID with Specific Country Filtering", async () => {
-        const res = await supertest(app).get("/products/1234567890123").query({ countries: "en:germany" });
+        const res = await supertest(app).get("/products/3017620422003").query({ countries: "en:germany" });
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty("product");
         expect(res.body).toHaveProperty("recommendations");
@@ -113,7 +113,7 @@ describe("Unmocked: GET /products/:product_id", () => {
     // Expected status code: 200
     // Expected output: Recommendations filtered by language
     test("Valid Product ID with Language-Specific Recommendations", async () => {
-        const res = await supertest(app).get("/products/1234567890123").query({ languages: "en,fr" });
+        const res = await supertest(app).get("/products/3017620422003").query({ languages: "en,fr" });
         expect(res.status).toBe(200);
         expect(res.body.recommendations.every((r: any) => r.categories_tags.some((tag: any) => tag.startsWith("en:") || tag.startsWith("fr:")))).toBe(true);
     });
@@ -123,7 +123,7 @@ describe("Unmocked: GET /products/:product_id", () => {
     // Expected status code: 400
     // Expected output: Error message indicating invalid format
     test("Invalid include_languages (Array Instead of String)", async () => {
-        const res = await supertest(app).get("/products/1234567890123").query({ include_languages: ["en", "fr"] });
+        const res = await supertest(app).get("/products/3017620422003").query({ include_languages: ["en", "fr"] });
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty("errors");
         expect(res.body.errors[0].msg).toBe("Included languages must be a comma-separated string");
@@ -134,7 +134,7 @@ describe("Unmocked: GET /products/:product_id", () => {
     // Expected status code: 400
     // Expected output: Error message indicating invalid format
     test("Invalid include_countries (Array Instead of String)", async () => {
-        const res = await supertest(app).get("/products/1234567890123").query({ include_countries: ["us", "fr"] });
+        const res = await supertest(app).get("/products/3017620422003").query({ include_countries: ["us", "fr"] });
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty("errors");
         expect(res.body.errors[0].msg).toBe("Included countries must be a comma-separated string");
@@ -145,7 +145,7 @@ describe("Unmocked: GET /products/:product_id", () => {
     // Expected status code: 200
     // Expected output: Successful response
     test("Valid include_languages (Comma-Separated String)", async () => {
-        const res = await supertest(app).get("/products/1234567890123").query({ include_languages: "en,fr,de" });
+        const res = await supertest(app).get("/products/3017620422003").query({ include_languages: "en,fr,de" });
         expect(res.status).toBe(200);
     });
 
@@ -154,7 +154,7 @@ describe("Unmocked: GET /products/:product_id", () => {
     // Expected status code: 200
     // Expected output: Successful response
     test("Valid include_countries (Comma-Separated String)", async () => {
-        const res = await supertest(app).get("/products/1234567890123").query({ include_countries: "usa,france,germany" });
+        const res = await supertest(app).get("/products/3017620422003").query({ include_countries: "usa,france,germany" });
         expect(res.status).toBe(200);
     });
 
