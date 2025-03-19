@@ -8,7 +8,6 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp"
         >
 
         <!-- Tab Layout for Friends & Requests -->
@@ -16,7 +15,8 @@
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:tabIndicatorColor="@color/black"
+            app:tabIndicatorColor="@color/dark_grey"
+            android:background="@color/grey"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -41,9 +41,8 @@
         android:layout_height="wrap_content"
         android:contentDescription="Add a Friend"
         android:src="@drawable/ic_add_friend"
-        android:tint="@android:color/white"
         android:layout_gravity="bottom|end"
-        android:layout_marginBottom="76dp"
+        android:layout_marginBottom="82dp"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"

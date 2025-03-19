@@ -2,6 +2,7 @@ package com.example.carbonwise.ui.login
 
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
@@ -14,13 +15,21 @@ import androidx.lifecycle.lifecycleScope
 import com.example.carbonwise.BuildConfig
 import com.example.carbonwise.MainActivity
 import com.example.carbonwise.databinding.FragmentLoginBinding
-import com.google.android.gms.auth.api.identity.*
-import com.google.android.gms.auth.api.signin.*
+import com.google.android.gms.auth.api.identity.BeginSignInRequest
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.auth.api.identity.SignInClient
+import com.google.android.gms.auth.api.identity.SignInCredential
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.*
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import org.json.JSONObject
 import java.io.IOException
 
@@ -69,7 +78,6 @@ class LoginFragment : Fragment() {
             val activeNetwork = connectivityManager.activeNetworkInfo
             if (activeNetwork == null || !activeNetwork.isConnected) {
                 Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
             }
 
             activity?.let { activity ->
@@ -86,23 +94,20 @@ class LoginFragment : Fragment() {
                                     0,
                                     null
                                 )
-                            } catch (e: Exception) {
+                            } catch (e: IntentSender.SendIntentException) {
                                 Log.e(TAG, "Error starting IntentSender", e)
-                                fallbackToRegularSignIn()
+                                val signInIntent = googleSignInClient.signInIntent
+                                startActivityForResult(signInIntent, REQ_SIGN_IN)
                             }
                         }
                     }
                     .addOnFailureListener(activity) { e ->
                         Log.e(TAG, "Google One Tap Sign-In failed", e)
-                        fallbackToRegularSignIn()
+                        val signInIntent = googleSignInClient.signInIntent
+                        startActivityForResult(signInIntent, REQ_SIGN_IN)
                     }
             }
         }
-    }
-
-    private fun fallbackToRegularSignIn() {
-        val signInIntent = googleSignInClient.signInIntent
-        startActivityForResult(signInIntent, REQ_SIGN_IN)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -149,12 +154,20 @@ class LoginFragment : Fragment() {
 
     private fun processSignIn(idToken: String) {
         Log.d(TAG, "Google ID Token: $idToken")
-        saveToken(requireContext(), idToken)
+        val sharedPref = requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("google_id_token", idToken)
+            apply()
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             val jwtToken = getJWT(idToken)
             if (jwtToken != null) {
-                saveJWTToken(requireContext(), jwtToken)
+                Log.e(TAG, "Got JWT Token: $jwtToken")
+                with(sharedPref.edit()) {
+                    putString("jwt_token", jwtToken)
+                    apply()
+                }
                 if (isAdded) {
                     (activity as? MainActivity)?.switchToLoggedInMode()
                 }
@@ -178,23 +191,6 @@ class LoginFragment : Fragment() {
         }
     }
 
-    private fun saveToken(context: Context, token: String) {
-        val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("google_id_token", token)
-            apply()
-        }
-    }
-
-    private fun saveJWTToken(context: Context, jwtToken: String) {
-        val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        Log.e(TAG, "Got JWT Token: $jwtToken")
-        with(sharedPref.edit()) {
-            putString("jwt_token", jwtToken)
-            apply()
-        }
-    }
-
     private suspend fun getJWT(googleIdToken: String): String? {
         val url = "https://api.cpen321-jelx.com/auth/google"
         val jsonBody = """
@@ -215,14 +211,14 @@ class LoginFragment : Fragment() {
                 if (response.isSuccessful) {
                     val responseBody = response.body()?.string()
                     val jsonObject = JSONObject(responseBody)
-                    return@withContext jsonObject.optString("token")
+                    jsonObject.optString("token")
                 } else {
                     Log.e(TAG, "Request failed with code: ${response.code()}")
-                    return@withContext null
+                    null
                 }
             } catch (e: IOException) {
                 Log.e(TAG, "Request failed: ${e.message}")
-                return@withContext null
+                null
             }
         }
     }

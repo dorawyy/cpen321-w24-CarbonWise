@@ -6,7 +6,7 @@
     android:layout_marginVertical="4dp"
     app:cardCornerRadius="16dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="#421E71">
+    app:cardBackgroundColor="@color/light_green">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/friend_item"
@@ -37,8 +37,8 @@
                 app:indicatorDirectionCircular="clockwise"
                 app:showAnimationBehavior="none"
                 app:hideAnimationBehavior="none"
-                app:trackColor="#CCCCCC"
-                app:indicatorColor="#ff48a5" />
+                app:trackColor="@color/grey"
+                app:indicatorColor="@color/green" />
 
             <TextView
                 android:id="@+id/text_ecoscore_value"
@@ -62,7 +62,7 @@
         android:textStyle="bold"
         android:ellipsize="end"
         android:maxLines="1"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="12dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintStart_toEndOf="@id/ecoscore_container"
         app:layout_constraintTop_toTopOf="parent"

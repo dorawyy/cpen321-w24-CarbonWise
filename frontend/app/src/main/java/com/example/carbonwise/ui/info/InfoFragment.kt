@@ -17,9 +17,13 @@ import com.example.carbonwise.MainActivity
 import com.example.carbonwise.R
 import com.example.carbonwise.databinding.FragmentInfoBinding
 import com.example.carbonwise.network.AddToHistoryRequest
-import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.network.UsersApiService
 import com.example.carbonwise.ui.history.HistoryViewModel
-import okhttp3.*
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -113,6 +117,7 @@ class InfoFragment : Fragment() {
                     activity?.runOnUiThread {
                         if (isAdded && _binding != null) {
                             binding.progressBar.visibility = View.GONE
+                            Toast.makeText(context, "Network error, please try again later", Toast.LENGTH_LONG).show()
                         }
                     }
                 }
@@ -149,7 +154,7 @@ class InfoFragment : Fragment() {
                                     updateUI(json)
                                 }
                             }
-                        } catch (e: Exception) {
+                        } catch (e: IOException) {
                             Log.e("InfoFragment", "Error parsing JSON", e)
                             activity?.runOnUiThread {
                                 if (isAdded && _binding != null) {
@@ -296,7 +301,7 @@ class InfoFragment : Fragment() {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        val apiService = retrofit.create(ApiService::class.java)
+        val apiService = retrofit.create(UsersApiService::class.java)
 
         // Call the addToHistory API
         val call = apiService.addToHistory(token, requestBody)

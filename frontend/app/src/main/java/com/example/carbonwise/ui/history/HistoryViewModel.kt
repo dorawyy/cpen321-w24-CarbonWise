@@ -2,13 +2,17 @@ package com.example.carbonwise.ui.history
 
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.*
-import com.example.carbonwise.network.ApiService
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import com.example.carbonwise.network.UsersApiService
 import com.example.carbonwise.network.ProductItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.IOException
 
 class HistoryViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -26,7 +30,9 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    private val apiService = retrofit.create(ApiService::class.java)
+    val networkFailure = MutableLiveData<Boolean>()
+
+    private val apiService = retrofit.create(UsersApiService::class.java)
 
     fun fetchEcoScore(token: String, forceRefresh: Boolean = false) {
         if (!forceRefresh && _ecoScore.value != null) return
@@ -41,7 +47,7 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                 } else {
                     _ecoScore.postValue(0.0)
                 }
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 Log.e("HistoryViewModel", "Error fetching ecoScore", e)
             }
         }
@@ -59,8 +65,10 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                     response.body()?.let { historyList ->
                         _historyItems.postValue(historyList.flatMap { it.products })
                     }
+                } else {
+                    networkFailure.postValue(true)
                 }
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 e.printStackTrace()
             } finally {
                 _isLoading.postValue(false)
@@ -75,9 +83,12 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                 if (response.isSuccessful) {
                     _historyItems.postValue(_historyItems.value?.filterNot { it.scan_uuid == scanUuid })
                     fetchEcoScore(token, true)
+                } else {
+                    networkFailure.postValue(true)
                 }
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 e.printStackTrace()
+                networkFailure.postValue(true)
             }
         }
     }

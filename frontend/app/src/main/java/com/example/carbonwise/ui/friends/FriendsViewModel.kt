@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.network.FriendsApiService
 import com.example.carbonwise.network.EcoscoreResponse
 import com.example.carbonwise.network.Friend
 import com.example.carbonwise.network.FriendRequest
@@ -15,7 +15,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class FriendsViewModel(private val apiService: ApiService, private var token: String) : ViewModel() {
+class FriendsViewModel(private val apiService: FriendsApiService, private var token: String) : ViewModel() {
 
     init {
         fetchUserFriendCode()
@@ -33,6 +33,8 @@ class FriendsViewModel(private val apiService: ApiService, private var token: St
 
     private val _userFriendCode = MutableLiveData<String>()
     val userFriendCode: LiveData<String> get() = _userFriendCode
+
+    val networkFailure = MutableLiveData<Boolean>()
 
     fun updateToken(newToken: String) {
         Log.d("FriendsViewModel", "Updating token: $newToken")
@@ -52,10 +54,12 @@ class FriendsViewModel(private val apiService: ApiService, private var token: St
                             ecoscoreMap[friend.user_uuid] = score
                             _friendEcoscores.postValue(ecoscoreMap)
                         }
+                    } else {
+                        networkFailure.postValue(true)
                     }
                 }
                 override fun onFailure(call: Call<EcoscoreResponse>, t: Throwable) {
-                    // Log failure if necessary
+                    networkFailure.postValue(true)
                 }
             })
         }
@@ -69,11 +73,13 @@ class FriendsViewModel(private val apiService: ApiService, private var token: St
                     _userFriendCode.value = response.body()?.user_uuid ?: "Unknown"
                 } else {
                     _userFriendCode.value = "Error fetching code"
+                    networkFailure.postValue(true)
                 }
             }
 
             override fun onFailure(call: Call<UUIDResponse>, t: Throwable) {
                 _userFriendCode.value = "Error: ${t.message}"
+                networkFailure.postValue(true)
             }
         })
     }
@@ -85,20 +91,20 @@ class FriendsViewModel(private val apiService: ApiService, private var token: St
                     val friendList = response.body() ?: emptyList()
                     _friendsList.value = friendList
                     fetchAllFriendEcoscores(friendList)
-                    Log.e("HAHA", response.body().toString())
                 } else {
                     _friendActions.value = "Failed to load friends"
+                    networkFailure.postValue(true)
                 }
             }
 
             override fun onFailure(call: Call<List<Friend>>, t: Throwable) {
                 _friendActions.value = "Error fetching friends: ${t.message}"
+                networkFailure.postValue(true)
             }
         })
     }
 
     fun fetchFriendRequests() {
-        Log.e("friend", "FETCHING REQUESTS")
         apiService.getFriendRequests(token).enqueue(object : Callback<List<FriendRequest>> {
             override fun onResponse(call: Call<List<FriendRequest>>, response: Response<List<FriendRequest>>) {
                 if (response.isSuccessful) {
@@ -123,11 +129,13 @@ class FriendsViewModel(private val apiService: ApiService, private var token: St
                     _friendActions.value = "Friend request sent!"
                 } else {
                     _friendActions.value = "Failed to send friend request"
+                    networkFailure.postValue(true)
                 }
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
                 _friendActions.value = "Error sending friend request: ${t.message}"
+                networkFailure.postValue(true)
             }
         })
     }
@@ -142,11 +150,13 @@ class FriendsViewModel(private val apiService: ApiService, private var token: St
                     _friendActions.value = "Friend request accepted!"
                 } else {
                     _friendActions.value = "Failed to accept friend request"
+                    networkFailure.postValue(true)
                 }
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
                 _friendActions.value = "Error accepting friend request: ${t.message}"
+                networkFailure.postValue(true)
             }
         })
     }
@@ -159,11 +169,13 @@ class FriendsViewModel(private val apiService: ApiService, private var token: St
                     _friendActions.value = "Friend request rejected"
                 } else {
                     _friendActions.value = "Failed to reject friend request"
+                    networkFailure.postValue(true)
                 }
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
                 _friendActions.value = "Error rejecting friend request: ${t.message}"
+                networkFailure.postValue(true)
             }
         })
     }
@@ -176,16 +188,18 @@ class FriendsViewModel(private val apiService: ApiService, private var token: St
                     _friendActions.value = "Friend removed"
                 } else {
                     _friendActions.value = "Failed to remove friend"
+                    networkFailure.postValue(true)
                 }
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
                 _friendActions.value = "Error removing friend: ${t.message}"
+                networkFailure.postValue(true)
             }
         })
     }
 
-    class Factory(private val apiService: ApiService, private val token: String) : ViewModelProvider.Factory {
+    class Factory(private val apiService: FriendsApiService, private val token: String) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(FriendsViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
