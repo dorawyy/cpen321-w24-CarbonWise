@@ -9,7 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Run Tests on EC2
+      - name: Run Tests on EC2 and Capture Results
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -21,5 +21,30 @@ jobs:
             # Ensure MongoDB is running
             docker-compose up -d mongo
 
-            # Run Jest tests
-            npm test
+            # Run Jest tests and save output
+            echo "Running Jest tests..."
+            npm test -- --ci --reporters=default --reporters=jest-junit > test-results.log 2>&1
+            TEST_EXIT_CODE=$?
+
+            # Display test results in logs
+            echo "Test Results:"
+            cat test-results.log
+
+            # Upload test results if possible (Jest JUnit XML format)
+            if [[ -f junit.xml ]]; then
+              echo "Uploading test results..."
+              curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                   -H "Accept: application/vnd.github.v3+json" \
+                   -F "artifact=@junit.xml" \
+                   "https://api.github.com/repos/${{ github.repository }}/actions/artifacts"
+            fi
+
+            # Fail workflow if tests fail
+            exit $TEST_EXIT_CODE
+
+      - name: Upload Jest Test Report (Optional)
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: jest-test-results
+          path: backend/junit.xml
