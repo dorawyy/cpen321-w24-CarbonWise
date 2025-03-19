@@ -3,6 +3,8 @@ name: Run Backend Tests on EC2
 on:
   workflow_run:
     workflows: ["Deploy to EC2"]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
