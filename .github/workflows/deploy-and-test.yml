@@ -98,6 +98,18 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Copy Files from EC2 to GitHub Runner
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/test-results
+          echo "Checking if coverage directory exists on EC2..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "ls -la /home/ubuntu/cpen321-jelx/backend/coverage || echo 'ERROR: No coverage directory found!'"
+          
+          echo "Copying files from EC2 to GitHub Runner..."
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/cpen321-jelx/backend/coverage/* $GITHUB_WORKSPACE/test-results/ || echo "ERROR: SCP command failed!"
+          
+          echo "Listing contents of the test-results directory after SCP:"
+          ls -la $GITHUB_WORKSPACE/test-results/
+
       - name: Fix Permissions for Copied Files
         run: |
           echo "Fixing file permissions..."
