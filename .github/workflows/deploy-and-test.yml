@@ -88,17 +88,32 @@ jobs:
             # Fail workflow if tests fail
             exit $TEST_EXIT_CODE
       
+      - name: Compress Coverage Report on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cp /home/ubuntu/cpen321-jelx/backend/test-results.log /home/ubuntu/cpen321-jelx/coverage/test-results.log
+            cd /home/ubuntu/cpen321-jelx/backend
+            tar -czf coverage.tar.gz coverage
+
       - name: Copy Coverage Report from EC2
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          source: "/home/ubuntu/cpen321-jelx/backend/coverage"
-          target: "coverage"
+          source: "/home/ubuntu/cpen321-jelx/backend/coverage.tar.gz"
+          target: "."
+
+      - name: Extract Coverage Report
+        run: tar -xzf coverage.tar.gz
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage
+
