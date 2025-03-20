@@ -69,13 +69,6 @@ jobs:
           script: |
             cd /home/ubuntu/cpen321-jelx/backend
             
-            # Ensure MongoDB is running
-            docker-compose up -d mongo
-
-            # Ensure dependencies are installed
-            echo "Installing dependencies..."
-            npm install
-
             # Run Jest tests with coverage enabled
             echo "Running Jest tests..."
             npm test -- --ci --coverage > test-results.log 2>&1
@@ -95,8 +88,17 @@ jobs:
             # Fail workflow if tests fail
             exit $TEST_EXIT_CODE
       
+      - name: Copy Coverage Report from EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "/home/ubuntu/cpen321-jelx/backend/coverage"
+          target: "coverage"
+
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: /home/ubuntu/cpen321-jelx/backend/coverage
+          path: coverage
