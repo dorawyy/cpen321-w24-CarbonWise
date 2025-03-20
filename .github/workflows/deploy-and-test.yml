@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy to EC2 and Run Tests
 
 on:
   push:
@@ -55,3 +55,41 @@ jobs:
             docker-compose down
             docker-compose --env-file .env build
             docker-compose --env-file .env up -d
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Tests on EC2 and Capture Results
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/cpen321-jelx/backend
+            
+            # Ensure MongoDB is running
+            docker-compose up -d mongo
+
+            # Ensure dependencies are installed
+            echo "Installing dependencies..."
+            npm install
+
+            # Run Jest tests with coverage enabled
+            echo "Running Jest tests..."
+            npm test -- --ci --coverage > test-results.log 2>&1
+            TEST_EXIT_CODE=$?
+
+            # Display test results
+            echo "Test Results:"
+            cat test-results.log
+
+            # Verify if coverage report exists
+            if [[ -d coverage ]]; then
+              echo "Coverage report generated successfully."
+            else
+              echo "WARNING: No coverage report found!"
+            fi
+
+            # Fail workflow if tests fail
+            exit $TEST_EXIT_CODE
