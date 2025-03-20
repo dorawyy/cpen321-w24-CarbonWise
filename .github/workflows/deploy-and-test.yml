@@ -101,14 +101,20 @@ jobs:
       - name: Copy Files from EC2 to GitHub Runner
         run: |
           mkdir -p $GITHUB_WORKSPACE/test-results
-          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/cpen321-jelx/backend/coverage/* $GITHUB_WORKSPACE/test-results/
+          echo "Checking if coverage directory exists on EC2..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "ls -la /home/ubuntu/cpen321-jelx/backend/coverage || echo 'ERROR: No coverage directory found!'"
+          
+          echo "Copying files from EC2 to GitHub Runner..."
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/cpen321-jelx/backend/coverage/. $GITHUB_WORKSPACE/test-results/ || echo "ERROR: SCP command failed!"
 
-      - name: Upload Test Results as Artifact
+        - name: Upload Test Results as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: $GITHUB_WORKSPACE/test-results/
           retention-days: 7
+          if-no-files-found: warn
+
 
 
 
