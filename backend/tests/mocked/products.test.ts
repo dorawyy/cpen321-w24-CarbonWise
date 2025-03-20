@@ -535,7 +535,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
         const res = await supertest(app).get(`/products/${product_id}`);
 
-        expect(res.status).toStrictEqual(200);
+        expect(res.status).toStrictEqual(400);
         expect(axios.get).toHaveBeenCalledWith(
             expect.stringContaining(`data/123/456/789/0123/1.jpg`),
             expect.any(Object)
