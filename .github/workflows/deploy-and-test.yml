@@ -108,12 +108,12 @@ jobs:
           scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/cpen321-jelx/backend/coverage/. $GITHUB_WORKSPACE/test-results/ || echo "ERROR: SCP command failed!"
 
         - name: Upload Test Results as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: $GITHUB_WORKSPACE/test-results/
-          retention-days: 7
-          if-no-files-found: warn
+          uses: actions/upload-artifact@v4
+          with:
+            name: test-results
+            path: $GITHUB_WORKSPACE/test-results/
+            retention-days: 7
+            if-no-files-found: warn
 
 
 
