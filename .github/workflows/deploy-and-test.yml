@@ -95,7 +95,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cp /home/ubuntu/cpen321-jelx/backend/test-results.log /home/ubuntu/cpen321-jelx/coverage/test-results.log
+            cp /home/ubuntu/cpen321-jelx/backend/test-results.log /home/ubuntu/cpen321-jelx/backend/coverage/test-results.log
             cd /home/ubuntu/cpen321-jelx/backend
             tar -czf coverage.tar.gz coverage
 
@@ -106,7 +106,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           source: "/home/ubuntu/cpen321-jelx/backend/coverage.tar.gz"
-          target: "."
+          target: "./coverage.tar.gz"
 
       - name: Extract Coverage Report
         run: tar -xzf coverage.tar.gz
