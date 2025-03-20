@@ -92,14 +92,17 @@ jobs:
             exit $TEST_EXIT_CODE
 
       - name: Copy Files from EC2 to GitHub Runner
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/coverage
-          scp -o StrictHostKeyChecking=no -r ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/cpen321-jelx/backend/coverage/* $GITHUB_WORKSPACE/coverage/
-
-      - name: Upload Files as Artifact
-        uses: actions/upload-artifact@v4
+        uses: appleboy/ssh-action@master
         with:
-          name: ec2-files
-          path: $GITHUB_WORKSPACE/coverage/
-          retention-days: 7
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            # Compress the files to speed up transfer (optional)
+            cd /home/ubuntu/cpen321-jelx/backend
+            tar -czf test-results.tar.gz coverage test-results.log
+
+            # Use scp to copy back to the GitHub Runner
+            scp -o StrictHostKeyChecking=no test-results.tar.gz runner@$(hostname):/tmp/
+
 
