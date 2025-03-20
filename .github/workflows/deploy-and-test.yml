@@ -93,13 +93,7 @@ jobs:
       - name: Copy Files from EC2 to GitHub Runner
         run: |
           echo "Copying files from EC2 to GitHub Runner..."
-          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/cpen321-jelx/backend/test-results.log $GITHUB_WORKSPACE/test-results/test-results.log || echo "ERROR: SCP command failed!"
-          
-      - name: Fix Permissions for Copied Files
-        run: |
-          echo "Fixing file permissions..."
-          chmod -R 777 $GITHUB_WORKSPACE/test-results/test-results.log
-          ls -la $GITHUB_WORKSPACE/test-results/test-results.log
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/cpen321-jelx/backend/test-results.log $GITHUB_WORKSPACE/test-results/test-results.log
 
       - name: Upload Test Results as Artifact
         uses: actions/upload-artifact@v4
