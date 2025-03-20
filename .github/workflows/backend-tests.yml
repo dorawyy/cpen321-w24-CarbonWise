@@ -46,9 +46,12 @@ jobs:
             # Fail workflow if tests fail
             exit $TEST_EXIT_CODE
 
+      - name: Extract Coverage Report
+        run: tar -xzf coverage.tar.gz
+
       - name: Upload Jest Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: jest-coverage-report
-          path: backend/coverage/
-          if-no-files-found: warn 
+          path: coverage/
+          if-no-files-found: warn
