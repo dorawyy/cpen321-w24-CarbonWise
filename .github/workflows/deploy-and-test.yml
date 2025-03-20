@@ -92,10 +92,13 @@ jobs:
 
       - name: Copy Files from EC2 to GitHub Runner
         run: |
+          echo "Creating test-results directory..."
+          mkdir -p $GITHUB_WORKSPACE/test-results
+
           echo "Copying files from EC2 to GitHub Runner..."
-          echo $GITHUB_WORKSPACE
           scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/cpen321-jelx/backend/test-results.log $GITHUB_WORKSPACE/test-results/test-results.log
 
+          echo "Listing contents of test-results directory..."
           ls -la $GITHUB_WORKSPACE/test-results/
 
       - name: Upload Test Results as Artifact
