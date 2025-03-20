@@ -95,17 +95,21 @@ jobs:
           echo "Creating test-results directory..."
           mkdir -p $GITHUB_WORKSPACE/test-results
 
-          echo "Copying files from EC2 to GitHub Runner..."
-          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/cpen321-jelx/backend/test-results.log $GITHUB_WORKSPACE/test-results/test-results.log
+          echo "Copying test-results.log from EC2..."
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/cpen321-jelx/backend/test-results.log \
+            $GITHUB_WORKSPACE/test-results/test-results.log
 
-          echo "Listing contents of test-results directory..."
-          ls -la $GITHUB_WORKSPACE/test-results/
+          echo "Copying coverage directory from EC2..."
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/cpen321-jelx/backend/coverage \
+            $GITHUB_WORKSPACE/test-results/
 
       - name: Upload Test Results as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: test-results/test-results.log
+          path: test-results/
           retention-days: 7
           if-no-files-found: warn
 
