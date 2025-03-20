@@ -23,33 +23,32 @@ jobs:
             # Ensure MongoDB is running
             docker-compose up -d mongo
 
-            # Ensure dependencies are installed, including jest-junit
+            # Ensure dependencies are installed
             echo "Installing dependencies..."
             npm install
 
-            # Run Jest tests and save output
+            # Run Jest tests with coverage enabled
             echo "Running Jest tests..."
-            npm test -- --ci --reporters=default --reporters=jest-junit > test-results.log 2>&1
+            npm test -- --ci --coverage > test-results.log 2>&1
             TEST_EXIT_CODE=$?
 
-            # Display test results in logs
+            # Display test results
             echo "Test Results:"
             cat test-results.log
 
-            # Upload test results if possible (Jest JUnit XML format)
-            if [[ -f junit.xml ]]; then
-              echo "Uploading test results..."
-              curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                   -H "Accept: application/vnd.github.v3+json" \
-                   -F "artifact=@junit.xml" \
-                   "https://api.github.com/repos/${{ github.repository }}/actions/artifacts"
+            # Verify if coverage report exists
+            if [[ -d coverage ]]; then
+              echo "Coverage report generated successfully."
+            else
+              echo "WARNING: No coverage report found!"
             fi
 
             # Fail workflow if tests fail
             exit $TEST_EXIT_CODE
 
-      - name: Upload Jest Test Report
+      - name: Upload Jest Coverage Report
         uses: actions/upload-artifact@v4
         with:
-          name: jest-test-results
-          path: backend/junit.xml
+          name: jest-coverage-report
+          path: backend/coverage/
+          if-no-files-found: warn 
