@@ -98,23 +98,17 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Copy Files from EC2 to GitHub Runner
+      - name: Fix Permissions for Copied Files
         run: |
-          mkdir -p $GITHUB_WORKSPACE/test-results
-          echo "Checking if coverage directory exists on EC2..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "ls -la /home/ubuntu/cpen321-jelx/backend/coverage || echo 'ERROR: No coverage directory found!'"
-          
-          echo "Copying files from EC2 to GitHub Runner..."
-          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/cpen321-jelx/backend/coverage/* $GITHUB_WORKSPACE/test-results/ || echo "ERROR: SCP command failed!"
-          
-          echo "Listing contents of the test-results directory after SCP:"
+          echo "Fixing file permissions..."
+          chmod -R 777 $GITHUB_WORKSPACE/test-results
           ls -la $GITHUB_WORKSPACE/test-results/
 
       - name: Upload Test Results as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: $GITHUB_WORKSPACE/test-results/
+          path: $GITHUB_WORKSPACE/test-results/**/*
           retention-days: 7
           if-no-files-found: warn
 
