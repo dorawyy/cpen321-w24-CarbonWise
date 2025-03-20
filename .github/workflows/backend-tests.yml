@@ -52,9 +52,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          source: "/home/ubuntu/cpen321-jelx/backend/coverage/*"
-          target: "./coverage/"
-
+          source: "/home/ubuntu/cpen321-jelx/backend/coverage"
+          target: "./coverage"
 
       - name: Upload Jest Coverage Report
         uses: actions/upload-artifact@v4
