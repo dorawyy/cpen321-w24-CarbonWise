@@ -2,28 +2,35 @@ package com.example.carbonwise
 
 import android.Manifest
 import android.content.BroadcastReceiver
-import android.content.pm.PackageManager
-import android.os.Build
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.carbonwise.databinding.ActivityMainBinding
-import com.example.carbonwise.network.ApiService
+import com.example.carbonwise.network.FriendsApiService
 import com.example.carbonwise.network.FCMTokenManager
 import com.example.carbonwise.ui.friends.FriendsViewModel
-import okhttp3.*
+import com.google.android.gms.tasks.Task
+import com.google.firebase.messaging.FirebaseMessaging
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
+import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import com.google.firebase.messaging.FirebaseMessaging
-import org.json.JSONObject
 import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
@@ -48,7 +55,7 @@ class MainActivity : AppCompatActivity() {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        val apiService = retrofit.create(ApiService::class.java)
+        val apiService = retrofit.create(FriendsApiService::class.java)
         val token = getJWTToken(this) ?: ""
 
         val factory = FriendsViewModel.Factory(apiService, token)
@@ -56,7 +63,7 @@ class MainActivity : AppCompatActivity() {
 
         setupNavigation()
         askNotificationPermission()
-        retrieveFCMToken()
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(::handleFCMTokenResult)
 
         if (isUserLoggedIn) {
             refreshJWTToken(token)
@@ -153,7 +160,7 @@ class MainActivity : AppCompatActivity() {
 
     fun switchToLoggedInMode() {
         isUserLoggedIn = true
-        retrieveFCMToken()
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(::handleFCMTokenResult)
         getJWTToken(this)?.let { friendsViewModel.updateToken(it) }
         setupNavigation()
     }
@@ -164,8 +171,7 @@ class MainActivity : AppCompatActivity() {
         setupNavigation()
     }
 
-
-    private fun showLogoutConfirmationDialog() {
+    fun showLogoutConfirmationDialog() {
         val builder = android.app.AlertDialog.Builder(this)
         builder.setTitle("Log Out")
         builder.setMessage("Are you sure you want to log out?")
@@ -174,6 +180,8 @@ class MainActivity : AppCompatActivity() {
         }
         builder.setNegativeButton("Cancel") { dialog, _ ->
             dialog.dismiss()
+            val navController = findNavController(R.id.nav_host_fragment_activity_main)
+            navController.navigate(R.id.navigation_scan)
         }
         builder.show()
     }
@@ -182,15 +190,6 @@ class MainActivity : AppCompatActivity() {
         private const val PREFS_NAME = "AppPrefs"
         private const val TOKEN_KEY = "google_id_token"
         private const val JWT_TOKEN_KEY = "jwt_token"
-
-
-        fun saveToken(context: Context, token: String) {
-            val sharedPref = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            with(sharedPref.edit()) {
-                putString(TOKEN_KEY, token)
-                apply()
-            }
-        }
 
         fun getToken(context: Context): String? {
             val sharedPref = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -238,25 +237,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Get FCM token
-    private fun retrieveFCMToken() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Log.w("FCM", "Fetching FCM token failed", task.exception)
-                return@addOnCompleteListener
-            }
+    private fun handleFCMTokenResult(task: Task<String>) {
+        if (!task.isSuccessful) {
+            Log.w("FCM", "Fetching FCM token failed", task.exception)
+            return
+        }
 
-            val newToken = task.result
-            Log.d("FCM", "FCM Token: $newToken")
+        val newToken = task.result
+        Log.d("FCM", "FCM Token: $newToken")
 
-            val sharedPref = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val sharedPref = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        FCMTokenManager.sendFCMTokenToBackend(this, newToken)
 
-            FCMTokenManager.sendFCMTokenToBackend(this, newToken)
-
-            with(sharedPref.edit()) {
-                putString("fcm_token", newToken)
-                apply()
-            }
+        with(sharedPref.edit()) {
+            putString("fcm_token", newToken)
+            apply()
         }
     }
 
@@ -288,7 +283,12 @@ class MainActivity : AppCompatActivity() {
                         val newJwtToken = jsonObject.optString("token")
 
                         if (newJwtToken.isNotEmpty()) {
-                            saveJWTToken(this@MainActivity, newJwtToken)
+                            val sharedPref = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                            with(sharedPref.edit()) {
+                                putString("jwt_token", newJwtToken)
+                                apply()
+                            }
+                            friendsViewModel.updateToken(newJwtToken)
                             Log.d("MainActivity", "JWT Token refreshed successfully")
                         } else {
                             Log.e("MainActivity", "Failed to extract JWT token from response")
@@ -299,15 +299,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-    }
-
-    private fun saveJWTToken(context: Context, jwtToken: String) {
-        val sharedPref = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("jwt_token", jwtToken)
-            apply()
-        }
-        friendsViewModel.updateToken(jwtToken)
     }
 
     private val broadcastReceiver = object : BroadcastReceiver() {

@@ -28,7 +28,7 @@ export class FriendsController {
         const targetFriends = await friendsCollection.findOne({ user_uuid: friend_uuid });
 
         // Check if users are already friends
-        if (userFriends?.friends.some(friend => friend.user_uuid === friend_uuid)) {
+        if (userFriends && userFriends.friends.some(friend => friend.user_uuid === friend_uuid)) {
             return res.status(400).send({message: "Already friends."});
         }
 
@@ -168,12 +168,29 @@ export class FriendsController {
         const user_uuid = user.user_uuid;
 
         const friendsCollection: Collection<Friends> = client.db("users_db").collection<Friends>("friends");
+        const usersCollection: Collection<User> = client.db("users_db").collection<User>("users");
 
-        const outgoingRequests = await friendsCollection.find({ "incoming_requests.user_uuid": user_uuid }).toArray();
+        const outgoingRequestDocs = await friendsCollection.find({
+            "incoming_requests.user_uuid": user_uuid
+        }).toArray();
 
-        const outgoingRequestUUIDs = outgoingRequests.map(request => request.user_uuid);
+        const targetUUIDs = outgoingRequestDocs.map(doc => doc.user_uuid);
 
-        res.status(200).send(outgoingRequestUUIDs);
+        // Query only the needed fields
+        const users = await Promise.all(
+            targetUUIDs.map(async (uuid) => {
+                const user = await usersCollection.findOne(
+                    { user_uuid: uuid },
+                    { projection: { user_uuid: 1, name: 1, _id: 0 } }
+                );
+
+                if (user) {
+                    return { user_uuid: user.user_uuid, name: user.name };
+                }
+            })
+        );
+
+        res.status(200).send(users);
     }
 
     async getCurrentFriends(req: Request<object, object, FriendRequestBody>, res: Response) {

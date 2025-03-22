@@ -22,7 +22,7 @@ object FCMTokenManager {
             .baseUrl("https://api.cpen321-jelx.com/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(ApiService::class.java)
+            .create(UsersApiService::class.java)
 
         val request = FCMTokenRequest(fcmToken)
         apiService.sendFCMToken(token, request).enqueue(object : Callback<Void> {

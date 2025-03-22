@@ -139,6 +139,15 @@ const friend: User = {
     name: "Jane Doe",
 };
 
+const friend2: User = {
+    _id: "friend-456",
+    google_id: "google-456",
+    email: "bob.marley@example.com",
+    fcm_registration_token: "fcm-token-456",
+    user_uuid: "friend-456",
+    name: "Bob Marley",
+};
+
 const mockProduct: Product = {
     _id: "12345",
     product_name: "Mock Product",
@@ -677,13 +686,16 @@ describe("Mocked: GET /friends/requests", () => {
 // Interface GET /friends/requests/outgoing
 describe("Mocked: GET /friends/requests/outgoing", () => {
     let friendsCollection: jest.Mocked<Collection<Friends>>;
+    let usersCollection: jest.Mocked<Collection<User>>;
 
     beforeEach(() => {
         friendsCollection = (services.client.db as jest.Mock)().collection("friends");
+        usersCollection = (services.client.db as jest.Mock)().collection("users");
 
         (jwt.verify as jest.Mock).mockImplementation(() => user);
 
         friendsCollection.find.mockClear();
+        usersCollection.findOne.mockClear();
     });
 
     afterEach(() => {
@@ -708,12 +720,15 @@ describe("Mocked: GET /friends/requests/outgoing", () => {
             toArray: jest.fn().mockResolvedValueOnce(mockOutgoingRequests),
         } as jest.Mocked<any>);
 
+        usersCollection.findOne.mockResolvedValueOnce(friend)
+                                .mockResolvedValueOnce(friend2);
+
         const res: supertest.Response = await supertest(app)
             .get("/friends/requests/outgoing")
             .set("token", "mock_token");
 
         expect(res.status).toBe(200);
-        expect(res.body).toEqual(["friend-123", "friend-456"]);
+        expect(res.body).toEqual([{user_uuid: "friend-123", name: "Jane Doe"}, {user_uuid: "friend-456", name: "Bob Marley"}]);
     });
 
     // Input: User has no outgoing friend requests

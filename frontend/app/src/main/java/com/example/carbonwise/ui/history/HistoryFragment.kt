@@ -35,7 +35,16 @@ class HistoryFragment : Fragment() {
             onDeleteClick = { scanUuid ->
                 val token = MainActivity.getJWTToken(requireContext())
                 if (!token.isNullOrEmpty()) {
-                    historyViewModel.removeHistoryItem(token, scanUuid)
+                    val builder = android.app.AlertDialog.Builder(requireContext())
+                    builder.setTitle("Delete Item")
+                    builder.setMessage("Are you sure you want to delete this item?")
+                    builder.setPositiveButton("Delete") { _, _ ->
+                        historyViewModel.removeHistoryItem(token, scanUuid)
+                    }
+                    builder.setNegativeButton("Cancel") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    builder.show()
                 } else {
                     Toast.makeText(context, "No JWT token found", Toast.LENGTH_SHORT).show()
                 }
@@ -46,19 +55,24 @@ class HistoryFragment : Fragment() {
         historyViewModel.historyItems.observe(viewLifecycleOwner) { history ->
             historyAdapter.submitList(history)
             binding.textViewEmptyHistory.visibility = if (history.isEmpty()) View.VISIBLE else View.GONE
+            binding.ecoScoreCard.visibility = if (history.isEmpty()) View.GONE else View.VISIBLE
         }
 
         historyViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            binding.progressBar.visibility = if (isLoading && historyAdapter.itemCount == 0) View.VISIBLE else View.GONE
         }
 
         historyViewModel.ecoScore.observe(viewLifecycleOwner) { score ->
             if (score > 0) {
-                binding.ecoScoreCard.visibility = View.VISIBLE
                 binding.textEcoscoreValue.text = score.toInt().toString()
                 binding.progressEcoscore.setProgress(score.toInt(), true)
-            } else {
-                binding.ecoScoreCard.visibility = View.INVISIBLE
+            }
+        }
+
+        historyViewModel.networkFailure.observe(viewLifecycleOwner) { failure ->
+            if (failure) {
+                Toast.makeText(context, "Network error, please try again later", Toast.LENGTH_SHORT).show()
+                historyViewModel.networkFailure.value = false
             }
         }
 
@@ -69,6 +83,15 @@ class HistoryFragment : Fragment() {
         }
 
         return root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val token = MainActivity.getJWTToken(requireContext())
+        if (!token.isNullOrEmpty()) {
+            historyViewModel.fetchHistory(token)
+            historyViewModel.fetchEcoScore(token)
+        }
     }
 
     private fun openProductInfoFragment(upcCode: String) {
