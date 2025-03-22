@@ -45,7 +45,7 @@
 
    - Open your terminal and run:
      ```
-     git clone https://github.com/example/your-project.git
+     git clone https://github.com/ethschan/cpen321-JELX.git
      ```
 
     - Navigate to the backend directory:
