@@ -27,12 +27,12 @@ jest.mock("../../services", () => {
     };
 });
 
-const app = createServer();
-
 // Interface POST /auth/google
 describe("Mocked: POST /auth/google", () => {
     let userCollection: any;
     let oauthClient: any;
+
+    const app = createServer();
 
     beforeEach(() => {
         userCollection = (services.client.db as jest.Mock)().collection("users");
@@ -212,6 +212,34 @@ describe("Mocked: POST /auth/google", () => {
         expect(userCollection.insertOne).not.toHaveBeenCalled();
     });
     
+    test("Fails if JWT_SECRET is missing", async () => {
+        const originalSecret = process.env.JWT_SECRET;
+        delete process.env.JWT_SECRET;
+      
+        const validPayload = {
+          sub: "some-id",
+          email: "user@example.com",
+          name: "Test User",
+        };
+      
+        oauthClient.verifyIdToken.mockImplementationOnce(() =>
+          Promise.resolve({
+            getPayload: () => validPayload,
+          })
+        );
+      
+        userCollection.findOne.mockResolvedValueOnce(validPayload);
+      
+        const res = await supertest(app)
+          .post("/auth/google")
+          .send({ google_id_token: "valid_token" });
+      
+        expect(res.status).toBe(401);
+        expect(res.body).toHaveProperty("message");
+        expect(res.body.message).toBe("Invalid Google OAuth token.");
+      
+        process.env.JWT_SECRET = originalSecret;
+      });
     
 
 });

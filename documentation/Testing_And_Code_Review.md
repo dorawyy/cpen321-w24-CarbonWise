@@ -14,26 +14,26 @@
 
 #### 2.1.1. Tests
 
-| **Interface**                                   | **Describe Group Location, No Mocks**                 | **Describe Group Location, With Mocks**            | **Mocked Components**                  |
-| ---------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------- | -------------------------------------- |
-| **POST /users/history**                        | [`tests/unmocked/usersHistory.test.js#L1`](#)        | [`tests/mocked/usersHistory.test.js#L1`](#)       | User Database                          |
-| **GET /users/history**                         | [`tests/unmocked/getUsersHistory.test.js#L1`](#)     | [`tests/mocked/getUsersHistory.test.js#L1`](#)    | User Database                          |
-| **DELETE /users/history**                      | [`tests/unmocked/deleteUsersHistory.test.js#L1`](#)  | [`tests/mocked/deleteUsersHistory.test.js#L1`](#) | User Database                          |
-| **GET /users/uuid**                            | [`tests/unmocked/getUserUUID.test.js#L1`](#)         | [`tests/mocked/getUserUUID.test.js#L1`](#)        | User Authentication                    |
-| **GET /users/ecoscore_score**                  | [`tests/unmocked/getUserEcoscore.test.js#L1`](#)     | [`tests/mocked/getUserEcoscore.test.js#L1`](#)    | User Database                          |
-| **POST /users/fcm_registration_token**         | [`tests/unmocked/setFCMToken.test.js#L1`](#)         | [`tests/mocked/setFCMToken.test.js#L1`](#)        | Firebase Cloud Messaging, User DB      |
-| **POST /friends/requests**                     | [`tests/unmocked/friendRequests.test.js#L1`](#)      | [`tests/mocked/friendRequests.test.js#L1`](#)     | Friends Database                       |
-| **POST /friends/requests/accept**              | [`tests/unmocked/acceptFriendRequest.test.js#L1`](#) | [`tests/mocked/acceptFriendRequest.test.js#L1`](#) | Friends Database, Notifications        |
-| **DELETE /friends**                            | [`tests/unmocked/removeFriend.test.js#L1`](#)        | [`tests/mocked/removeFriend.test.js#L1`](#)       | Friends Database                       |
-| **DELETE /friends/requests**                   | [`tests/unmocked/rejectFriendRequest.test.js#L1`](#) | [`tests/mocked/rejectFriendRequest.test.js#L1`](#) | Friends Database                       |
-| **GET /friends/requests**                      | [`tests/unmocked/getFriendRequests.test.js#L1`](#)   | [`tests/mocked/getFriendRequests.test.js#L1`](#)  | Friends Database                       |
-| **GET /friends/requests/outgoing**             | [`tests/unmocked/getOutgoingRequests.test.js#L1`](#) | [`tests/mocked/getOutgoingRequests.test.js#L1`](#) | Friends Database                       |
-| **GET /friends**                               | [`tests/unmocked/getCurrentFriends.test.js#L1`](#)   | [`tests/mocked/getCurrentFriends.test.js#L1`](#)  | Friends Database                       |
-| **POST /friends/notifications**                | [`tests/unmocked/sendFriendNotification.test.js#L1`](#) | [`tests/mocked/sendFriendNotification.test.js#L1`](#) | Firebase Cloud Messaging, User DB  |
-| **GET /friends/ecoscore_score/:user_uuid**     | [`tests/unmocked/getFriendEcoscore.test.js#L1`](#)   | [`tests/mocked/getFriendEcoscore.test.js#L1`](#)  | Friends Database, User DB              |
-| **GET /friends/history/:user_uuid**            | [`tests/unmocked/getFriendHistory.test.js#L1`](#)    | [`tests/mocked/getFriendHistory.test.js#L1`](#)   | Friends Database, User History         |
-| **GET /products/:product_id**                  | [`tests/unmocked/getProduct.test.js#L1`](#)          | [`tests/mocked/getProduct.test.js#L1`](#)         | Product Database, OpenFoodFacts API    |
-| **POST /auth/google**                          | [`tests/unmocked/auth.test.js#L1`](#)                | [`tests/mocked/auth.test.js#L1`](#)         | Google OAuth, User Database            |
+| **Interface**                                   | **Describe Group Location, No Mocks**                 | **Describe Group Location, With Mocks**            | **Mocked Components**                                  |
+| ---------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------ |
+| **POST /users/history**                        | [`tests/unmocked/users.test.ts#L1`](#)                | [`tests/mocked/users.test.ts#L1`](#)               | User Database, Product Database, JWT                   |
+| **GET /users/history**                         | [`tests/unmocked/users.test.ts#L1`](#)                | [`tests/mocked/users.test.ts#L1`](#)               | User Database, Product Database, JWT                   |
+| **DELETE /users/history**                      | [`tests/unmocked/users.test.ts#L1`](#)                | [`tests/mocked/users.test.ts#L1`](#)               | User Database, JWT                                     |
+| **GET /users/uuid**                            | [`tests/unmocked/users.test.ts#L1`](#)                | [`tests/mocked/users.test.ts#L1`](#)               | User Authentication, JWT                               |
+| **GET /users/ecoscore_score**                  | [`tests/unmocked/users.test.ts#L1`](#)                | [`tests/mocked/users.test.ts#L1`](#)               | User Database, Product Database, JWT                   |
+| **POST /users/fcm_registration_token**         | [`tests/unmocked/users.test.ts#L1`](#)                | [`tests/mocked/users.test.ts#L1`](#)               | User Database, JWT                                     |
+| **POST /friends/requests**                     | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Friends Database, JWT, Firebase Cloud Messaging        |
+| **POST /friends/requests/accept**              | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Friends Database, JWT, Firebase Cloud Messaging        |
+| **DELETE /friends**                            | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Friends Database, JWT                                  |
+| **DELETE /friends/requests**                   | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Friends Database, JWT                                  |
+| **GET /friends/requests**                      | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Friends Database, JWT                                  |
+| **GET /friends/requests/outgoing**             | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Friends Database, JWT                                  |
+| **GET /friends**                               | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Friends Database, JWT                                  |
+| **POST /friends/notifications**                | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Firebase Cloud Messaging, User DB, Friends Database, JWT |
+| **GET /friends/ecoscore_score/:user_uuid**     | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Friends Database, User DB, JWT                         |
+| **GET /friends/history/:user_uuid**            | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Friends Database, User History, JWT                    |
+| **GET /products/:product_id**                  | [`tests/unmocked/products.test.ts#L1`](#)             | [`tests/mocked/products.test.ts#L1`](#)            | Product Database, OpenFoodFacts API             |
+| **POST /auth/google**                          | [`tests/unmocked/auth.test.ts#L1`](#)                 | [`tests/mocked/auth.test.ts#L1`](#)                | Google OAuth, User Database                            |
 
 #### 2.1.2. Commit Hash Where Tests Run
 
@@ -45,7 +45,7 @@
 
    - Open your terminal and run:
      ```
-     git clone https://github.com/example/your-project.git
+     git clone https://github.com/ethschan/cpen321-JELX.git
      ```
 
     - Navigate to the backend directory:
@@ -53,47 +53,50 @@
      cd backend
      ```
 
-2. **Set Up MongoDB Container**:
-
-   - Start the MongoDB container using Docker Compose:
-     ```
-     docker-compose up -d mongo
-     ```
-
-3. **Download and Restore OpenFoodFacts API Database**:
-
-   - Download the OpenFoodFacts MongoDB dump:
-     ```
-     wget https://static.openfoodfacts.org/data/openfoodfacts-mongodbdump.gz
-     ```
-
-   - Restore the database into your MongoDB container:
-     ```
-     mongorestore -vvvvv --gzip --archive="./openfoodfacts-mongodbdump.gz" --nsFrom=off.products --nsTo=products_db.products --drop --host mongo_instance
-     ```
-
-4. **Install Dependencies**:
-
-   - Navigate to the `backend` directory:
-     ```
-     cd backend
-     ```
-
-   - Install the dependencies:
+   - Install dependencies:
      ```
      npm install
      ```
 
-5. **Run the Tests**:
+2. **Set Up and Build MongoDB Container**:
+
+   - Start and build the MongoDB container with Docker Compose:
+     ```
+     docker-compose up -d --build mongo
+     ```
+
+3. **Download and Restore OpenFoodFacts API Database**:
+
+   - Download the MongoDB dump:
+     ```
+     wget https://cpen321-jelx.s3.us-west-2.amazonaws.com/products_db.archive
+     ```
+
+   - Copy the MongoDB dump to the Docker container:
+     ```
+     docker cp products_db.archive mongo_instance:/products_db.archive
+     ```
+
+   - Restore the OpenFoodFacts database in the MongoDB container:
+     ```
+     docker exec -it mongo_instance mongorestore --db products_db --archive=./products_db.archive --gzip --drop
+     ```
+
+4. **Run the Tests**:
+
+  - Run the tests with mocks:
+     ```
+     npm run test:mocked
+     ```
 
    - Run the tests without mocks:
      ```
      npm run test:unmocked
      ```
 
-   - Run the tests with mocks:
+   - Run non-functional tests:
      ```
-     npm run test:mocked
+     npm run test:non-functional
      ```
 
    - Run all the tests:
@@ -101,10 +104,17 @@
      npm test
      ```
 
-6. **View the Test Results**:
+5. **Pull Down MongoDB Container**:
 
-   - The test results will be displayed in the terminal.
-   - You can also view the test results in the `coverage` directory.
+   - Stop the MongoDB container:
+     ```
+     docker-compose down
+     ```
+
+   - Remove the MongoDB container (optional, to free up disk space):
+     ```
+     docker rm mongo_instance
+     ```
 
 ### 2.2. GitHub Actions Configuration Location
 
@@ -124,26 +134,27 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 
 ### 3.1. Test Locations in Git
 
-| **Non-Functional Requirement**  | **Location in Git**                              |
-| ------------------------------- | ------------------------------------------------ |
-| **Performance (Response Time)** | [`tests/nonfunctional/response_time.test.js`](#) |
-| **Chat Data Security**          | [`tests/nonfunctional/chat_security.test.js`](#) |
+| **Non-Functional Requirement**         | **Location in Git**                                      |
+| -------------------------------------- | -------------------------------------------------------- |
+| **Product Database Size**              | [`tests/non-functional/product_database_size.test.ts`](#) |
+| **Product Information Response Time**  | [`tests/non-functional/product_information_response_time.test.ts`](#) |
 
 ### 3.2. Test Verification and Logs
 
-- **Performance (Response Time)**
+- **Product Database Size**
 
-  - **Verification:** This test suite simulates multiple concurrent API calls using Jest along with a load-testing utility to mimic real-world user behavior. The focus is on key endpoints such as user login and study group search to ensure that each call completes within the target response time of 2 seconds under normal load. The test logs capture metrics such as average response time, maximum response time, and error rates. These logs are then analyzed to identify any performance bottlenecks, ensuring the system can handle expected traffic without degradation in user experience.
+  - **Verification:** This test ensures that the database contains at least 100,000 distinct products. It connects to the database and counts the number of products with essential fields like product name, categories, and countries. The test passes if the count meets or exceeds the minimum requirement, ensuring the database's capacity to provide comprehensive product information.
   - **Log Output**
     ```
-    [Placeholder for response time test logs]
+    [Placeholder for product database size test logs]
     ```
 
-- **Chat Data Security**
-  - **Verification:** ...
+- **Product Information Response Time**
+
+  - **Verification:** This test measures the time taken to retrieve product information, ensuring it is under 5 seconds. It uses performance monitoring to track the response time for fetching details of a valid product ID. The test passes if the response time is within the acceptable limit, ensuring quick access to product information for users.
   - **Log Output**
     ```
-    [Placeholder for chat security test logs]
+    [Placeholder for product information response time test logs]
     ```
 
 ---
