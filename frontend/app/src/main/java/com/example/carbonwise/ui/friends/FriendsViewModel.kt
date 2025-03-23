@@ -5,12 +5,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.carbonwise.network.ApiResponse
 import com.example.carbonwise.network.FriendsApiService
 import com.example.carbonwise.network.EcoscoreResponse
 import com.example.carbonwise.network.Friend
 import com.example.carbonwise.network.FriendRequest
 import com.example.carbonwise.network.FriendRequestBody
 import com.example.carbonwise.network.UUIDResponse
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -21,6 +23,7 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
         fetchUserFriendCode()
         fetchFriends()
         fetchFriendRequests()
+        fetchOutgoingRequests()
     }
 
     private val _friendsList = MutableLiveData<List<Friend>>()
@@ -29,7 +32,11 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
     private val _incomingRequests = MutableLiveData<List<FriendRequest>>()
     val incomingRequests: LiveData<List<FriendRequest>> get() = _incomingRequests
 
+    private val _outgoingRequests = MutableLiveData<List<FriendRequest>>()
+    val outgoingRequests: LiveData<List<FriendRequest>> get() = _outgoingRequests
+
     private val _friendActions = MutableLiveData<String>()
+    val friendActions: LiveData<String> get() = _friendActions
 
     private val _userFriendCode = MutableLiveData<String>()
     val userFriendCode: LiveData<String> get() = _userFriendCode
@@ -108,7 +115,9 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
         apiService.getFriendRequests(token).enqueue(object : Callback<List<FriendRequest>> {
             override fun onResponse(call: Call<List<FriendRequest>>, response: Response<List<FriendRequest>>) {
                 if (response.isSuccessful) {
-                    _incomingRequests.value = response.body() ?: emptyList()
+                    val requests = response.body() ?: emptyList()
+                    Log.d("FriendsViewModel", "Incoming requests: $requests")
+                    _incomingRequests.postValue(requests)
                 } else {
                     _friendActions.value = "Failed to load friend requests"
                 }
@@ -120,21 +129,59 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
         })
     }
 
-    fun sendFriendRequest(friendUuid: String) {
-        val requestBody = FriendRequestBody(friendUuid)
-        apiService.sendFriendRequest(token, requestBody).enqueue(object : Callback<Void> {
-            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+    fun fetchOutgoingRequests() {
+        apiService.getOutgoingRequests(token).enqueue(object : Callback<List<FriendRequest>> {
+            override fun onResponse(call: Call<List<FriendRequest>>, response: Response<List<FriendRequest>>) {
                 if (response.isSuccessful) {
-                    fetchFriendRequests()
-                    _friendActions.value = "Friend request sent!"
-                } else {
-                    _friendActions.value = "Failed to send friend request"
-                    networkFailure.postValue(true)
+                    val requests = response.body() ?: emptyList()
+                    Log.d("FriendsViewModel", "Outgoing requests: $requests")
+                    _outgoingRequests.postValue(requests)
                 }
             }
 
-            override fun onFailure(call: Call<Void>, t: Throwable) {
-                _friendActions.value = "Error sending friend request: ${t.message}"
+            override fun onFailure(call: Call<List<FriendRequest>>, t: Throwable) {
+                _friendActions.value = "Error fetching friend requests: ${t.message}"
+            }
+        })
+    }
+
+
+    fun sendFriendRequest(friendUuid: String) {
+        val requestBody = FriendRequestBody(friendUuid)
+        apiService.sendFriendRequest(token, requestBody).enqueue(object : Callback<ApiResponse> {
+            override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
+                if (response.isSuccessful) {
+                    fetchFriendRequests()
+                    fetchOutgoingRequests()
+                    _friendActions.value = response.body()?.message ?: "Friend request sent!"
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    val errorMessage = try {
+                        JSONObject(errorBody).getString("message")
+                    } catch (e: Exception) {
+                        "Failed to send friend request"
+                    }
+
+                    when (errorMessage) {
+                        "Already friends." -> {
+                            _friendActions.value = "You're already friends with this user."
+                        }
+                        "Friend request already sent." -> {
+                            _friendActions.value = "Friend request already sent."
+                        }
+                        "User not found." -> {
+                            _friendActions.value = "User not found."
+                        }
+                        else -> {
+                            _friendActions.value = errorMessage
+                            networkFailure.postValue(true)
+                        }
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
+                _friendActions.value = "Network error"
                 networkFailure.postValue(true)
             }
         })

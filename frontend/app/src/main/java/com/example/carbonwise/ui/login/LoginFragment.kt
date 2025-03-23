@@ -12,8 +12,10 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.example.carbonwise.BuildConfig
 import com.example.carbonwise.MainActivity
+import com.example.carbonwise.R
 import com.example.carbonwise.databinding.FragmentLoginBinding
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
@@ -72,42 +74,40 @@ class LoginFragment : Fragment() {
             )
             .build()
 
-        binding.loginButton.setOnClickListener {
+        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork = connectivityManager.activeNetworkInfo
+        if (activeNetwork == null || !activeNetwork.isConnected) {
+            Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+        }
 
-            val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val activeNetwork = connectivityManager.activeNetworkInfo
-            if (activeNetwork == null || !activeNetwork.isConnected) {
-                Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
-            }
-
-            activity?.let { activity ->
-                oneTapClient.beginSignIn(signInRequest)
-                    .addOnSuccessListener(activity) { result ->
-                        if (isAdded) {
-                            try {
-                                startIntentSenderForResult(
-                                    result.pendingIntent.intentSender,
-                                    REQ_ONE_TAP,
-                                    null,
-                                    0,
-                                    0,
-                                    0,
-                                    null
-                                )
-                            } catch (e: IntentSender.SendIntentException) {
-                                Log.e(TAG, "Error starting IntentSender", e)
-                                val signInIntent = googleSignInClient.signInIntent
-                                startActivityForResult(signInIntent, REQ_SIGN_IN)
-                            }
+        activity?.let { activity ->
+            oneTapClient.beginSignIn(signInRequest)
+                .addOnSuccessListener(activity) { result ->
+                    if (isAdded) {
+                        try {
+                            startIntentSenderForResult(
+                                result.pendingIntent.intentSender,
+                                REQ_ONE_TAP,
+                                null,
+                                0,
+                                0,
+                                0,
+                                null
+                            )
+                        } catch (e: IntentSender.SendIntentException) {
+                            Log.e(TAG, "Error starting IntentSender", e)
+                            val signInIntent = googleSignInClient.signInIntent
+                            startActivityForResult(signInIntent, REQ_SIGN_IN)
                         }
                     }
-                    .addOnFailureListener(activity) { e ->
-                        Log.e(TAG, "Google One Tap Sign-In failed", e)
-                        val signInIntent = googleSignInClient.signInIntent
-                        startActivityForResult(signInIntent, REQ_SIGN_IN)
-                    }
-            }
+                }
+                .addOnFailureListener(activity) { e ->
+                    Log.e(TAG, "Google One Tap Sign-In failed", e)
+                    val signInIntent = googleSignInClient.signInIntent
+                    startActivityForResult(signInIntent, REQ_SIGN_IN)
+                }
         }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -127,10 +127,16 @@ class LoginFragment : Fragment() {
                 processSignIn(idToken)
             } else {
                 Toast.makeText(context, "Sign-in failed. Please try again.", Toast.LENGTH_LONG).show()
+                binding.loginProgressBar.visibility = View.GONE
+                binding.loginStatusText.visibility = View.GONE
+                findNavController().navigate(R.id.navigation_scan)
                 Log.e(TAG, "No ID token found!")
             }
         } catch (e: ApiException) {
             Toast.makeText(context, "Sign-in failed. Please try again.", Toast.LENGTH_LONG).show()
+            binding.loginProgressBar.visibility = View.GONE
+            binding.loginStatusText.visibility = View.GONE
+            findNavController().navigate(R.id.navigation_scan)
             Log.e(TAG, "One Tap Sign-in failed", e)
         }
     }
@@ -180,7 +186,6 @@ class LoginFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding.loginButton.setOnClickListener(null)
         _binding = null
     }
 

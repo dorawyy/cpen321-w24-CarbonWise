@@ -43,17 +43,34 @@ class IncomingRequestsFragment : Fragment() {
         binding.recyclerIncomingRequests.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerIncomingRequests.adapter = adapter
 
-        friendsViewModel.incomingRequests.observe(viewLifecycleOwner) { updatedList ->
-            adapter.updateRequests(updatedList)
+        friendsViewModel.incomingRequests.observe(viewLifecycleOwner) { incoming ->
+            friendsViewModel.outgoingRequests.observe(viewLifecycleOwner) { outgoing ->
+
+                val incomingTagged = incoming
+                    .filterNotNull()
+                    .onEach { it.isOutgoing = false }
+
+                val outgoingTagged = outgoing
+                    .filterNotNull()
+                    .onEach { it.isOutgoing = true }
+
+                val combined = incomingTagged + outgoingTagged
+                adapter.updateRequests(combined)
+            }
         }
 
+
         friendsViewModel.fetchFriendRequests()
+        friendsViewModel.fetchOutgoingRequests()
+
     }
 
     override fun onResume() {
         super.onResume()
         friendsViewModel.fetchFriendRequests()
         friendsViewModel.fetchUserFriendCode()
+        friendsViewModel.fetchOutgoingRequests()
+
     }
 
     override fun onDestroyView() {

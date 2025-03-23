@@ -23,7 +23,13 @@ interface FriendsApiService {
     fun sendFriendRequest(
         @Header("token") token: String,
         @Body request: FriendRequestBody
-    ): Call<Void>
+    ): Call<ApiResponse>
+
+    // Get list of outgoing friend requests
+    @GET("friends/requests/outgoing")
+    fun getOutgoingRequests(
+        @Header("token") token: String,
+    ): Call<List<FriendRequest>>
 
     // Accept a friend request
     @POST("friends/requests/accept")
