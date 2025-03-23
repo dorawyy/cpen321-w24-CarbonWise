@@ -317,6 +317,7 @@ class MainActivity : AppCompatActivity() {
             if (intent?.action == "UPDATE_FRIENDS") {
                 friendsViewModel.fetchFriends()
                 friendsViewModel.fetchFriendRequests()
+                friendsViewModel.fetchOutgoingRequests()
             }
         }
     }

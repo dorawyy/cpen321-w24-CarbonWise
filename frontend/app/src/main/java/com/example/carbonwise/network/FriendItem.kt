@@ -8,7 +8,8 @@ data class Friend(
 data class FriendRequest(
     val name: String,
     val user_uuid: String,
-    val sent_at: String
+    val sent_at: String,
+    var isOutgoing: Boolean = false
 )
 
 data class FriendRequestBody(
@@ -22,3 +23,5 @@ data class ProductNotificationRequest(
 )
 
 data class UUIDResponse(val user_uuid: String)
+
+data class ApiResponse(val message: String)

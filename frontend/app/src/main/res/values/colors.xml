@@ -14,4 +14,6 @@
     <color name="red">#F44336</color>
     <color name="dark_green">#388E3C</color>
     <color name="light_green">#557A55</color>
+    <color name="incoming_request_background">#6B8F6B</color>
+    <color name="outgoing_request_background">#8C735B</color>
 </resources>
