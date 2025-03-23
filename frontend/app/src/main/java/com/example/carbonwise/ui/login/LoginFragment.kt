@@ -10,9 +10,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.example.carbonwise.BuildConfig
 import com.example.carbonwise.MainActivity
 import com.example.carbonwise.R
@@ -25,6 +22,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,7 +35,7 @@ import okhttp3.RequestBody
 import org.json.JSONObject
 import java.io.IOException
 
-class LoginFragment : Fragment() {
+class LoginFragment : BottomSheetDialogFragment() {
 
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
@@ -72,6 +72,7 @@ class LoginFragment : Fragment() {
                     .setFilterByAuthorizedAccounts(false)
                     .build()
             )
+            .setAutoSelectEnabled(true)
             .build()
 
         val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -107,7 +108,6 @@ class LoginFragment : Fragment() {
                     startActivityForResult(signInIntent, REQ_SIGN_IN)
                 }
         }
-
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -176,6 +176,7 @@ class LoginFragment : Fragment() {
                 }
                 if (isAdded) {
                     (activity as? MainActivity)?.switchToLoggedInMode()
+                    dismiss()
                 }
             } else {
                 Toast.makeText(context, "Sign-in failed. Please try again.", Toast.LENGTH_LONG).show()

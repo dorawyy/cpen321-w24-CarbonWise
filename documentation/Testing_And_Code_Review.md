@@ -163,45 +163,94 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 
 ### 4.1. Location in Git of Front-end Test Suite:
 
-`frontend/src/androidTest/java/com/studygroupfinder/`
+`frontend/app/src/androidTest/java/com/example/carbonwise`
 
 ### 4.2. Tests
 
-- **Use Case: Login**
+- **Use Case: Authenticate Guest User**
 
   - **Expected Behaviors:**
-    | **Scenario Steps** | **Test Case Steps** |
-    | ------------------ | ------------------- |
-    | 1. The user opens â€œAdd Todo Itemsâ€ screen. | Open â€œAdd Todo Itemsâ€ screen. |
-    | 2. The app shows an input text field and an â€œAddâ€ button. The add button is disabled. | Check that the text field is present on screen.<br>Check that the button labelled â€œAddâ€ is present on screen.<br>Check that the â€œAddâ€ button is disabled. |
-    | 3a. The user inputs an ill-formatted string. | Input â€œ_^_^^OQ#$â€ in the text field. |
-    | 3a1. The app displays an error message prompting the user for the expected format. | Check that a dialog is opened with the text: â€œPlease use only alphanumeric charactersâ€. |
-    | 3. The user inputs a new item for the list and the add button becomes enabled. | Input â€œbuy milkâ€ in the text field.<br>Check that the button labelled â€œaddâ€ is enabled. |
-    | 4. The user presses the â€œAddâ€ button. | Click the button labelled â€œaddâ€. |
-    | 5. The screen refreshes and the new item is at the bottom of the todo list. | Check that a text box with the text â€œbuy milkâ€ is present on screen.<br>Input â€œbuy chocolateâ€ in the text field.<br>Click the button labelled â€œaddâ€.<br>Check that two text boxes are present on the screen with â€œbuy milkâ€ on top and â€œbuy chocolateâ€ at the bottom. |
-    | 5a. The list exceeds the maximum todo-list size. | Repeat steps 3 to 5 ten times.<br>Check that a dialog is opened with the text: â€œYou have too many items, try completing one firstâ€. |
+    | **Scenario Steps**                                                                 | **Test Case Steps**                                                                                                                |
+    |-------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+    | Guest user navigates to the login tab.                                              | `navigateToLoginFragment()` is called to programmatically open the login screen.                                                  |
+    | The system prompts the guest with the Google OAuth authentication screen.          | `device.findObject(...id/loginButton)` is checked and clicked to launch Google Sign-In.                                           |
+    | Guest user selects a Google account and grants access.                             | `handleGoogleSignIn()` automates account selection and permission granting via UIAutomator.                                       |
+    | The system verifies authentication with Google OAuth.                              | Implicitly verified by successful flow to next screen.                                                                             |
+    | The guest is logged in and transitioned to a user with full access.                | Verified by successful sign-in flow completion.                                                                                    |
+    | **Failure 2a:** Google OAuth service error.                                         | Simulated by disabling Wi-Fi (`svc wifi disable`) and verifying toast message: "No internet connection".                          |
+    | **Failure 3a:** Guest user declines to continue with Google OAuth.                 | Not explicitly tested but would result in returning to the login tab.                                                              |
+    | **Failure 4a:** Google OAuth token is invalid/expired.                              | Omitted due to reliance on backend failure.                                                    |
+    | **Failure 4b:** Server error when transitioning guest to full user.                | Not explicitly tested but would result in returning to the login tab.                                 
 
   - **Test Logs:**
-    ```
-    [Placeholder for Espresso test execution logs]
-    ```
+      ```
+      > Task :app:compileDebugAndroidTestJavaWithJavac UP-TO-DATE
+      > Task :app:processDebugAndroidTestJavaRes UP-TO-DATE
+      > Task :app:mergeDebugAndroidTestJavaResource UP-TO-DATE
+      > Task :app:dexBuilderDebugAndroidTest
+      > Task :app:mergeProjectDexDebugAndroidTest
+      > Task :app:packageDebugAndroidTest
+      > Task :app:createDebugAndroidTestApkListingFileRedirect UP-TO-DATE
 
-- **Use Case: ...**
+      > Task :app:connectedDebugAndroidTest
+      Starting 2 tests on Pixel_9_API_31(AVD) - 12
+      Connected to process 10339 on device 'Pixel_9_API_31 [emulator-5554]'.
+
+      Pixel_9_API_31(AVD) - 12 Tests 0/2 completed. (0 skipped) (0 failed)
+      Pixel_9_API_31(AVD) - 12 Tests 1/2 completed. (0 skipped) (0 failed)
+      Finished 2 tests on Pixel_9_API_31(AVD) - 12
+
+      BUILD SUCCESSFUL in 51s
+      71 actionable tasks: 5 executed, 66 up-to-date
+
+      Build Analyzer results available
+      ```
+
+- **Use Case: Manage Product History**
 
   - **Expected Behaviors:**
 
-    | **Scenario Steps** | **Test Case Steps** |
-    | ------------------ | ------------------- |
-    | ...                | ...                 |
+    | **Scenario Steps**                                                                 | **Test Case Steps**                                                                                                                |
+    |-------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+    | User navigates to the history tab.                                                 | `navigateToHistoryFragment()` is called to open the history screen.                                                               |
+    | User presses the delete button for a product.                                      | `pressDeleteButton()` is called, which clicks delete and confirms the action.                                                     |
+    | System removes the selected product from history.                                  | Implicitly verified by successful flow with no error.                                                                              |
+    | **Failure 5a:** Product does not exist in history.                                  | Omitted due to reliance on backend failure.                                                                                                      |
+    | **Failure 5b:** Server error prevents deletion.                                     | Omitted due to reliance on backend failure.                                                                                                     |
+
+    | **Scenario Steps (Friend History)**                                                 | **Test Case Steps**                                                                                                                |
+    |-------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+    | User navigates to the friends tab.                                                 | `navigateToFriendsFragment()` opens the friends screen.                                                                            |
+    | User selects a friend from the friends list.                                       | `pressFirstFriendItem()` selects the first friend.                                                                                 |
+    | System fetches and displays the friend’s product history.                          | `checkFriendHistoryAppears()` asserts friend history items exist.                                                                  |
+    | **Failure 3a:** Server error when fetching history.                                 | Simulated with Wi-Fi off in `testViewFriendHistoryConnectionError()` and toast log check.                                          |
+    | **Failure 3b:** Friend is no longer a friend.                                       | Omitted due to reliance on backend failure.                                                                                                  |
 
   - **Test Logs:**
-    ```
-    [Placeholder for Espresso test execution logs]
-    ```
+      ```
+      > Task :app:compileDebugAndroidTestJavaWithJavac UP-TO-DATE
+      > Task :app:processDebugAndroidTestJavaRes UP-TO-DATE
+      > Task :app:mergeDebugAndroidTestJavaResource UP-TO-DATE
+      > Task :app:dexBuilderDebugAndroidTest
+      > Task :app:mergeProjectDexDebugAndroidTest
+      > Task :app:packageDebugAndroidTest
+      > Task :app:createDebugAndroidTestApkListingFileRedirect UP-TO-DATE
 
-- **...**
+      > Task :app:connectedDebugAndroidTest
+      Starting 4 tests on Pixel_9_API_31(AVD) - 12
+      Connected to process 12788 on device 'Pixel_9_API_31 [emulator-5554]'.
 
----
+      Pixel_9_API_31(AVD) - 12 Tests 0/4 completed. (0 skipped) (0 failed)
+      Pixel_9_API_31(AVD) - 12 Tests 1/4 completed. (0 skipped) (0 failed)
+      Pixel_9_API_31(AVD) - 12 Tests 2/4 completed. (0 skipped) (0 failed)
+      Pixel_9_API_31(AVD) - 12 Tests 3/4 completed. (0 skipped) (0 failed)
+      Finished 4 tests on Pixel_9_API_31(AVD) - 12
+
+      BUILD SUCCESSFUL in 3m 14s
+      71 actionable tasks: 5 executed, 66 up-to-date
+
+      Build Analyzer results available
+      ```
 
 ## 5. Automated Code Review Results
 
