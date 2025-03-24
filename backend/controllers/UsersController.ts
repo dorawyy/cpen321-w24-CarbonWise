@@ -1,10 +1,9 @@
 import { Request, Response } from "express";
-import { client } from "../services";
+import { productsCollection, historyCollection, usersCollection } from "../services";
 import { fetchEcoscoresByProductId, fetchProductById, fetchProductImageById } from "./ProductsController";
-import { User, History, Product, HistoryEntry, Friends } from "../types";
+import { User, Product, HistoryEntry } from "../types";
 import { v4 as uuidv4 } from 'uuid';
 import { HISTORY_ECOSCORE_AVERAGE_COUNT } from "../constants";
-import { Collection } from "mongodb";
 
 
 export class UsersController {
@@ -14,11 +13,8 @@ export class UsersController {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        const productCollection: Collection<Product> = client.db("products_db").collection("products");
-        const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
-
         // Check if product exists and has required fields
-        const product: Product | null = await productCollection.findOne({ _id: product_id });
+        const product: Product | null = await productsCollection.findOne({ _id: product_id });
         if (!product?.product_name || !product.ecoscore_grade || !product.ecoscore_score || !product.ecoscore_data || !product.categories_tags || !product.categories_hierarchy) {
             return res.status(404).send({message: "Product could not be added to user history."});
         }
@@ -78,8 +74,6 @@ export class UsersController {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
-
         const result = await historyCollection.updateOne(
             { user_uuid },
             { $pull: { products: { scan_uuid: scan_uuid as string } } }
@@ -100,32 +94,30 @@ export class UsersController {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
 
-        const userCollection: Collection<User>  = client.db("users_db").collection<User>("users");
-
-        const result = await userCollection.updateOne(
+        await usersCollection.updateOne(
             { user_uuid },
             { $set: { fcm_registration_token } },
             { upsert: true }
         );
         
-        if (result.matchedCount > 0 || result.upsertedCount > 0) {
-            res.status(200).send({message: "FCM registration token updated."});
-        } else {
-            res.status(404).send({message: "User not found."});
-        }
+        res.status(200).send({message: "FCM registration token updated."});
     }
 
-    getUserUUID(req: Request, res: Response) {
+    async getUserUUID(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
-        res.status(200).send({ user_uuid });
+
+        const result = await usersCollection.findOne({ user_uuid });
+        if (!result) {
+            return res.status(404).send({message: "User not found."});
+        }
+
+        res.status(200).send({ user_uuid: result.user_uuid });
     }
 
     async getEcoscoreAverage(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
-
-        const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
         const userHistory = await historyCollection.findOne({ user_uuid });
         if (userHistory && userHistory.products.length > 0) {
@@ -156,7 +148,6 @@ export class UsersController {
 
 // Helper function to fetch history entries for a user
 export async function getHistoryByUserUUID(user_uuid: string) {
-    const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
     const query: any = { user_uuid };
 
@@ -166,7 +157,6 @@ export async function getHistoryByUserUUID(user_uuid: string) {
 
 // Helper function to update the average ecoscore for a user
 async function updateEcoscoreAverage(user_uuid: string) {
-    const historyCollection: Collection<History> = client.db("users_db").collection<History>("history");
 
     const userHistory = await historyCollection.findOne({ user_uuid });
     if (userHistory && userHistory.products.length > 0) {
