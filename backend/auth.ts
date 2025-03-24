@@ -16,8 +16,13 @@ const router = express.Router();
 router.post("/auth/google", asyncHandler(async (req: Request, res: Response) => {
   const { google_id_token } = req.body;
 
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not defined in environment variables.");
+  }
+
   try {
 
+    
     const ticket = await oauthClient.verifyIdToken({
       idToken: google_id_token,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -26,7 +31,9 @@ router.post("/auth/google", asyncHandler(async (req: Request, res: Response) => 
     const payload = ticket.getPayload();
     if (!payload?.sub || !payload.email || !payload.name) throw new Error("Invalid Google OAuth token");
 
-    const userCollection: Collection<User> = client.db("users_db").collection("users");
+
+    const userCollection: Collection<User> = client.db(process.env.USERS_DB_NAME).collection("users");
+
     let user = await userCollection.findOne({ google_id: payload.sub });
 
     if (!user) {
@@ -41,10 +48,6 @@ router.post("/auth/google", asyncHandler(async (req: Request, res: Response) => 
         fcm_registration_token: "",
       };
       await userCollection.insertOne(user);
-    }
-
-    if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET is not defined in environment variables.");
     }
 
     const jwtToken = jwt.sign(

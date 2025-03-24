@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ts-node index.ts",
     "dev": "dotenv -e .env -- npx nodemon -e .ts index.ts",
-    "test": "dotenv -e tests/res/.env.test -- jest --detectOpenHandles --forceExit",
+    "test": "dotenv -e tests/res/.env.test -- jest tests --detectOpenHandles --forceExit",
     "test:unmocked": "dotenv -e tests/res/.env.test -- jest tests/unmocked --detectOpenHandles --forceExit",
     "test:mocked": "dotenv -e tests/res/.env.test -- jest tests/mocked --detectOpenHandles --forceExit",
     "test:non-functional": "dotenv -e tests/res/.env.test -- jest tests/non-functional --detectOpenHandles --forceExit"

@@ -1,1629 +1,974 @@
 import { createServer } from "../../utils";
-import supertest, { Response } from "supertest";
-import * as services from "../../services";
-import { Friends, User, Product, History } from "../../types";
-import { Collection, ObjectId } from "mongodb";
+import supertest from "supertest";
+import dotenv from "dotenv";
+import { client, friendsCollection, historyCollection, usersCollection } from "../../services";
+import {
+    testUserA,
+    testUserB,
+    testFriendsA,
+    testFriendsB,
+    JEST_TIMEOUT_MS,
+    testUserE,
+    testFriendsE,
+    testUserC,
+    testUserD,
+    testFriendsC,
+    testFriendsD,
+    testHistoryC,
+    testHistoryD
+} from "../res/data";
 import jwt from "jsonwebtoken";
-import axios from "axios";
-
-jest.mock("../../services", () => {
-    const findOneMockFriends = jest.fn();
-    const updateOneMockFriends = jest.fn();
-    const findOneMockUsers = jest.fn();
-    const insertOneMockFriends = jest.fn();
-    const findOneMockHistory = jest.fn();
-    const findOneMockProducts = jest.fn();
-    const insertOneMockProducts = jest.fn();
-    
-    const findMockFriends = jest.fn(() => {
-        const cursor = {
-            limit: jest.fn().mockReturnThis(),
-            toArray: jest.fn(),
-        };
-        return cursor;
-    });
-
-    const findMockHistory = jest.fn(() => {
-        const cursor = {
-            limit: jest.fn().mockReturnThis(),
-            toArray: jest.fn(),
-        };
-        return cursor;
-    });
-
-    const findMockProducts = jest.fn(() => {
-        const cursor = {
-            limit: jest.fn().mockReturnThis(),
-            toArray: jest.fn(),
-        };
-        return cursor;
-    });
-
-    return {
-        ...jest.requireActual("../../services"),
-        client: {
-            db: jest.fn(() => ({
-                collection: jest.fn((name: string) => {
-                    if (name === "friends") {
-                        return {
-                            findOne: findOneMockFriends,
-                            updateOne: updateOneMockFriends,
-                            insertOne: insertOneMockFriends,
-                            find: findMockFriends,
-                        };
-                    } else if (name === "users") {
-                        return {
-                            findOne: findOneMockUsers,
-                        };
-                    } else if (name === "history") {
-                        return {
-                            findOne: findOneMockHistory,
-                            find: findMockHistory,
-                        };
-                    } else if (name === "products") {
-                        return {
-                            findOne: findOneMockProducts,
-                            insertOne: insertOneMockProducts,
-                            find: findMockProducts,
-                        };
-                    }
-                    return {};
-                }),
-            })),
-        },
-    };
-});
-
-const sendMock = jest.fn().mockResolvedValue("mock-message-id");
-
-jest.mock("firebase-admin/messaging", () => ({
-    getMessaging: jest.fn(() => ({
-        send: sendMock,
-    })),
-}));
-
-jest.mock("jsonwebtoken", (): typeof jwt => ({
-    ...jest.requireActual<typeof jwt>("jsonwebtoken"),
-    verify: jest.fn(),
-}));
-
-jest.mock("axios", () => ({
-    get: jest.fn((url: string) => {
-        if (url.includes("/api/v2/product/")) {
-            return Promise.resolve({
-                data: {
-                    status: 1,
-                    product: {
-                        _id: "67890",
-                        product_name: "API Fetched Product",
-                        ecoscore_grade: "B",
-                        ecoscore_score: 75,
-                        categories_tags: ["tagA", "tagB"],
-                        ingredients_tags: ["tagC", "tagD"],
-                        categories_hierarchy: ["hierarchyA", "hierarchyB"],
-                        countries_tags: ["usa"],
-                    },
-                },
-            });
-        } else if (url.includes("openfoodfacts-images.s3.eu-west-3.amazonaws.com")) {
-            return Promise.resolve({
-                data: Buffer.from("mockImageBinaryData").toString("binary"),
-            });
-        }
-        return Promise.reject(new Error("Unknown API call"));
-    }),
-}));
-
-jest.mock("firebase-admin/app", () => ({
-    getApps: jest.fn(() => []),
-    initializeApp: jest.fn(),
-}));
-
-const app = createServer();
-
-const user: User = {
-    _id: "user-123",
-    google_id: "google-123",
-    email: "john.doe@example.com",
-    fcm_registration_token: "fcm-token-123",
-    user_uuid: "user-123",
-    name: "John Doe",
-};
-
-const friend: User = {
-    _id: "friend-123",
-    google_id: "google-123",
-    email: "jane.doe@example.com",
-    fcm_registration_token: "fcm-token-123",
-    user_uuid: "friend-123",
-    name: "Jane Doe",
-};
-
-const mockProduct: Product = {
-    _id: "12345",
-    product_name: "Mock Product",
-    ecoscore_grade: "A",
-    ecoscore_score: 90,
-    ecoscore_data: {},
-    categories_tags: ["tag1", "tag2"],
-    ingredients_tags: ["tagC", "tagD"],
-    categories_hierarchy: ["hierarchy1", "hierarchy2"],
-    countries_tags: ["france"],
-    lang: "en",
-};
-
-const mockRecommendationA: Product = {
-    _id: "67890",
-    product_name: "Recommended Product A",
-    ecoscore_grade: "B",
-    ecoscore_score: 75,
-    categories_tags: ["tag1", "tag2"],
-    ingredients_tags: ["tagC", "tagD"],
-    categories_hierarchy: ["hierarchy1", "hierarchy2"],
-    countries_tags: ["france"],
-    lang: "en",
-};
-
-const friendHistory: History = {
-    user_uuid: friend.user_uuid,
-    ecoscore_score: 75,
-    products: [
-        {
-            product_id: "12345",
-            timestamp: new Date("2024-01-01"),
-            scan_uuid: "scan-123",
-        },
-    ],
-};
 
 // Interface POST /friends/requests
 describe("Mocked: POST /friends/requests", () => {
-    let friendsCollection: jest.Mocked<Collection<Friends>>;
-    let usersCollection: jest.Mocked<Collection<User>>;
+    
+    const app = createServer();
+    jest.setTimeout(JEST_TIMEOUT_MS);   
+
+    beforeAll(async () => {
+        await client.connect();
+        await friendsCollection.drop();
+        await usersCollection.drop();
+    });
 
     beforeEach(() => {
-        friendsCollection = (services.client.db as jest.Mock)().collection("friends");
-        usersCollection = (services.client.db as jest.Mock)().collection("users");
-
-        (jwt.verify as jest.Mock).mockImplementation((_token: string, _secret: string) => {
-            return user;
-        });
-
-        friendsCollection.findOne.mockClear();
-        friendsCollection.updateOne.mockClear();
-        usersCollection.findOne.mockClear();
-
-        sendMock.mockClear();
+        dotenv.config({ path: './res/.env.test' });
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        await friendsCollection.drop();
+        await usersCollection.drop();
         jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
-    afterAll(() => {
-        jest.clearAllMocks();
+    afterAll(async () => {
+        await client.close();
     });
 
-    // Input: Valid user_uuid for friend request
+    // Input: Authenticated user token, valid friend UUID
     // Expected status code: 200
-    // Expected behavior: Friend request is sent successfully
-    // Expected output: Confirmation message and notification sent
-    test("Send Friend Request Successfully", async () => {
-        const userFriends: Friends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [] };
-        const targetFriends: Friends = { user_uuid: friend.user_uuid, friends: [], incoming_requests: [] };
-
-        friendsCollection.findOne
-            .mockResolvedValueOnce(userFriends)
-            .mockResolvedValueOnce(targetFriends);
-
-        friendsCollection.updateOne.mockResolvedValueOnce({
-            acknowledged: true,
-            modifiedCount: 1,
-            matchedCount: 1,
-            upsertedCount: 0,
-            upsertedId: null,
-        });
-
-        usersCollection.findOne.mockResolvedValueOnce({
-            user_uuid: friend.user_uuid,
-            fcm_registration_token: friend.fcm_registration_token,
-        });
-
-        const res: Response = await supertest(app)
-            .post("/friends/requests")
-            .set("token", `mock_token`)
-            .send({ user_uuid: friend.user_uuid });
-
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("message", "Friend request sent.");
-        expect(friendsCollection.updateOne).toHaveBeenCalled();
-
-        await sendMock(); 
-        expect(sendMock).toHaveBeenCalledWith({
-            notification: {
-                title: "CarbonWise",
-                body: "John Doe has sent you a friend request",
-            },
-            token: friend.fcm_registration_token,
-        });
-    });
-    
-    // Input: user_uuid is the same as the sender's
-    // Expected status code: 400
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Reject Friend Request to Self", async () => {
-        const res: Response = await supertest(app)
-            .post("/friends/requests")
-            .set("token", `mock_token`)
-            .send({ user_uuid: user.user_uuid });
-
-        expect(res.status).toBe(400);
-        expect(res.body).toHaveProperty("message", "Cannot send friend request to yourself.");
-    });
-
-    // Input: Users are already friends
-    // Expected status code: 400
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Reject Friend Request to Existing Friend", async () => {
-        const userFriends: Friends = { user_uuid: user.user_uuid, friends: [{ user_uuid: friend.user_uuid, name: "Lebron James" }], incoming_requests: [] };
-        const targetFriends: Friends = { user_uuid: friend.user_uuid, friends: [{ user_uuid: user.user_uuid, name: "Stephen Curry" }], incoming_requests: [] };
-
-        friendsCollection.findOne
-            .mockResolvedValueOnce(userFriends)
-            .mockResolvedValueOnce(targetFriends);
-
-        const res: Response = await supertest(app)
-            .post("/friends/requests")
-            .set("token", `mock_token`)
-            .send({ user_uuid: friend.user_uuid });
-
-        expect(res.status).toBe(400);
-        expect(res.body).toHaveProperty("message", "Already friends.");
-    });
-
-    // Input: Friend request already sent
-    // Expected status code: 400
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Reject Duplicate Friend Request", async () => {
-        const userFriends: Friends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [] };
-        const targetFriends: Friends = { user_uuid: friend.user_uuid, friends: [], incoming_requests: [{ user_uuid: user.user_uuid, name: "Stephen Curry" }] };
-
-        friendsCollection.findOne
-            .mockResolvedValueOnce(userFriends)
-            .mockResolvedValueOnce(targetFriends);
-
-        const res: Response = await supertest(app)
-            .post("/friends/requests")
-            .set("token", `mock_token`)
-            .send({ user_uuid: friend.user_uuid });
-
-        expect(res.status).toBe(400);
-        expect(res.body).toHaveProperty("message", "Friend request already sent.");
-    });
-
-    // Input: Valid user_uuid for friend request, firebase error occurs
-    // Expected status code: 200
-    // Expected behavior: Friend request is sent successfully, but notification fails
+    // Expected behavior: Friend request and notification is sent
     // Expected output: Confirmation message
-    test("Send Friend Request with Firebase Error", async () => {
-        const userFriends: Friends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [] };
-        const targetFriends: Friends = { user_uuid: friend.user_uuid, friends: [], incoming_requests: [] };
+    test("Successfully sent friend request", async () => {
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
 
-        friendsCollection.findOne
-            .mockResolvedValueOnce(userFriends)
-            .mockResolvedValueOnce(targetFriends);
+        await usersCollection.insertOne(testUserE);
+        await usersCollection.insertOne(testUserB);
+        await friendsCollection.insertOne(testFriendsE);
+        await friendsCollection.insertOne(testFriendsB);
 
-        friendsCollection.updateOne.mockResolvedValueOnce({
-            acknowledged: true,
-            modifiedCount: 1,
-            matchedCount: 1,
-            upsertedCount: 0,
-            upsertedId: null,
+        jest.spyOn(require('firebase-admin/app'), 'getApps').mockReturnValue([{ name: 'mock-app' }]);
+
+        jest.spyOn(require('firebase-admin/messaging'), 'getMessaging').mockReturnValue({
+            send: jest.fn().mockResolvedValue({
+                responses: [{
+                    success: true,
+                    fcm_messaging: "some_value"
+                }]
+            })
         });
 
-        usersCollection.findOne.mockResolvedValueOnce({
-            user_uuid: friend.user_uuid,
-            fcm_registration_token: friend.fcm_registration_token,
-        });
-
-        sendMock.mockRejectedValueOnce(new Error("Firebase error"));
-
-        const res: Response = await supertest(app)
+        const res = await supertest(app)
             .post("/friends/requests")
-            .set("token", `mock_token`)
-            .send({ user_uuid: friend.user_uuid });
+            .set("token", token)
+            .send({ user_uuid: testUserE.user_uuid });
 
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty("message", "Friend request sent.");
-        expect(friendsCollection.updateOne).toHaveBeenCalled();
 
-        await sendMock();
-        expect(sendMock).toHaveBeenCalledWith({
-            notification: {
-                title: "CarbonWise",
-                body: "John Doe has sent you a friend request",
-            },
-            token: friend.fcm_registration_token,
+        const targetFriends = await friendsCollection.findOne({ user_uuid: testUserE.user_uuid });
+        expect(targetFriends).not.toBeNull();
+        expect(targetFriends?.incoming_requests).toContainEqual({
+            user_uuid: testUserB.user_uuid,
+            name: testUserB.name
         });
     });
-    
+
+    // Input: Authenticated user token, firebase error
+    // Expected status code: 200
+    // Expected behavior: Friend request but notification is not sent
+    // Expected output: Confirmation message
+    test("Friend request sent but notification not sent, firebase error", async () => {
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+
+        await usersCollection.insertOne(testUserE);
+        await usersCollection.insertOne(testUserB);
+        await friendsCollection.insertOne(testFriendsE);
+        await friendsCollection.insertOne(testFriendsB);
+
+        jest.spyOn(require('firebase-admin/app'), 'getApps').mockReturnValue([{ name: 'mock-app' }]);
+
+        jest.spyOn(require('firebase-admin/messaging'), 'getMessaging').mockReturnValue({
+            send: jest.fn().mockRejectedValue(new Error("Firebase error"))
+        });
+
+        const res = await supertest(app)
+            .post("/friends/requests")
+            .set("token", token)
+            .send({ user_uuid: testUserE.user_uuid });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("message", "Friend request sent.");
+
+        const targetFriends = await friendsCollection.findOne({ user_uuid: testUserE.user_uuid });
+        expect(targetFriends).not.toBeNull();
+        expect(targetFriends?.incoming_requests).toContainEqual({
+            user_uuid: testUserB.user_uuid,
+            name: testUserB.name
+        });
+    });
+
+    // Input: Authenticated user token, database error
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, friends database", async () => {
+
+        jest.spyOn(friendsCollection, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
+
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .post("/friends/requests")
+            .set("token", token)
+            .send({ user_uuid: testUserE.user_uuid });
+
+        expect(res.status).toBe(500);
+    });
+
+    // Input: Authenticated user token, database error
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, users database", async () => {
+
+        friendsCollection.insertOne(testFriendsB);
+
+        jest.spyOn(usersCollection, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
+
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .post("/friends/requests")
+            .set("token", token)
+            .send({ user_uuid: testUserE.user_uuid });
+
+        expect(res.status).toBe(500);
+    });
+
 });
 
 // Interface POST /friends/requests/accept
 describe("Mocked: POST /friends/requests/accept", () => {
-    let friendsCollection: jest.Mocked<Collection<Friends>>;
-    let usersCollection: jest.Mocked<Collection<User>>;
-
-    beforeEach(() => {
-        friendsCollection = (services.client.db as jest.Mock)().collection("friends");
-        usersCollection = (services.client.db as jest.Mock)().collection("users");
-
-        (jwt.verify as jest.Mock).mockImplementation((_token: string, _secret: string) => {
-            return user;
-        });
-
-        friendsCollection.findOne.mockClear();
-        friendsCollection.updateOne.mockClear();
-        friendsCollection.insertOne.mockClear();
-
-        usersCollection.findOne.mockClear();
-
-        sendMock.mockClear();
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    afterAll(() => {
-        jest.clearAllMocks();
-    });
-    // Input: Valid user_uuid for accepting friend request
-    // Expected status code: 200
-    // Expected behavior: Friend request is accepted successfully
-    // Expected output: Confirmation message and notification sent
-    test("Accept Friend Request Successfully", async () => {
-        const userFriends: Friends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [{ user_uuid: friend.user_uuid, name: "Lebron James" }] };
-        const targetFriends: Friends = { user_uuid: friend.user_uuid, friends: [], incoming_requests: [] };
-
-        friendsCollection.findOne
-            .mockResolvedValueOnce(userFriends)
-            .mockResolvedValueOnce(targetFriends);
-
-        friendsCollection.updateOne.mockResolvedValueOnce({
-            acknowledged: true,
-            modifiedCount: 1,
-            matchedCount: 1,
-            upsertedCount: 0,
-            upsertedId: null,
-        });
-
-        usersCollection.findOne
-            .mockResolvedValueOnce(friend)
-            .mockResolvedValueOnce(friend);
-
-        const res: Response = await supertest(app)
-            .post("/friends/requests/accept")
-            .set("token", `mock_token`)
-            .send({ user_uuid: friend.user_uuid });
-
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("message", "Friend request accepted.");
-        expect(friendsCollection.updateOne).toHaveBeenCalledWith(
-            { user_uuid: user.user_uuid },
-            { $pull: { incoming_requests: { user_uuid: friend.user_uuid } }, $addToSet: { friends: { user_uuid: friend.user_uuid, name: friend.name } } }
-        );
-
-        await sendMock(); 
-        expect(sendMock).toHaveBeenCalledWith({
-            notification: {
-                title: "CarbonWise",
-                body: "John Doe has accepted your friend request",
-            },
-            token: friend.fcm_registration_token,
-        }); 
-    });
-
-    // Input: user_uuid is the same as the sender's
-    // Expected status code: 400
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Reject Friend Request to Self", async () => {
-        const res: Response = await supertest(app)
-            .post("/friends/requests/accept")
-            .set("token", `mock_token`)
-            .send({ user_uuid: user.user_uuid });
-
-        expect(res.status).toBe(400);
-        expect(res.body).toHaveProperty("message", "Cannot accept friend request from yourself.");
-    });
-
-    // Input: No such friend request exists
-    // Expected status code: 400
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Reject Non-existent Friend Request", async () => {
-        const userFriends: Friends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [] };
-
-        friendsCollection.findOne.mockResolvedValueOnce(userFriends);
-
-        const res: Response = await supertest(app)
-            .post("/friends/requests/accept")
-            .set("token", `mock_token`)
-            .send({ user_uuid: friend.user_uuid });
-
-        expect(res.status).toBe(400);
-        expect(res.body).toHaveProperty("message", "No such friend request.");
-    });
-
-    // Input: Friend does not have a friends document
-    // Expected status code: 200
-    // Expected behavior: Friend request is accepted successfully, and a new friends document is created for the friend
-    // Expected output: Confirmation message and notification sent
-    test("Accept Friend Request, Friend has no Friends Document", async () => {
-        const userFriends: Friends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [{ user_uuid: friend.user_uuid, name: "Lebron James" }] };
-        const targetFriends: Friends | null = null;
-
-        friendsCollection.findOne
-            .mockResolvedValueOnce(userFriends)
-            .mockResolvedValueOnce(targetFriends);
-
-        friendsCollection.updateOne.mockResolvedValueOnce({
-            acknowledged: true,
-            modifiedCount: 1,
-            matchedCount: 1,
-            upsertedCount: 0,
-            upsertedId: null,
-        });
-
-        friendsCollection.insertOne.mockResolvedValueOnce({
-            acknowledged: true,
-            insertedId: new ObjectId(),
-        });
-
-        usersCollection.findOne
-            .mockResolvedValueOnce(friend)
-            .mockResolvedValueOnce(friend);
-
-        const res: Response = await supertest(app)
-            .post("/friends/requests/accept")
-            .set("token", `mock_token`)
-            .send({ user_uuid: friend.user_uuid });
-
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("message", "Friend request accepted.");
-        expect(friendsCollection.updateOne).toHaveBeenCalledWith(
-            { user_uuid: user.user_uuid },
-            { $pull: { incoming_requests: { user_uuid: friend.user_uuid } }, $addToSet: { friends: { user_uuid: friend.user_uuid, name: friend.name } } }
-        );
-
-        expect(friendsCollection.insertOne).toHaveBeenCalledWith({
-            user_uuid: friend.user_uuid,
-            friends: [],
-            incoming_requests: [],
-        });
-
-        await sendMock(); 
-        expect(sendMock).toHaveBeenCalledWith({
-            notification: {
-                title: "CarbonWise",
-                body: "John Doe has accepted your friend request",
-            },
-            token: friend.fcm_registration_token,
-        }); 
-    });
-
-    // Input: Valid user_uuid for accepting friend request, no fcm_registration_token
-    // Expected status code: 200
-    // Expected behavior: Friend request is accepted successfully, but no notification is sent
-    // Expected output: Confirmation message
-    test("Accept Friend Request, No fcm_registration_token", async () => {
-        const userFriends: Friends = { user_uuid: user.user_uuid, friends: [], incoming_requests: [{ user_uuid: friend.user_uuid, name: "Lebron James" }] };
-        const targetFriends: Friends = { user_uuid: friend.user_uuid, friends: [], incoming_requests: [] };
-
-        friendsCollection.findOne
-            .mockResolvedValueOnce(userFriends)
-            .mockResolvedValueOnce(targetFriends);
-
-        friendsCollection.updateOne.mockResolvedValueOnce({
-            acknowledged: true,
-            modifiedCount: 1,
-            matchedCount: 1,
-            upsertedCount: 0,
-            upsertedId: null,
-        });
-
-        const friendWithoutToken: User = {
-            _id: "user-123",
-            google_id: "google-123",
-            email: "john.doe@example.com",
-            user_uuid: "user-123",
-            name: "John Doe",
-            fcm_registration_token: "",
-        };
-
-        usersCollection.findOne
-            .mockResolvedValueOnce(friend)
-            .mockResolvedValueOnce(friendWithoutToken);
-
-        const res: Response = await supertest(app)
-            .post("/friends/requests/accept")
-            .set("token", `mock_token`)
-            .send({ user_uuid: friend.user_uuid });
-
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("message", "Friend request accepted.");
-        expect(friendsCollection.updateOne).toHaveBeenCalledWith(
-            { user_uuid: user.user_uuid },
-            { $pull: { incoming_requests: { user_uuid: friend.user_uuid } }, $addToSet: { friends: { user_uuid: friend.user_uuid, name: friend.name } } }
-        );
-
-        await expect(sendMock).not.toHaveBeenCalled();
-    });
     
-});
+    const app = createServer();
+    jest.setTimeout(JEST_TIMEOUT_MS);   
 
-// Interface GET /friends/requests
-describe("Mocked: GET /friends/requests", () => {
-    let friendsCollection: jest.Mocked<Collection<Friends>>;
+    beforeAll(async () => {
+        await client.connect();
+        await friendsCollection.drop();
+        await usersCollection.drop();
+    });
 
     beforeEach(() => {
-        friendsCollection = (services.client.db as jest.Mock)().collection("friends");
-
-        (jwt.verify as jest.Mock).mockImplementation(() => user);
-
-        friendsCollection.findOne.mockClear();
+        dotenv.config({ path: './res/.env.test' });
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        await friendsCollection.drop();
+        await usersCollection.drop();
         jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
-    afterAll(() => {
-        jest.clearAllMocks();
+    afterAll(async () => {
+        await client.close();
     });
 
-    // Input: User has incoming friend requests
+    // Input: Authenticated user token, valid friend UUID
     // Expected status code: 200
-    // Expected behavior: Returns list of incoming friend requests
-    // Expected output: List of user UUIDs and names of users who sent friend requests
-    test("Returns list of incoming friend requests when user has them", async () => {
-        const mockFriends: Friends = {
-            user_uuid: user.user_uuid,
-            friends: [],
-            incoming_requests: [
-                { user_uuid: "friend-123", name: "Jane Doe" },
-                { user_uuid: "friend-456", name: "Mike Smith" },
-            ],
-        };
-
-        friendsCollection.findOne.mockResolvedValueOnce(mockFriends);
-
-        const res: supertest.Response = await supertest(app)
-            .get("/friends/requests")
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual(mockFriends.incoming_requests);
-    });
-
-    // Input: User has no incoming friend requests
-    // Expected status code: 200
-    // Expected behavior: Returns an empty array
-    // Expected output: []
-    test("Returns empty array when user has no incoming friend requests", async () => {
-        const mockFriends: Friends = {
-            user_uuid: user.user_uuid,
-            friends: [],
-            incoming_requests: [],
-        };
-
-        friendsCollection.findOne.mockResolvedValueOnce(mockFriends);
-
-        const res: supertest.Response = await supertest(app)
-            .get("/friends/requests")
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual([]);
-    });
-
-    // Input: User does not have a friends document
-    // Expected status code: 200
-    // Expected behavior: Returns an empty array
-    // Expected output: []
-    test("Returns empty array when user does not have a friends document", async () => {
-        friendsCollection.findOne.mockResolvedValueOnce(null);
-
-        const res: supertest.Response = await supertest(app)
-            .get("/friends/requests")
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual([]);
-    });
-
-    // Input: User has multiple pending friend requests
-    // Expected status code: 200
-    // Expected behavior: Returns all pending friend requests
-    // Expected output: List of all incoming friend requests
-    test("Returns all pending friend requests when user has multiple", async () => {
-        const mockFriends: Friends = {
-            user_uuid: user.user_uuid,
-            friends: [],
-            incoming_requests: [
-                { user_uuid: "friend-123", name: "Jane Doe" },
-                { user_uuid: "friend-456", name: "Mike Smith" },
-                { user_uuid: "friend-789", name: "Alice Johnson" },
-                { user_uuid: "friend-101", name: "Bob Williams" },
-            ],
-        };
-
-        friendsCollection.findOne.mockResolvedValueOnce(mockFriends);
-
-        const res: supertest.Response = await supertest(app)
-            .get("/friends/requests")
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual(mockFriends.incoming_requests);
-        expect(res.body.length).toBe(4);
-    });
-});
-
-// Interface GET /friends/requests/outgoing
-describe("Mocked: GET /friends/requests/outgoing", () => {
-    let friendsCollection: jest.Mocked<Collection<Friends>>;
-
-    beforeEach(() => {
-        friendsCollection = (services.client.db as jest.Mock)().collection("friends");
-
-        (jwt.verify as jest.Mock).mockImplementation(() => user);
-
-        friendsCollection.find.mockClear();
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    afterAll(() => {
-        jest.clearAllMocks();
-    });
-
-    // Input: User has outgoing friend requests
-    // Expected status code: 200
-    // Expected behavior: Returns list of outgoing friend requests
-    // Expected output: List of user UUIDs of users who received friend requests
-    test("Returns list of outgoing friend requests", async () => {
-        const mockOutgoingRequests: { user_uuid: string }[] = [
-            { user_uuid: "friend-123" },
-            { user_uuid: "friend-456" },
-        ];
-
-        friendsCollection.find.mockReturnValueOnce({
-            toArray: jest.fn().mockResolvedValueOnce(mockOutgoingRequests),
-        } as jest.Mocked<any>);
-
-        const res: supertest.Response = await supertest(app)
-            .get("/friends/requests/outgoing")
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual(["friend-123", "friend-456"]);
-    });
-
-    // Input: User has no outgoing friend requests
-    // Expected status code: 200
-    // Expected behavior: Returns an empty array
-    // Expected output: Empty array
-    test("Returns empty array when no outgoing friend requests", async () => {
-        friendsCollection.find.mockReturnValueOnce({
-            toArray: jest.fn().mockResolvedValueOnce([]),
-        } as jest.Mocked<any>);
-
-        const res: supertest.Response = await supertest(app)
-            .get("/friends/requests/outgoing")
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual([]);
-    });
-    
-});
-
-// Interface GET /friends/history/:user_uuid
-describe("Mocked: GET /friends/history/:user_uuid", () => {
-    let friendsCollection: jest.Mocked<Collection<Friends>>;
-    let historyCollection: jest.Mocked<Collection<History>>;
-    let productCollection: jest.Mocked<Collection<Product>>;
-
-    beforeEach(() => {
-        friendsCollection = (services.client.db as jest.Mock)().collection("friends");
-        historyCollection = (services.client.db as jest.Mock)().collection("history");
-        productCollection = (services.client.db as jest.Mock)().collection("products");
-
-        (jwt.verify as jest.Mock).mockImplementation(() => user);
-
-        friendsCollection.findOne.mockClear();
-        historyCollection.find.mockClear();
-        productCollection.findOne.mockClear();
-        productCollection.find.mockClear();
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    afterAll(() => {
-        jest.clearAllMocks();
-    });
-
-    // Input: Valid user_uuid for friend's history
-    // Expected status code: 200
-    // Expected behavior: Returns friend's history successfully
-    // Expected output: Friend's history with product details
-    test("Returns friend's history with product details", async () => {
-        const userFriends: Friends = {
-            user_uuid: user.user_uuid,
-            friends: [{ user_uuid: friend.user_uuid, name: friend.name }],
-            incoming_requests: [],
-        };
-
-        friendsCollection.findOne.mockResolvedValueOnce(userFriends);
-
-        historyCollection.find.mockReturnValueOnce({
-            limit: jest.fn().mockReturnThis(),
-            toArray: jest.fn().mockResolvedValueOnce([friendHistory]),
-        } as jest.Mocked<any>);
-
-        productCollection.findOne.mockResolvedValueOnce(mockProduct);
-
-        productCollection.find.mockReturnValueOnce({
-            limit: jest.fn().mockReturnThis(),
-            toArray: jest.fn().mockResolvedValueOnce([mockRecommendationA]),
-        } as jest.Mocked<any>);
-
-        (axios.get as jest.Mock).mockResolvedValueOnce(null);
-
-        const res: supertest.Response = await supertest(app)
-            .get(`/friends/history/${friend.user_uuid}`)
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual([
-            {
-                ...friendHistory,
-                products: [
-                    {
-                        ...friendHistory.products[0],
-                        product: {
-                            ...mockProduct,
-                            image: null
-                        },
-                        timestamp: friendHistory.products[0].timestamp.toISOString(),
-                    },
-                ],
-            },
-        ]);
-    });
-
-    // Input: User is not friends with the target user
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Rejects request when user is not friends with target", async () => {
-        const userFriends: Friends = {
-            user_uuid: user.user_uuid,
-            friends: [],
-            incoming_requests: [],
-        };
-
-        friendsCollection.findOne.mockResolvedValueOnce(userFriends);
-
-        const res: supertest.Response = await supertest(app)
-            .get(`/friends/history/${friend.user_uuid}`)
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ message: "User does not exist or is not a friend." });
-    });
-
-    // Input: User does not have a friends document
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Rejects request when user's friend document is missing", async () => {
-        friendsCollection.findOne.mockResolvedValueOnce(null);
-
-        const res: supertest.Response = await supertest(app)
-            .get(`/friends/history/${friend.user_uuid}`)
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ message: "User does not exist or is not a friend." });
-    });
-});
-
-// Interface DELETE /friends/requests
-describe("Mocked: DELETE /friends/requests", () => {
-    let friendsCollection: jest.Mocked<Collection<Friends>>;
-
-    beforeEach(() => {
-        friendsCollection = (services.client.db as jest.Mock)().collection("friends");
-
-        (jwt.verify as jest.Mock).mockImplementation(() => user);
-
-        friendsCollection.findOne.mockClear();
-        friendsCollection.updateOne.mockClear();
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    afterAll(() => {
-        jest.clearAllMocks();
-    });
-
-    // Input: Valid user_uuid for rejecting friend request
-    // Expected status code: 200
-    // Expected behavior: Friend request is rejected successfully
+    // Expected behavior: Friend request accepted and notification is sent
     // Expected output: Confirmation message
-    test("Reject Friend Request Successfully", async () => {
-        const userFriends = {
-            user_uuid: user.user_uuid,
-            friends: [],
-            incoming_requests: [{ user_uuid: friend.user_uuid, name: friend.name }],
-        };
+    test("Successfully accepted friend request", async () => {
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
 
-        friendsCollection.findOne.mockResolvedValueOnce(userFriends);
-        friendsCollection.updateOne.mockResolvedValueOnce({
-            modifiedCount: 1,
-            acknowledged: true,
-            matchedCount: 1,
-            upsertedCount: 0,
-            upsertedId: null,
+        await usersCollection.insertOne(testUserB);
+        await usersCollection.insertOne(testUserA);
+        await friendsCollection.insertOne(testFriendsB);
+        await friendsCollection.insertOne(testFriendsA);
+
+        jest.spyOn(require('firebase-admin/app'), 'getApps').mockReturnValue([{ name: 'mock-app' }]);
+
+        jest.spyOn(require('firebase-admin/messaging'), 'getMessaging').mockReturnValue({
+            send: jest.fn().mockResolvedValue({
+                responses: [{
+                    success: true,
+                    fcm_messaging: "some_value"
+                }]
+            })
         });
 
         const res = await supertest(app)
-            .delete("/friends/requests")
-            .set("token", "mock_token")
-            .query({ user_uuid: friend.user_uuid });
+            .post("/friends/requests/accept")
+            .set("token", token)
+            .send({ user_uuid: testUserA.user_uuid });
 
         expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("message", "Friend request rejected.");
-        expect(friendsCollection.updateOne).toHaveBeenCalledWith(
-            { user_uuid: user.user_uuid },
-            { $pull: { incoming_requests: { user_uuid: friend.user_uuid } } }
-        );
+        expect(res.body).toHaveProperty("message", "Friend request accepted.");
+
+        const userFriends = await friendsCollection.findOne({ user_uuid: testUserB.user_uuid });
+        expect(userFriends).not.toBeNull();
+        expect(userFriends?.friends).toContainEqual({
+            user_uuid: testUserA.user_uuid,
+            name: testUserA.name
+        });
     });
 
-    // Input: Rejecting a non-existent friend request
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Reject Non-existent Friend Request", async () => {
-        const userFriends = {
-            user_uuid: user.user_uuid,
-            friends: [],
-            incoming_requests: [],
-        };
+    // Input: Authenticated user token, firebase error
+    // Expected status code: 200
+    // Expected behavior: Friend request accepted but notification is not sent
+    // Expected output: Confirmation message
+    test("Friend request accepted but notification not sent, firebase error", async () => {
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
 
-        friendsCollection.findOne.mockResolvedValueOnce(userFriends);
-        friendsCollection.updateOne.mockResolvedValueOnce({
-            modifiedCount: 0,
-            acknowledged: true,
-            matchedCount: 1,
-            upsertedCount: 0,
-            upsertedId: null,
+        await usersCollection.insertOne(testUserB);
+        await usersCollection.insertOne(testUserA);
+        await friendsCollection.insertOne(testFriendsB);
+        await friendsCollection.insertOne(testFriendsA);
+
+        jest.spyOn(require('firebase-admin/app'), 'getApps').mockReturnValue([{ name: 'mock-app' }]);
+
+        jest.spyOn(require('firebase-admin/messaging'), 'getMessaging').mockReturnValue({
+            send: jest.fn().mockRejectedValue(new Error("Firebase error"))
         });
 
         const res = await supertest(app)
-            .delete("/friends/requests")
-            .set("token", "mock_token")
-            .query({ user_uuid: friend.user_uuid });
+            .post("/friends/requests/accept")
+            .set("token", token)
+            .send({ user_uuid: testUserA.user_uuid });
 
-        expect(res.status).toBe(404);
-        expect(res.body).toHaveProperty("message", "Friend request not found.");
-        expect(friendsCollection.updateOne).toHaveBeenCalledWith(
-            { user_uuid: user.user_uuid },
-            { $pull: { incoming_requests: { user_uuid: friend.user_uuid } } }
-        );
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("message", "Friend request accepted.");
+
+        const userFriends = await friendsCollection.findOne({ user_uuid: testUserB.user_uuid });
+        expect(userFriends).not.toBeNull();
+        expect(userFriends?.friends).toContainEqual({
+            user_uuid: testUserA.user_uuid,
+            name: testUserA.name
+        });
     });
 
-    // Input: User tries to reject a friend request from themselves
-    // Expected status code: 400
-    // Expected behavior: Request is rejected
+    // Input: Authenticated user token, database error
+    // Expected status code: 500
+    // Expected behavior: None
     // Expected output: Error message
-    test("Reject Friend Request from Self", async () => {
-        const res = await supertest(app)
-            .delete("/friends/requests")
-            .set("token", "mock_token")
-            .query({ user_uuid: user.user_uuid });
+    test("Database error, friends database", async () => {
 
-        expect(res.status).toBe(400);
-        expect(res.body).toHaveProperty("message", "Cannot reject friend request from yourself");
+        jest.spyOn(friendsCollection, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
+
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .post("/friends/requests/accept")
+            .set("token", token)
+            .send({ user_uuid: testUserA.user_uuid });
+
+        expect(res.status).toBe(500);
     });
+
+    // Input: Authenticated user token, database error
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, users database", async () => {
+
+        friendsCollection.insertOne(testFriendsB);
+
+        jest.spyOn(usersCollection, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
+
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .post("/friends/requests/accept")
+            .set("token", token)
+            .send({ user_uuid: testUserE.user_uuid });
+
+        expect(res.status).toBe(500);
+    });
+
 });
+
 
 // Interface DELETE /friends
 describe("Mocked: DELETE /friends", () => {
-    let friendsCollection: jest.Mocked<Collection<Friends>>;
+    
+    const app = createServer();
+    jest.setTimeout(JEST_TIMEOUT_MS);   
+
+    beforeAll(async () => {
+        await client.connect();
+        await friendsCollection.drop();
+        await usersCollection.drop();
+    });
 
     beforeEach(() => {
-        friendsCollection = (services.client.db as jest.Mock)().collection("friends");
-
-        (jwt.verify as jest.Mock).mockImplementation(() => user);
-
-        friendsCollection.findOne.mockClear();
-        friendsCollection.updateOne.mockClear();
+        dotenv.config({ path: './res/.env.test' });
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        await friendsCollection.drop();
+        await usersCollection.drop();
         jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
-    afterAll(() => {
-        jest.clearAllMocks();
+    afterAll(async () => {
+        await client.close();
     });
 
-    // Input: Valid user_uuid for removing a friend
-    // Expected status code: 200
-    // Expected behavior: Friend is removed successfully
-    // Expected output: Confirmation message
-    test("Successfully remove a friend", async () => {
-        const userFriends: Friends = {
-            user_uuid: user.user_uuid,
-            friends: [{ user_uuid: friend.user_uuid, name: friend.name }],
-            incoming_requests: [],
-        };
-
-        friendsCollection.findOne.mockResolvedValueOnce(userFriends);
-        friendsCollection.updateOne.mockResolvedValueOnce({ modifiedCount: 1, acknowledged: true } as any);
-        friendsCollection.updateOne.mockResolvedValueOnce({ modifiedCount: 1, acknowledged: true } as any);
-
-        const res: Response = await supertest(app)
-            .delete("/friends")
-            .set("token", "mock_token")
-            .query({ user_uuid: friend.user_uuid });
-
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("message", "Friend removed.");
-        expect(friendsCollection.updateOne).toHaveBeenCalledWith(
-            { user_uuid: user.user_uuid },
-            { $pull: { friends: { user_uuid: friend.user_uuid } } }
-        );
-        expect(friendsCollection.updateOne).toHaveBeenCalledWith(
-            { user_uuid: friend.user_uuid },
-            { $pull: { friends: { user_uuid: user.user_uuid } } }
-        );
-    });
-
-    // Input: Removing a non-existent friend
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
+    // Input: Authenticated user token, database error
+    // Expected status code: 500
+    // Expected behavior: None
     // Expected output: Error message
-    test("Return 404 when trying to remove a non-existent friend", async () => {
-        const userFriends: Friends = {
-            user_uuid: user.user_uuid,
-            friends: [],
-            incoming_requests: [],
-        };
+    test("Database error, friends database", async () => {
 
-        friendsCollection.findOne.mockResolvedValueOnce(userFriends);
-        friendsCollection.updateOne.mockResolvedValueOnce({ modifiedCount: 0, acknowledged: true } as any);
-        friendsCollection.updateOne.mockResolvedValueOnce({ modifiedCount: 0, acknowledged: true } as any);
+        jest.spyOn(friendsCollection, "updateOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
 
-        const res: Response = await supertest(app)
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
             .delete("/friends")
-            .set("token", "mock_token")
-            .query({ user_uuid: friend.user_uuid });
+            .set("token", token)
+            .query({ user_uuid: testUserA.user_uuid });
 
-        expect(res.status).toBe(404);
-        expect(res.body).toHaveProperty("message", "Friend not found.");
-        expect(friendsCollection.updateOne).toHaveBeenCalledWith(
-            { user_uuid: user.user_uuid },
-            { $pull: { friends: { user_uuid: friend.user_uuid } } }
-        );
-        expect(friendsCollection.updateOne).toHaveBeenCalledWith(
-            { user_uuid: friend.user_uuid },
-            { $pull: { friends: { user_uuid: user.user_uuid } } }
-        );
+        expect(res.status).toBe(500);
     });
 
-    // Input: User tries to remove themselves
-    // Expected status code: 400
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Return 400 when user tries to remove themselves", async () => {
-        const res: Response = await supertest(app)
-            .delete("/friends")
-            .set("token", "mock_token")
-            .query({ user_uuid: user.user_uuid });
-
-        expect(res.status).toBe(400);
-        expect(res.body).toHaveProperty("message", "Cannot remove yourself as a friend.");
-    });
 });
+
+
+
+// Interface DELETE /friends/requests
+describe("Mocked: DELETE /friends/requests", () => {
+    
+    const app = createServer();
+    jest.setTimeout(JEST_TIMEOUT_MS);   
+
+    beforeAll(async () => {
+        await client.connect();
+        await friendsCollection.drop();
+        await usersCollection.drop();
+    });
+
+    beforeEach(() => {
+        dotenv.config({ path: './res/.env.test' });
+    });
+
+    afterEach(async () => {
+        await friendsCollection.drop();
+        await usersCollection.drop();
+        jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
+    });
+
+    afterAll(async () => {
+        await client.close();
+    });
+
+    // Input: Authenticated user token, database error
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, friends database", async () => {
+
+        jest.spyOn(friendsCollection, "updateOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
+
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .delete("/friends")
+            .set("token", token)
+            .query({ user_uuid: testUserA.user_uuid });
+
+        expect(res.status).toBe(500);
+    });
+
+});
+
 
 // Interface GET /friends
 describe("Mocked: GET /friends", () => {
-    let friendsCollection: jest.Mocked<Collection<Friends>>;
+    
+    const app = createServer();
+    jest.setTimeout(JEST_TIMEOUT_MS);   
+
+    beforeAll(async () => {
+        await client.connect();
+        await friendsCollection.drop();
+        await usersCollection.drop();
+    });
 
     beforeEach(() => {
-        jest.clearAllMocks();
-        friendsCollection = (services.client.db as jest.Mock)().collection("friends");
-    
-        friendsCollection.findOne.mockReset();
-
-        (jwt.verify as jest.Mock).mockImplementation(() => user);
-    
-        friendsCollection.findOne.mockClear();
-    });
-    
-
-    afterEach(() => {
-        jest.clearAllMocks();
+        dotenv.config({ path: './res/.env.test' });
     });
 
-    afterAll(() => {
+    afterEach(async () => {
+        await friendsCollection.drop();
+        await usersCollection.drop();
         jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
-    const friend1: Friends["friends"][0] = { user_uuid: "friend-123", name: "Jane Doe" };
-    const friend2: Friends["friends"][0] = { user_uuid: "friend-456", name: "Mike Smith" };
+    afterAll(async () => {
+        await client.close();
+    });
 
-    // Input: User has friends
-    // Expected status code: 200
-    // Expected behavior: Returns list of current friends
-    // Expected output: List of user UUIDs and names of current friends
-    test("Returns list of current friends when user has friends", async () => {
-        const userFriends: Friends = {
-            user_uuid: user.user_uuid,
-            friends: [
-                { user_uuid: friend1.user_uuid, name: friend1.name },
-                { user_uuid: friend2.user_uuid, name: friend2.name }
-            ],
-            incoming_requests: [],
-        };
+    // Input: Authenticated user token, database error
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, friends database", async () => {
 
-        friendsCollection.findOne.mockResolvedValueOnce(userFriends);
+        jest.spyOn(friendsCollection, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
 
-        const res: Response = await supertest(app)
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
             .get("/friends")
-            .set("token", "mock_token");
+            .set("token", token);
+
+        expect(res.status).toBe(500);
+    });
+
+});
+
+
+
+// Interface GET /friends/requests
+describe("Mocked: GET /friends/requests", () => {
+    
+    const app = createServer();
+    jest.setTimeout(JEST_TIMEOUT_MS);   
+
+    beforeAll(async () => {
+        await client.connect();
+        await friendsCollection.drop();
+        await usersCollection.drop();
+    });
+
+    beforeEach(() => {
+        dotenv.config({ path: './res/.env.test' });
+    });
+
+    afterEach(async () => {
+        await friendsCollection.drop();
+        await usersCollection.drop();
+        jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
+    });
+
+    afterAll(async () => {
+        await client.close();
+    });
+
+    // Input: Authenticated user token, database error
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, friends database", async () => {
+
+        jest.spyOn(friendsCollection, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
+
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .get("/friends/requests")
+            .set("token", token);
+
+        expect(res.status).toBe(500);
+    });
+
+});
+
+
+
+// Interface GET /friends/requests/outgoing
+describe("Mocked: GET /friends/requests/outgoing", () => {
+    
+    const app = createServer();
+    jest.setTimeout(JEST_TIMEOUT_MS);   
+
+    beforeAll(async () => {
+        await client.connect();
+        await friendsCollection.drop();
+        await usersCollection.drop();
+    });
+
+    beforeEach(() => {
+        dotenv.config({ path: './res/.env.test' });
+    });
+
+    afterEach(async () => {
+        await friendsCollection.drop();
+        await usersCollection.drop();
+        jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
+    });
+
+    afterAll(async () => {
+        await client.close();
+    });
+
+    // Input: Authenticated user token, database error
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, friends database", async () => {
+
+        jest.spyOn(friendsCollection, "find").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
+
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .get("/friends/requests/outgoing")
+            .set("token", token);
+
+        expect(res.status).toBe(500);
+    });
+
+    // Input: Authenticated user token, database error
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, users database", async () => {
+
+        await usersCollection.insertOne(testUserA);
+        await usersCollection.insertOne(testUserB);
+        await friendsCollection.insertOne(testFriendsA);
+        await friendsCollection.insertOne(testFriendsB);
+
+        jest.spyOn(usersCollection, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
+
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .get("/friends/requests/outgoing")
+            .set("token", token);
+
+        expect(res.status).toBe(500);
+    });
+
+});
+
+
+// Interface GET /friends/history/:user_uuid
+describe("Mocked: GET /friends/history/:user_uuid", () => {
+    
+    const app = createServer();
+    jest.setTimeout(JEST_TIMEOUT_MS);   
+
+    beforeAll(async () => {
+        await client.connect();
+        await friendsCollection.drop();
+        await usersCollection.drop();
+        await historyCollection.drop();
+    });
+
+    beforeEach(() => {
+        dotenv.config({ path: './res/.env.test' });
+    });
+
+    afterEach(async () => {
+        await friendsCollection.drop();
+        await usersCollection.drop();
+        await historyCollection.drop();
+        jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
+    });
+
+    afterAll(async () => {
+        await client.close();
+    });
+
+    // Input: Authenticated user token, database error on friends collection
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, friends collection", async () => {
+
+        jest.spyOn(friendsCollection, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
+
+        await usersCollection.insertOne(testUserC);
+        await usersCollection.insertOne(testUserD);
+        await friendsCollection.insertOne(testFriendsC);
+        await friendsCollection.insertOne(testFriendsD);
+
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .get(`/friends/history/${testUserD.user_uuid}`)
+            .set("token", token);
+
+        expect(res.status).toBe(500);
+    });
+
+    // Input: Authenticated user token, database error on history collection
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, history collection", async () => {
+
+        jest.spyOn(historyCollection, "find").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
+
+        await usersCollection.insertOne(testUserC);
+        await usersCollection.insertOne(testUserD);
+        await friendsCollection.insertOne(testFriendsC);
+        await friendsCollection.insertOne(testFriendsD);
+
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .get(`/friends/history/${testUserD.user_uuid}`)
+            .set("token", token);
+
+        expect(res.status).toBe(500);
+    });
+
+});
+
+
+// Interface POST /friends/notifications
+describe("Mocked: POST /friends/notifications", () => {
+    
+    const app = createServer();
+    jest.setTimeout(JEST_TIMEOUT_MS);   
+
+    beforeAll(async () => {
+        await client.connect();
+        await friendsCollection.drop();
+        await usersCollection.drop();
+        await historyCollection.drop();
+    });
+
+    beforeEach(() => {
+        dotenv.config({ path: './res/.env.test' });
+    });
+
+    afterEach(async () => {
+        await friendsCollection.drop();
+        await usersCollection.drop();
+        await historyCollection.drop();
+        jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
+    });
+
+    afterAll(async () => {
+        await client.close();
+    });
+
+    // Input: Authenticated user token, valid friend UUID, valid scan UUID
+    // Expected status code: 200
+    // Expected behavior: Notification sent
+    // Expected output: Confirmation message
+    test("Send product notification to user without FCM token, shame", async () => {
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+
+        await usersCollection.insertOne({...testUserC, fcm_registration_token: "fcm-token-C"});
+        await usersCollection.insertOne(testUserD);
+
+        await friendsCollection.insertOne(testFriendsD);
+        await friendsCollection.insertOne(testFriendsC);
+
+        await historyCollection.insertOne(testHistoryD);
+        await historyCollection.insertOne(testHistoryC);
+
+        jest.spyOn(require('firebase-admin/app'), 'getApps').mockReturnValue([{ name: 'mock-app' }]);
+
+        jest.spyOn(require('firebase-admin/messaging'), 'getMessaging').mockReturnValue({
+            send: jest.fn().mockResolvedValue({
+                responses: [{
+                    success: true,
+                    fcm_messaging: "some_value"
+                }]
+            })
+        });
+
+        const res = await supertest(app)
+            .post("/friends/notifications")
+            .set("token", token)
+            .send({
+                user_uuid: testUserC.user_uuid,
+                scan_uuid: testHistoryC.products[0].scan_uuid,
+                message_type: "shame"
+            });
 
         expect(res.status).toBe(200);
-        expect(res.body).toEqual(userFriends.friends);
+        expect(res.body).toHaveProperty("message", "Notification sent.");
     });
 
-    // Input: User has no friends
-    // Expected status code: 200
-    // Expected behavior: Returns an empty array
-    // Expected output: Empty array
-    test("Returns empty array when user has no friends", async () => {
-        const userFriends: Friends = {
-            user_uuid: user.user_uuid,
-            friends: [],
-            incoming_requests: [],
-        };
+    // Input: Authenticated user token, valid friend UUID, valid scan UUID, firebase error
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Send product notification to user without FCM token, praise", async () => {
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
 
-        friendsCollection.findOne.mockResolvedValueOnce(userFriends);
+        await usersCollection.insertOne({...testUserC, fcm_registration_token: "fcm-token-C"});
+        await usersCollection.insertOne(testUserD);
 
-        const res: Response = await supertest(app)
-            .get("/friends")
-            .set("token", "mock_token");
+        await friendsCollection.insertOne(testFriendsD);
+        await friendsCollection.insertOne(testFriendsC);
 
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual([]);
+        await historyCollection.insertOne(testHistoryD);
+        await historyCollection.insertOne(testHistoryC);
+
+        jest.spyOn(require('firebase-admin/app'), 'getApps').mockReturnValue([{ name: 'mock-app' }]);
+
+        jest.spyOn(require('firebase-admin/messaging'), 'getMessaging').mockReturnValue({
+            send: jest.fn().mockRejectedValue(new Error("Firebase error"))
+        });
+
+        const res = await supertest(app)
+            .post("/friends/notifications")
+            .set("token", token)
+            .send({
+                user_uuid: testUserC.user_uuid,
+                scan_uuid: testHistoryC.products[0].scan_uuid,
+                message_type: "praise"
+            });
+
+        expect(res.status).toBe(500);
+        expect(res.body).toHaveProperty("message", "Error sending notification.");
     });
 
-    // Input: Database error
-    // Expected status code: 200
-    // Expected behavior: Returns an empty array
-    // Expected output: Empty array
-    test("Returns empty array on database error", async () => {
-        friendsCollection.findOne.mockResolvedValueOnce(null);
+    // Input: Authenticated user token, database error on friends collection
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, friends collection", async () => {
 
-        const res: Response = await supertest(app)
-            .get("/friends")
-            .set("token", "mock_token");
+        jest.spyOn(friendsCollection, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
 
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual([]);
+        await usersCollection.insertOne(testUserD);
+        await usersCollection.insertOne(testUserC);
+        await friendsCollection.insertOne(testFriendsD);
+        await friendsCollection.insertOne(testFriendsC);
+
+        await historyCollection.insertOne(testHistoryD);
+        await historyCollection.insertOne(testHistoryC);
+
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .post("/friends/notifications")
+            .set("token", token)
+            .send({
+                user_uuid: testUserC.user_uuid,
+                scan_uuid: testHistoryC.products[0].scan_uuid,
+                message_type: "praise"
+            });
+
+        expect(res.status).toBe(500);
+    });
+
+    // Input: Authenticated user token, database error on users collection
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, users collection", async () => {
+
+        jest.spyOn(usersCollection, "find").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
+
+        await usersCollection.insertOne(testUserD);
+        await usersCollection.insertOne(testUserC);
+        await friendsCollection.insertOne(testFriendsD);
+        await friendsCollection.insertOne(testFriendsC);
+
+        await historyCollection.insertOne(testHistoryD);
+        await historyCollection.insertOne(testHistoryC);
+
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .post("/friends/notifications")
+            .set("token", token)
+            .send({
+                user_uuid: testUserC.user_uuid,
+                scan_uuid: testHistoryC.products[0].scan_uuid,
+                message_type: "praise"
+            });
+
+        expect(res.status).toBe(500);
+    });
+
+    // Input: Authenticated user token, database error on history collection
+    // Expected status code: 500
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Database error, history collection", async () => {
+
+        jest.spyOn(historyCollection, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
+
+        await usersCollection.insertOne(testUserD);
+        await usersCollection.insertOne(testUserC);
+        await friendsCollection.insertOne(testFriendsD);
+        await friendsCollection.insertOne(testFriendsC);
+        await historyCollection.insertOne(testHistoryD);
+        await historyCollection.insertOne(testHistoryC);
+
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .post("/friends/notifications")
+            .set("token", token)
+            .send({
+                user_uuid: testUserC.user_uuid,
+                scan_uuid: testHistoryC.products[0].scan_uuid,
+                message_type: "praise"
+            });
+
+        expect(res.status).toBe(500);
     });
 });
+
 
 // Interface GET /friends/ecoscore_score/:user_uuid
 describe("Mocked: GET /friends/ecoscore_score/:user_uuid", () => {
-    let friendsCollection: jest.Mocked<Collection<Friends>>;
-    let historyCollection: jest.Mocked<Collection<History>>;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-        friendsCollection = (services.client.db as jest.Mock)().collection("friends");
-        historyCollection = (services.client.db as jest.Mock)().collection("history");
-
-        (jwt.verify as jest.Mock).mockImplementation(() => user);
-        friendsCollection.findOne.mockClear();
-        historyCollection.findOne.mockClear();
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    afterAll(() => {
-        jest.clearAllMocks();
-    });
-
-    // Input: Valid user_uuid for friend's ecoscore
-    // Expected status code: 200
-    // Expected behavior: Returns friend's ecoscore successfully
-    // Expected output: Friend's ecoscore
-    test("Retrieve friend's ecoscore successfully", async () => {
-        const userFriends: Friends = {
-            user_uuid: user.user_uuid,
-            friends: [{ user_uuid: friend.user_uuid, name: friend.name }],
-            incoming_requests: [],
-        };
-
-        friendsCollection.findOne.mockResolvedValueOnce(userFriends);
-        historyCollection.findOne.mockResolvedValueOnce(friendHistory);
-
-        const res: Response = await supertest(app)
-            .get(`/friends/ecoscore_score/${friend.user_uuid}`)
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual({ ecoscore_score: friendHistory.ecoscore_score });
-    });
-
-    // Input: Friend is not in the user's friend list
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Return 404 when friend is not in user's friend list", async () => {
-        const userFriends: Friends = {
-            user_uuid: user.user_uuid,
-            friends: [],
-            incoming_requests: [],
-        };
-
-        friendsCollection.findOne.mockResolvedValueOnce(userFriends);
-
-        const res: Response = await supertest(app)
-            .get(`/friends/ecoscore_score/${friend.user_uuid}`)
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ message: "User does not exist or is not a friend." });
-    });
-
-    // Input: Friend's history does not exist
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Return 404 when friend's history does not exist", async () => {
-        const userFriends: Friends = {
-            user_uuid: user.user_uuid,
-            friends: [{ user_uuid: friend.user_uuid, name: friend.name }],
-            incoming_requests: [],
-        };
-
-        friendsCollection.findOne.mockResolvedValueOnce(userFriends);
-        historyCollection.findOne.mockResolvedValueOnce(null);
-
-        const res: Response = await supertest(app)
-            .get(`/friends/ecoscore_score/${friend.user_uuid}`)
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ message: "No history found for the friend." });
-    });
-
-    // Input: User tries to get their own ecoscore
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Return 400 when user tries to get their own ecoscore", async () => {
-        const res: Response = await supertest(app)
-            .get(`/friends/ecoscore_score/${user.user_uuid}`)
-            .set("token", "mock_token");
-
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ message: "User does not exist or is not a friend." });
-    });
-});
-
-// Interface POST /users/history
-describe("Mocked: POST /friends/notifications", () => {
-    let friendsCollection: jest.Mocked<Collection<Friends>>;
-    let usersCollection: jest.Mocked<Collection<User>>;
-    let historyCollection: jest.Mocked<Collection<History>>;
-    let productCollection: jest.Mocked<Collection<Product>>;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-        friendsCollection = (services.client.db as jest.Mock)().collection("friends");
-        usersCollection = (services.client.db as jest.Mock)().collection("users");
-        historyCollection = (services.client.db as jest.Mock)().collection("history");
-        productCollection = (services.client.db as jest.Mock)().collection("products");
-        productCollection.findOne.mockReset();
-        productCollection.insertOne.mockClear();
-
-        (jwt.verify as jest.Mock).mockImplementation(() => user);
-        friendsCollection.findOne.mockClear();
-        usersCollection.findOne.mockClear();
-        historyCollection.findOne.mockClear();
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    afterAll(() => {
-        jest.clearAllMocks();
-    });
-
-    const user: User = {
-        _id: "user-123",
-        google_id: "google-123",
-        email: "john.doe@example.com",
-        fcm_registration_token: "fcm-token-123",
-        user_uuid: "user-123",
-        name: "John Doe",
-    };
-
-    const friend: User = {
-        _id: "friend-123",
-        google_id: "google-123",
-        email: "jane.doe@example.com",
-        fcm_registration_token: "fcm-token-456",
-        user_uuid: "friend-123",
-        name: "Jane Doe",
-    };
-
-    const friendHistory: History = {
-        user_uuid: friend.user_uuid,
-        ecoscore_score: 75,
-        products: [
-            {
-                product_id: "12345",
-                timestamp: new Date("2024-01-01"),
-                scan_uuid: "scan-123",
-            },
-        ],
-    };
-
-    const mockProduct: Product = {
-        _id: "12345",
-        product_name: "Mock Product",
-        ecoscore_grade: "A",
-        ecoscore_score: 90,
-        ecoscore_data: {},
-        categories_tags: ["tag1", "tag2"],
-        ingredients_tags: ["tagC", "tagD"],
-        categories_hierarchy: ["hierarchy1", "hierarchy2"],
-        countries_tags: ["france"],
-        lang: "en"
-    };
-
-    const mockRecommendationA: Product = {
-        _id: "67890",
-        product_name: "Recommended Product A",
-        ecoscore_grade: "B",
-        ecoscore_score: 75,
-        categories_tags: ["tag1", "tag2"],
-        ingredients_tags: ["tagC", "tagD"],
-        categories_hierarchy: ["hierarchy1", "hierarchy2"],
-        countries_tags: ["france"],
-        lang: "en"
-    };
-
-    // Input: Valid user_uuid for sending a product notification (praise)
-    // Expected status code: 200
-    // Expected behavior: Notification is sent successfully
-    // Expected output: Confirmation message
-    test("Successfully send a product notification (praise)", async () => {
-        friendsCollection.findOne.mockResolvedValueOnce({
-            user_uuid: user.user_uuid,
-            friends: [{ user_uuid: friend.user_uuid, name: friend.name }],
-        });
-
-        usersCollection.findOne.mockResolvedValueOnce(friend);
-        historyCollection.findOne.mockResolvedValueOnce(friendHistory);
     
-        productCollection.findOne.mockResolvedValueOnce(mockProduct);
-        (productCollection.find as jest.Mock).mockReturnValue({
-            limit: jest.fn().mockReturnThis(),
-            toArray: jest.fn().mockResolvedValueOnce([mockRecommendationA]),
-        });
+    const app = createServer();
+    jest.setTimeout(JEST_TIMEOUT_MS);   
 
-        const res: Response = await supertest(app)
-            .post("/friends/notifications")
-            .set("token", "mock_token")
-            .send({ user_uuid: friend.user_uuid, scan_uuid: "scan-123", message_type: "praise" });
-
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual({ message: "Notification sent." });
-
-        expect(sendMock).toHaveBeenCalledWith({
-            notification: {
-                title: "CarbonWise",
-                body: "John Doe has praised you for buying Mock Product",
-            },
-            token: friend.fcm_registration_token,
-        });
+    beforeAll(async () => {
+        await client.connect();
+        await friendsCollection.drop();
+        await usersCollection.drop();
+        await historyCollection.drop();
     });
 
-    // Input: Valid user_uuid for sending a product notification (shame)
-    // Expected status code: 200
-    // Expected behavior: Notification is sent successfully
-    // Expected output: Confirmation message
-    test("Successfully send a product notification (shame)", async () => {
-        friendsCollection.findOne.mockResolvedValueOnce({
-            user_uuid: user.user_uuid,
-            friends: [{ user_uuid: friend.user_uuid, name: friend.name }],
-        });
-
-        usersCollection.findOne.mockResolvedValueOnce(friend);
-        historyCollection.findOne.mockResolvedValueOnce(friendHistory);
-
-        productCollection.findOne.mockResolvedValueOnce(mockProduct);
-        (productCollection.find as jest.Mock).mockReturnValue({
-            limit: jest.fn().mockReturnThis(),
-            toArray: jest.fn().mockResolvedValueOnce([mockRecommendationA]),
-        });
-
-        const res: Response = await supertest(app)
-            .post("/friends/notifications")
-            .set("token", "mock_token")
-            .send({ user_uuid: friend.user_uuid, scan_uuid: "scan-123", message_type: "shame" });
-
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual({ message: "Notification sent." });
-
-        expect(sendMock).toHaveBeenCalledWith({
-            notification: {
-                title: "CarbonWise",
-                body: "John Doe has shamed you for buying Mock Product",
-            },
-            token: friend.fcm_registration_token,
-        });
+    beforeEach(() => {
+        dotenv.config({ path: './res/.env.test' });
     });
 
-    // Input: user_uuid is the same as the sender's
-    // Expected status code: 400
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Return 400 when user tries to send notification to themselves", async () => {
-        const res: Response = await supertest(app)
-            .post("/friends/notifications")
-            .set("token", "mock_token")
-            .send({ user_uuid: user.user_uuid, scan_uuid: "scan-123", message_type: "praise" });
-
-        expect(res.status).toBe(400);
-        expect(res.body).toEqual({ message: "Cannot send notification to yourself." });
+    afterEach(async () => {
+        await friendsCollection.drop();
+        await usersCollection.drop();
+        await historyCollection.drop();
+        jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
-    // Input: recipient is not a friend
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Return 404 when recipient is not a friend", async () => {
-        friendsCollection.findOne.mockResolvedValueOnce({ user_uuid: user.user_uuid, friends: [] });
-
-        const res: Response = await supertest(app)
-            .post("/friends/notifications")
-            .set("token", "mock_token")
-            .send({ user_uuid: friend.user_uuid, scan_uuid: "scan-123", message_type: "praise" });
-
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ message: "User does not exist or is not a friend." });
+    afterAll(async () => {
+        await client.close();
     });
 
-    // Input: recipient has no history
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Return 404 when recipient has no history", async () => {
-        friendsCollection.findOne.mockResolvedValueOnce({
-            user_uuid: user.user_uuid,
-            friends: [{ user_uuid: friend.user_uuid, name: friend.name }],
-        });
-
-        historyCollection.findOne.mockResolvedValueOnce(null);
-
-        const res: Response = await supertest(app)
-            .post("/friends/notifications")
-            .set("token", "mock_token")
-            .send({ user_uuid: friend.user_uuid, scan_uuid: "scan-123", message_type: "praise" });
-
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ message: "User history not found." });
-    });
-
-    // Input: product is not found in friend's history
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Return 404 when product is not found in friend's history", async () => {
-        const emptyHistory: History = { user_uuid: friend.user_uuid, ecoscore_score: 75, products: [] };
-
-        friendsCollection.findOne.mockResolvedValueOnce({
-            user_uuid: user.user_uuid,
-            friends: [{ user_uuid: friend.user_uuid, name: friend.name }],
-        });
-
-        historyCollection.findOne.mockResolvedValueOnce(emptyHistory);
-
-        const res: Response = await supertest(app)
-            .post("/friends/notifications")
-            .set("token", "mock_token")
-            .send({ user_uuid: friend.user_uuid, scan_uuid: "scan-999", message_type: "praise" });
-
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ message: "Product not found in user's history." });
-    });
-
-    // Input: invalid message type is sent
-    // Expected status code: 400
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Return 400 when invalid message type is sent", async () => {
-        const res: Response = await supertest(app)
-            .post("/friends/notifications")
-            .set("token", "mock_token")
-            .send({ user_uuid: friend.user_uuid, scan_uuid: "scan-123", message_type: "invalid_type" });
-
-        expect(res.status).toBe(400);
-        expect(res.body).toEqual({
-            errors: [
-                {
-                    location: "body",
-                    msg: "Message type should be either 'praise' or 'shame'",
-                    path: "message_type",
-                    type: "field",
-                    value: "invalid_type",
-                },
-            ],
-        });
-    });
-
-    // Input: friend is not found due to friend collection not returning a document
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Return 404 when friend is not found due to friend collection not returning a document", async () => {
-        const emptyHistory: History = { user_uuid: friend.user_uuid, ecoscore_score: 75, products: [] };
-
-        friendsCollection.findOne.mockResolvedValueOnce(null);
-
-        historyCollection.findOne.mockResolvedValueOnce(emptyHistory);
-
-        const res: Response = await supertest(app)
-            .post("/friends/notifications")
-            .set("token", "mock_token")
-            .send({ user_uuid: friend.user_uuid, scan_uuid: "scan-999", message_type: "praise" });
-
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ message: "User does not exist or is not a friend." });
-    });
-
-    // Input: target user does not exist
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Return 404 when target user does not exist", async () => {
-        friendsCollection.findOne.mockResolvedValueOnce({
-            user_uuid: user.user_uuid,
-            friends: [{ user_uuid: friend.user_uuid, name: friend.name }],
-        });
-
-        usersCollection.findOne.mockResolvedValueOnce(null); // Target user does not exist
-        historyCollection.findOne.mockResolvedValueOnce(friendHistory);
-
-        productCollection.findOne.mockResolvedValueOnce({ _id: "12345", product_name: "Mock Product" });
-
-        const res: Response = await supertest(app)
-            .post("/friends/notifications")
-            .set("token", "mock_token")
-            .send({ user_uuid: friend.user_uuid, scan_uuid: "scan-123", message_type: "praise" });
-
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ message: "Product not found in user's history." });
-    });
-
-    // Input: target user has no fcm_registration_token
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
-    // Expected output: Error message
-    test("Return 404 when target user has no fcm_registration_token", async () => {
-        const friendWithoutToken: User = { ...friend, fcm_registration_token: ""  };
-
-        friendsCollection.findOne.mockResolvedValueOnce({
-            user_uuid: user.user_uuid,
-            friends: [{ user_uuid: friendWithoutToken.user_uuid, name: friendWithoutToken.name }],
-        });
-
-        usersCollection.findOne.mockResolvedValueOnce(friendWithoutToken);
-        historyCollection.findOne.mockResolvedValueOnce(friendHistory);
-
-        productCollection.findOne.mockResolvedValueOnce({ _id: "12345", product_name: "Mock Product" });
-
-        const res: Response = await supertest(app)
-            .post("/friends/notifications")
-            .set("token", "mock_token")
-            .send({ user_uuid: friendWithoutToken.user_uuid, scan_uuid: "scan-123", message_type: "praise" });
-
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ message: "Target user does not have notifications enabled." });
-    });
-
-    // Input: Firebase messaging send fails
+    // Input: Authenticated user token, database error on friends collection
     // Expected status code: 500
-    // Expected behavior: Request is rejected
+    // Expected behavior: None
     // Expected output: Error message
-    test("Return 500 when Firebase messaging send fails", async () => {
-        friendsCollection.findOne.mockResolvedValueOnce({
-            user_uuid: user.user_uuid,
-            friends: [{ user_uuid: friend.user_uuid, name: friend.name }],
+    test("Database error, friends collection", async () => {
+
+        jest.spyOn(friendsCollection, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
         });
 
-        usersCollection.findOne.mockResolvedValueOnce(friend);
-        historyCollection.findOne.mockResolvedValueOnce(friendHistory);
+        await usersCollection.insertOne(testUserD);
+        await usersCollection.insertOne(testUserC);
 
-        productCollection.findOne.mockResolvedValueOnce({ _id: "12345", product_name: "Mock Product" });
-
-        // Mock Firebase send to reject with an error
-        sendMock.mockRejectedValue(new Error("Firebase error"));
-
-        const res: Response = await supertest(app)
-            .post("/friends/notifications")
-            .set("token", "mock_token")
-            .send({ user_uuid: friend.user_uuid, scan_uuid: "scan-123", message_type: "praise" });
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .get(`/friends/ecoscore_score/${testUserC.user_uuid}`)
+            .set("token", token);
 
         expect(res.status).toBe(500);
-        expect(res.body).toEqual({ message: "Error sending notification." });
-
-        expect(sendMock).toHaveBeenCalledWith({
-            notification: {
-                title: "CarbonWise",
-                body: "John Doe has praised you for buying Mock Product",
-            },
-            token: friend.fcm_registration_token,
-        });
     });
 
-    // Input: product not found
-    // Expected status code: 404
-    // Expected behavior: Request is rejected
+    
+
+    // Input: Authenticated user token, database error on history collection
+    // Expected status code: 500
+    // Expected behavior: None
     // Expected output: Error message
-    test("Product not found", async () => {
-        friendsCollection.findOne.mockResolvedValueOnce({
-            user_uuid: user.user_uuid,
-            friends: [{ user_uuid: friend.user_uuid, name: friend.name }],
+    test("Database error, history collection", async () => {
+
+        jest.spyOn(historyCollection, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
         });
 
-        usersCollection.findOne.mockResolvedValueOnce(friend);
-        historyCollection.findOne.mockResolvedValueOnce(friendHistory);
+        await usersCollection.insertOne(testUserD);
+        await usersCollection.insertOne(testUserC);
+        await friendsCollection.insertOne(testFriendsD);
+        await friendsCollection.insertOne(testFriendsC);
 
-        productCollection.findOne.mockResolvedValueOnce(null);
-        (axios.get as jest.Mock).mockRejectedValue(new Error("OpenFoodFacts error"));
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        
+        const res = await supertest(app)
+            .get(`/friends/ecoscore_score/${testUserC.user_uuid}`)
+            .set("token", token);
 
-        const res: Response = await supertest(app)
-            .post("/friends/notifications")
-            .set("token", "mock_token")
-            .send({ user_uuid: friend.user_uuid, scan_uuid: "scan-123", message_type: "praise" });
+        expect(res.status).toBe(500);
+    });
 
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ message: "Product not found." });
 
+    // Input: No token provided
+    // Expected status code: 401
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Get friend ecoscore without token", async () => {
+        const res = await supertest(app).get(`/friends/ecoscore_score/${testUserB.user_uuid}`);
+        expect(res.status).toBe(401);
+        expect(res.body).toHaveProperty("message", "No token provided.");
+    });
+
+    // Input: Invalid token provided
+    // Expected status code: 403
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Get friend ecoscore with invalid token", async () => {
+        const res = await supertest(app).get(`/friends/ecoscore_score/${testUserB.user_uuid}`).set("token", "invalid_token");
+        expect(res.status).toBe(403);
+        expect(res.body).toHaveProperty("message", "Authentication error.");
     });
 
 });

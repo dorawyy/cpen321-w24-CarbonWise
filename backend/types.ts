@@ -7,10 +7,17 @@ export interface User {
     fcm_registration_token: string;
 }
 
+export interface HistoryProduct { 
+    product_id: string;
+    timestamp: Date;
+    scan_uuid: string;
+    product?: Product;
+}
+
 export interface History {
     user_uuid: string;
     ecoscore_score: number;
-    products: { product_id: string, timestamp: Date, scan_uuid: string }[];
+    products: HistoryProduct[];
 }
 
 export interface HistoryEntry {
@@ -34,6 +41,7 @@ export interface Product {
     categories_tags?: string[];
     categories_hierarchy?: string[];
     countries_tags?: string[];
+    ingredients_tags?: string[];
     lang?: string;
     [key: string]: unknown;
 }
