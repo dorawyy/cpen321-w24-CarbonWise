@@ -1,11 +1,11 @@
 import { client, productsCollection } from "../../services";
-import { JEST_TIMEOUT_MS } from "../res/data";
 
 // Non-Functional: Test the number of products in the database
 describe("Non-Functional: Product Database Size", () => {
     const MIN_PRODUCTS = 100000;
+    const JEST_TIMEOUT_MS = 600000;
 
-    beforeAll(async () => {
+    beforeAll(async () => { 
         await client.connect();
     });
 

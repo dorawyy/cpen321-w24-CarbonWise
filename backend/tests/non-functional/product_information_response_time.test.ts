@@ -1,8 +1,8 @@
 import supertest from "supertest";
 import { performance } from "perf_hooks";
 import { createServer } from "../../utils";
-import { JEST_TIMEOUT_MS } from "../res/data";
 import { client } from "../../services";
+import { JEST_TIMEOUT_MS } from "../res/data";
 // Non-Functional: Test the response time for product information retrieval
 describe("Non-Functional: Product Information Response Time", () => {
 
