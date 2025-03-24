@@ -146,23 +146,23 @@
   - **Verification:** This test ensures that the database contains at least 100,000 distinct products. It connects to the database and counts the number of products with essential fields like product name, categories, and countries. The test passes if the count meets or exceeds the minimum requirement, ensuring the database's capacity to provide comprehensive product information.
   - **Log Output**
     ```
-PASS tests/non-functional/product_database_size.test.ts (120.98 s)
-● Console
+    PASS tests/non-functional/product_database_size.test.ts (120.98 s)
+    ● Console
 
-  console.log
-    Starting test for product database size...
+      console.log
+        Starting test for product database size...
 
-    at tests/non-functional/product_database_size.test.ts:21:17
+        at tests/non-functional/product_database_size.test.ts:21:17
 
-  console.log
-    Product count (clipped at 100000): 100000
+      console.log
+        Product count (clipped at 100000): 100000
 
-    at tests/non-functional/product_database_size.test.ts:32:17
+        at tests/non-functional/product_database_size.test.ts:32:17
 
-  console.log
-    Non-Functional Test: Product database size is sufficient.
+      console.log
+        Non-Functional Test: Product database size is sufficient.
 
-    at tests/non-functional/product_database_size.test.ts:34:17
+        at tests/non-functional/product_database_size.test.ts:34:17
     ```
 
 - **Product Information Response Time**
@@ -170,29 +170,29 @@ PASS tests/non-functional/product_database_size.test.ts (120.98 s)
   - **Verification:** This test measures the time taken to retrieve product information, ensuring it is under 5 seconds. It uses performance monitoring to track the response time for fetching details of a valid product ID. The test passes if the response time is within the acceptable limit, ensuring quick access to product information for users.
   - **Log Output**
     ```
-PASS tests/non-functional/product_information_response_time.test.ts
-  ● Console
+    PASS tests/non-functional/product_information_response_time.test.ts
+      ● Console
 
-    console.log
-      Starting test for product response time...
+        console.log
+          Starting test for product response time...
 
-      at tests/non-functional/product_information_response_time.test.ts:24:17
+          at tests/non-functional/product_information_response_time.test.ts:24:17
 
-    console.log
-      Response time: 2073.9587931632996 ms
+        console.log
+          Response time: 2073.9587931632996 ms
 
-      at tests/non-functional/product_information_response_time.test.ts:30:17
+          at tests/non-functional/product_information_response_time.test.ts:30:17
 
-    console.log
-      Response status: 200
+        console.log
+          Response status: 200
 
-      at tests/non-functional/product_information_response_time.test.ts:31:17
+          at tests/non-functional/product_information_response_time.test.ts:31:17
 
-    console.log
-      Non-Functional Test: Product response time is under 5 seconds and product is returned.
+        console.log
+          Non-Functional Test: Product response time is under 5 seconds and product is returned.
 
-      at tests/non-functional/product_information_response_time.test.ts:37:17
-    ```
+          at tests/non-functional/product_information_response_time.test.ts:37:17
+      ```
 
 ---
 
