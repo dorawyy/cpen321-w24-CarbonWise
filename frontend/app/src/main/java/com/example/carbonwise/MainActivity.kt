@@ -183,7 +183,18 @@ class MainActivity : AppCompatActivity() {
             val navController = findNavController(R.id.nav_host_fragment_activity_main)
             navController.navigate(R.id.navigation_scan)
         }
-        builder.show()
+
+        val dialog = builder.create()
+
+        dialog.setCancelable(true)
+        dialog.setCanceledOnTouchOutside(true)
+
+        dialog.setOnCancelListener {
+            val navController = findNavController(R.id.nav_host_fragment_activity_main)
+            navController.navigate(R.id.navigation_scan)
+        }
+
+        dialog.show()
     }
 
     companion object {
@@ -306,6 +317,7 @@ class MainActivity : AppCompatActivity() {
             if (intent?.action == "UPDATE_FRIENDS") {
                 friendsViewModel.fetchFriends()
                 friendsViewModel.fetchFriendRequests()
+                friendsViewModel.fetchOutgoingRequests()
             }
         }
     }

@@ -1,10 +1,9 @@
 import { Request, Response } from "express";
-import { client } from "../services";
-import { Collection } from "mongodb";
+import { productsCollection } from "../services";
 import axios from "axios";
 import { Buffer } from "buffer";
 import { Product } from "../types";
-import { RECOMMENDATIONS_UPPER_LIMIT, RECOMMENDATIONS_LOWER_LIMIT, OPENFOODFACTS_API_URL, OPENFOODFACTS_IMAGE_API_URL } from "../constants";
+import { RECOMMENDATIONS_UPPER_LIMIT, RECOMMENDATIONS_LOWER_LIMIT, OPENFOODFACTS_API_URL, OPENFOODFACTS_IMAGE_API_URL, DEFAULT_RECOMMENDATIONS_LIMIT } from "../constants";
 
 export class ProductsController {
     
@@ -14,14 +13,14 @@ export class ProductsController {
             const queryParams = req.query;
 
             // Parse query parameters
-            const requestedLanguages: string[] = queryParams.languages ? (queryParams.languages as string).split(",") : [];
-            const includedCountries: string[] = queryParams.countries ? (queryParams.countries as string).split(",") : [];
-            const RESULT_LIMIT = parseInt(queryParams.num_recommendations as string) || 1;  
+            const includedLanguages: string[] = queryParams.include_languages ? (queryParams.include_languages as string).split(",") : [];
+            const includedCountries: string[] = queryParams.include_countries ? (queryParams.include_countries as string).split(",") : [];
+            const recommendationsLimit = parseInt(queryParams.num_recommendations as string) || DEFAULT_RECOMMENDATIONS_LIMIT;  
 
             // Fetch product data
             const baseProduct = await fetchProductById(product_id);
 
-            
+
             if (!baseProduct?.categories_hierarchy) {
                 return res.status(404).json({ message: "Product not found or missing required fields." });
             }
@@ -29,33 +28,30 @@ export class ProductsController {
             // Fetch product image
             const baseProductImage = await fetchProductImageById(product_id);
   
-            const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
-            
             let remainingTags = [...baseProduct.categories_hierarchy];
             let matchingProducts: Product[] = [];
-
+            
             // Find products with similar tags
             while (remainingTags.length > 0) {
-                const tagsToUse = remainingTags.filter(tag =>
-                    requestedLanguages.length === 0 || requestedLanguages.some(lang => tag.startsWith(`${lang}:`))
-                );
-
+         
                 const query = {
                     _id: { $ne: product_id },
-                    categories_tags: (includedCountries.length > 0) ? { $in: includedCountries } : { $all: tagsToUse },
+                    ...(includedLanguages.length > 0 && { lang: { $in: includedLanguages } }),
+                    ...(includedCountries.length > 0 && { countries_tags: { $in: includedCountries } }),
                     ecoscore_score: { $exists: true },
                     ecoscore_grade: { $exists: true },
-                    product_name: { $exists: true, $ne: "" }
+                    product_name: { $exists: true, $ne: "" },
+                    categories_tags: { $in: remainingTags }
                 };
 
-                matchingProducts = await collection
+                matchingProducts = await productsCollection
                     .find(query, {
                         projection: {
                             _id: 1, product_name: 1, ecoscore_grade: 1, ecoscore_score: 1, categories_tags: 1
                         }
                     })
                     .limit(RECOMMENDATIONS_UPPER_LIMIT)
-                    .toArray() || [];
+                    .toArray();
 
                 if (matchingProducts.length >= RECOMMENDATIONS_LOWER_LIMIT) break;
                 remainingTags.pop();
@@ -66,22 +62,21 @@ export class ProductsController {
             matchingProducts = matchingProducts
                 .map(product => ({
                     ...product,
-                    categories_tags_difference: calculateTagDifference(baseProduct.categories_tags ?? [], product.categories_tags ?? [])
+                    categories_tags_difference: calculateTagDifference(baseProduct.categories_tags!, product.categories_tags!)
                 }))
                 .sort((a, b) => a.categories_tags_difference - b.categories_tags_difference);  
 
           
             // Fetch products and their images
             const recommendationsWithImages = await Promise.all(
-                matchingProducts.slice(0, RESULT_LIMIT).map(async (product) => {
-                    if (!product._id) {
-                        return null
-                    }
-                    const productImage = await fetchProductImageById(product._id);
-                    return { ...product, image: productImage ?? null };
-                })
+                matchingProducts
+                    .filter(product => product._id)
+                    .slice(0, recommendationsLimit)
+                    .map(async (product: Product) => {
+                        const productImage = await fetchProductImageById(product._id!);
+                        return { ...product, image: productImage ?? null };
+                    })
             );
-
 
             return res.status(200).json({
                 product: { ...baseProduct, image: baseProductImage ?? null },
@@ -94,10 +89,10 @@ export class ProductsController {
 }
 
 export async function fetchProductById(product_id: string): Promise<Product | null> {
-    const collection: Collection<Product> = client.db("products_db").collection<Product>("products");
+
 
     // Try to fetch product from the database with all required fields present
-    let product: Product | null = await collection.findOne(
+    let product: Product | null = await productsCollection.findOne(
         { 
             _id: product_id, 
             product_name: { $exists: true },
@@ -120,7 +115,7 @@ export async function fetchProductById(product_id: string): Promise<Product | nu
     try {
         const response = await axios.get(apiUrl);
 
-        if (response.data.status !== 1 || !response.data.product) return null;
+        if (response.data.status !== 1 || !response.data.product) throw new Error("Product not found in OpenFoodFacts");
 
         const fetchedProduct: Product = response.data.product;
 
@@ -136,7 +131,7 @@ export async function fetchProductById(product_id: string): Promise<Product | nu
             fetchedProduct.ecoscore_grade
         ) {
             const updatedProduct: Product = { _id: product_id, ...fetchedProduct };
-            await collection.insertOne(updatedProduct);
+            await productsCollection.insertOne(updatedProduct);
             return updatedProduct;
         }
     } catch (error) {

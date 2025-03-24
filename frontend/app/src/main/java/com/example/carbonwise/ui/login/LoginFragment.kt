@@ -10,10 +10,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.example.carbonwise.BuildConfig
 import com.example.carbonwise.MainActivity
+import com.example.carbonwise.R
 import com.example.carbonwise.databinding.FragmentLoginBinding
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
@@ -23,6 +22,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,7 +35,7 @@ import okhttp3.RequestBody
 import org.json.JSONObject
 import java.io.IOException
 
-class LoginFragment : Fragment() {
+class LoginFragment : BottomSheetDialogFragment() {
 
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
@@ -70,43 +72,41 @@ class LoginFragment : Fragment() {
                     .setFilterByAuthorizedAccounts(false)
                     .build()
             )
+            .setAutoSelectEnabled(true)
             .build()
 
-        binding.loginButton.setOnClickListener {
+        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork = connectivityManager.activeNetworkInfo
+        if (activeNetwork == null || !activeNetwork.isConnected) {
+            Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+        }
 
-            val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val activeNetwork = connectivityManager.activeNetworkInfo
-            if (activeNetwork == null || !activeNetwork.isConnected) {
-                Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
-            }
-
-            activity?.let { activity ->
-                oneTapClient.beginSignIn(signInRequest)
-                    .addOnSuccessListener(activity) { result ->
-                        if (isAdded) {
-                            try {
-                                startIntentSenderForResult(
-                                    result.pendingIntent.intentSender,
-                                    REQ_ONE_TAP,
-                                    null,
-                                    0,
-                                    0,
-                                    0,
-                                    null
-                                )
-                            } catch (e: IntentSender.SendIntentException) {
-                                Log.e(TAG, "Error starting IntentSender", e)
-                                val signInIntent = googleSignInClient.signInIntent
-                                startActivityForResult(signInIntent, REQ_SIGN_IN)
-                            }
+        activity?.let { activity ->
+            oneTapClient.beginSignIn(signInRequest)
+                .addOnSuccessListener(activity) { result ->
+                    if (isAdded) {
+                        try {
+                            startIntentSenderForResult(
+                                result.pendingIntent.intentSender,
+                                REQ_ONE_TAP,
+                                null,
+                                0,
+                                0,
+                                0,
+                                null
+                            )
+                        } catch (e: IntentSender.SendIntentException) {
+                            Log.e(TAG, "Error starting IntentSender", e)
+                            val signInIntent = googleSignInClient.signInIntent
+                            startActivityForResult(signInIntent, REQ_SIGN_IN)
                         }
                     }
-                    .addOnFailureListener(activity) { e ->
-                        Log.e(TAG, "Google One Tap Sign-In failed", e)
-                        val signInIntent = googleSignInClient.signInIntent
-                        startActivityForResult(signInIntent, REQ_SIGN_IN)
-                    }
-            }
+                }
+                .addOnFailureListener(activity) { e ->
+                    Log.e(TAG, "Google One Tap Sign-In failed", e)
+                    val signInIntent = googleSignInClient.signInIntent
+                    startActivityForResult(signInIntent, REQ_SIGN_IN)
+                }
         }
     }
 
@@ -127,10 +127,16 @@ class LoginFragment : Fragment() {
                 processSignIn(idToken)
             } else {
                 Toast.makeText(context, "Sign-in failed. Please try again.", Toast.LENGTH_LONG).show()
+                binding.loginProgressBar.visibility = View.GONE
+                binding.loginStatusText.visibility = View.GONE
+                findNavController().navigate(R.id.navigation_scan)
                 Log.e(TAG, "No ID token found!")
             }
         } catch (e: ApiException) {
             Toast.makeText(context, "Sign-in failed. Please try again.", Toast.LENGTH_LONG).show()
+            binding.loginProgressBar.visibility = View.GONE
+            binding.loginStatusText.visibility = View.GONE
+            findNavController().navigate(R.id.navigation_scan)
             Log.e(TAG, "One Tap Sign-in failed", e)
         }
     }
@@ -170,6 +176,7 @@ class LoginFragment : Fragment() {
                 }
                 if (isAdded) {
                     (activity as? MainActivity)?.switchToLoggedInMode()
+                    dismiss()
                 }
             } else {
                 Toast.makeText(context, "Sign-in failed. Please try again.", Toast.LENGTH_LONG).show()
@@ -180,7 +187,6 @@ class LoginFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding.loginButton.setOnClickListener(null)
         _binding = null
     }
 

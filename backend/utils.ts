@@ -63,7 +63,7 @@ async function sendNotification(user_uuid: string, messageBody: string) {
 
     getFirebaseApp();
 
-    const userCollection = client.db("users_db").collection<User>("users");
+    const userCollection = client.db(process.env.USERS_DB_NAME).collection<User>("users");
     const targetUser = await userCollection.findOne({ user_uuid });
 
     if (!targetUser || targetUser.fcm_registration_token == "") {

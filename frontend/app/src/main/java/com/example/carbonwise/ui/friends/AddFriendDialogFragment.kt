@@ -73,7 +73,11 @@ class AddFriendDialogFragment : BottomSheetDialogFragment() {
                     friendsViewModel.sendFriendRequest(friendCode)
                     hideKeyboardAndClearFocus()
                     binding.editFriendCode.text.clear()
-                    Toast.makeText(requireContext(), "Friend request sent!", Toast.LENGTH_SHORT).show()
+                    if (!friendsViewModel.friendActions.value.isNullOrEmpty()) {
+                        val message = friendsViewModel.friendActions.value
+                        Toast.makeText(requireContext(), "$message", Toast.LENGTH_SHORT)
+                            .show()
+                    }
                 }
             }
         }

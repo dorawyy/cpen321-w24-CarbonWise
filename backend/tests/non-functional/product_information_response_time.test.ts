@@ -1,10 +1,19 @@
 import supertest from "supertest";
 import { performance } from "perf_hooks";
 import { createServer } from "../../utils";
-
+import { JEST_TIMEOUT_MS } from "../res/data";
+import { client } from "../../services";
 // Non-Functional: Test the response time for product information retrieval
 describe("Non-Functional: Product Information Response Time", () => {
-    
+
+    beforeAll(async () => {
+        await client.connect();
+    });
+
+    afterAll(async () => {
+        await client.close();
+    });
+
     const app = createServer();
 
     // Non-Functional Test: Ensure product response time is under 5 seconds and product is returned
@@ -26,5 +35,5 @@ describe("Non-Functional: Product Information Response Time", () => {
         expect(res.body).toHaveProperty("product");
         expect(res.body.product).toHaveProperty("_id", "3017620422003");
         console.log("Non-Functional Test: Product response time is under 5 seconds and product is returned.");
-    });
+    }, JEST_TIMEOUT_MS);
 });
