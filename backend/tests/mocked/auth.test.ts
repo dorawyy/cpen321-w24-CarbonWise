@@ -1,10 +1,9 @@
 import { createServer } from "../../utils";
 import supertest from "supertest";
 import * as services from "../../services";
-import dotenv from "dotenv";
 import { JEST_TIMEOUT_MS, testUserA } from "../res/data";
 import jwt from "jsonwebtoken";
-import { client, usersCollection } from "../../services";
+import { client, usersCollection, usersDatabase } from "../../services";
 
 
 // Interface POST /auth/google
@@ -15,19 +14,20 @@ describe("Mocked: POST /auth/google", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await usersCollection.drop();
         jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 

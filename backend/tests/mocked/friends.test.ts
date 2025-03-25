@@ -1,7 +1,6 @@
 import { createServer } from "../../utils";
 import supertest from "supertest";
-import dotenv from "dotenv";
-import { client, friendsCollection, historyCollection, usersCollection } from "../../services";
+import { client, friendsCollection, historyCollection, usersCollection, usersDatabase } from "../../services";
 import {
     testUserA,
     testUserB,
@@ -27,23 +26,20 @@ describe("Mocked: POST /friends/requests", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -172,23 +168,20 @@ describe("Mocked: POST /friends/requests/accept", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -318,23 +311,20 @@ describe("Mocked: DELETE /friends", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -370,23 +360,20 @@ describe("Mocked: DELETE /friends/requests", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -421,23 +408,20 @@ describe("Mocked: GET /friends", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -472,23 +456,20 @@ describe("Mocked: GET /friends/requests", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -523,23 +504,20 @@ describe("Mocked: GET /friends/requests/outgoing", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -597,25 +575,20 @@ describe("Mocked: GET /friends/history/:user_uuid", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
-        await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
-        await historyCollection.drop();
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -678,25 +651,20 @@ describe("Mocked: POST /friends/notifications", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
-        await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
-        await historyCollection.drop();
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -880,25 +848,20 @@ describe("Mocked: GET /friends/ecoscore_score/:user_uuid", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
-        await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
-        await historyCollection.drop();
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 

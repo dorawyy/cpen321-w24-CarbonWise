@@ -1,6 +1,5 @@
 import { createServer } from "../../utils";
 import supertest from "supertest";
-import dotenv from "dotenv";
 import { testProductBId, JEST_TIMEOUT_MS } from "../res/data";
 
 // Interface: GET /products/:product_id
@@ -8,10 +7,6 @@ describe("Unmocked: GET /products/:product_id", () => {
 
     const app = createServer();
     jest.setTimeout(JEST_TIMEOUT_MS); 
-
-    beforeAll(async () => {
-        dotenv.config({ path: './res/.env.test' });
-    }); 
 
     // Input: Valid product_id with query num_recommendations = 0
     // Expected status code: 400

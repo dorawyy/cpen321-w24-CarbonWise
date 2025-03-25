@@ -1,6 +1,5 @@
 import { createServer } from "../../utils";
 import supertest from "supertest";
-import dotenv from "dotenv";
 import { client, historyCollection, usersCollection } from "../../services";
 import { testUserA, testHistoryA, testHistoryB, testHistoryC, testUserB, testUserC, testProductA, testProductB, JEST_TIMEOUT_MS, testProductAId, testProductBId, testUserD, testHistoryD } from "../res/data";
 import jwt from "jsonwebtoken";
@@ -17,9 +16,7 @@ describe("Unmocked: GET /users/history", () => {
         await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
+    
 
     afterEach(async () => {
         await historyCollection.drop();
@@ -125,9 +122,7 @@ describe("Unmocked: POST /users/history", () => {
         await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
+    
 
     afterEach(async () => {
         await historyCollection.drop();
@@ -273,9 +268,7 @@ describe("Unmocked: DELETE /users/history", () => {
         await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
+    
 
     afterEach(async () => {
         await historyCollection.drop();
@@ -349,9 +342,7 @@ describe("Unmocked: POST /users/fcm_registration_token", () => {
         await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
+    
 
     afterEach(async () => {
         await usersCollection.drop();
@@ -441,9 +432,7 @@ describe("Unmocked: GET /users/uuid", () => {
         await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
+    
 
     afterEach(async () => {
         await usersCollection.drop();
@@ -512,9 +501,7 @@ describe("Unmocked: GET /users/ecoscore_score", () => {
         await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
+    
 
     afterEach(async () => {
         await usersCollection.drop();

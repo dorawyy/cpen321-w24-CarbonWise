@@ -1,7 +1,6 @@
 import { createServer } from "../../utils";
 import supertest from "supertest";
-import dotenv from "dotenv";
-import { client, historyCollection, usersCollection } from "../../services";
+import { client, historyCollection, usersCollection, usersDatabase } from "../../services";
 import { testUserA, testHistoryA, testHistoryC, testUserC, testProductA, testProductB, testProductAId, testProductImageA, testProductImageB, JEST_TIMEOUT_MS, testHistoryE, testProductImageE, testUserE } from "../res/data";
 import jwt from "jsonwebtoken";
 import { checkHistory } from "../res/utils";
@@ -16,21 +15,20 @@ describe("Mocked: GET /users/history", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await historyCollection.drop();
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -136,21 +134,20 @@ describe("Mocked: POST /users/history", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await historyCollection.drop();
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -181,19 +178,20 @@ describe("Mocked: DELETE /users/history", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await historyCollection.drop();
         jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -222,19 +220,20 @@ describe("Mocked: POST /users/fcm_registration_token", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await usersCollection.drop();
         jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -264,19 +263,20 @@ describe("Mocked: GET /users/uuid", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await usersCollection.drop();
         jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -306,19 +306,20 @@ describe("Mocked: GET /users/ecoscore_score", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterEach(async () => {
-        await historyCollection.drop();
         jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 

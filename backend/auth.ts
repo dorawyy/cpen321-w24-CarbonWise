@@ -2,9 +2,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import express, { Request, Response, NextFunction } from "express";
 import { nanoid } from "nanoid";
-import { client, oauthClient } from "./services";
-import { Collection } from "mongodb";
-import { User } from "./types";
+import { usersCollection, oauthClient } from "./services";
 import { JWT_EXPIRATION_TIME } from "./constants";
 import asyncHandler from "express-async-handler";
 
@@ -31,10 +29,7 @@ router.post("/auth/google", asyncHandler(async (req: Request, res: Response) => 
     const payload = ticket.getPayload();
     if (!payload?.sub || !payload.email || !payload.name) throw new Error("Invalid Google OAuth token");
 
-
-    const userCollection: Collection<User> = client.db(process.env.USERS_DB_NAME).collection("users");
-
-    let user = await userCollection.findOne({ google_id: payload.sub });
+    let user = await usersCollection.findOne({ google_id: payload.sub });
 
     if (!user) {
       const user_uuid = nanoid(8);
@@ -47,7 +42,7 @@ router.post("/auth/google", asyncHandler(async (req: Request, res: Response) => 
         user_uuid,
         fcm_registration_token: "",
       };
-      await userCollection.insertOne(user);
+      await usersCollection.insertOne(user);
     }
 
     const jwtToken = jwt.sign(

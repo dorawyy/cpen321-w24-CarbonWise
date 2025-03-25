@@ -10,8 +10,7 @@ import dotenv from "dotenv";
 import passport from "passport";
 import session from "express-session";
 import { router as authRoutes, authenticateJWT } from "./auth";
-import { client, getFirebaseApp } from "./services";
-import { User } from "./types";
+import { getFirebaseApp, usersCollection } from "./services";
 import { getMessaging, TokenMessage } from 'firebase-admin/messaging';
 
 dotenv.config();
@@ -63,8 +62,7 @@ async function sendNotification(user_uuid: string, messageBody: string) {
 
     getFirebaseApp();
 
-    const userCollection = client.db(process.env.USERS_DB_NAME).collection<User>("users");
-    const targetUser = await userCollection.findOne({ user_uuid });
+    const targetUser = await usersCollection.findOne({ user_uuid });
 
     if (!targetUser || targetUser.fcm_registration_token == "") {
         return;

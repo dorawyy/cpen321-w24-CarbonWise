@@ -1,6 +1,5 @@
 import { createServer } from "../../utils";
 import supertest from "supertest";
-import dotenv from "dotenv";
 import { Product } from "../../types";
 import { client, productsCollection } from "../../services";
 import axios from "axios";
@@ -16,10 +15,6 @@ describe("Mocked: GET /products/:product_id", () => {
 
     beforeAll(async () => {
         await client.connect();
-    });
-
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
     });
 
     afterEach(async () => {

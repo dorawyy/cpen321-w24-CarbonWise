@@ -1,16 +1,11 @@
 import {createServer} from "../../utils";
 import supertest from "supertest";
-import dotenv from "dotenv";
 import { JEST_TIMEOUT_MS } from "../res/data";
 // Interface POST /auth/google
 describe("Unmocked: POST /auth/google", () => {
 
     const app = createServer();
     jest.setTimeout(JEST_TIMEOUT_MS); 
-
-    beforeAll(async () => {
-        dotenv.config({ path: './res/.env.test' });
-    });
 
     // Input: No google_id_token is sent
     // Expected status code: 401

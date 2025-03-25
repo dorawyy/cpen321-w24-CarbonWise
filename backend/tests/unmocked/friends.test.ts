@@ -1,7 +1,6 @@
 import { createServer } from "../../utils";
 import supertest from "supertest";
-import dotenv from "dotenv";
-import { client, friendsCollection, historyCollection, usersCollection } from "../../services";
+import { client, friendsCollection, historyCollection, usersCollection, usersDatabase } from "../../services";
 import { testUserA, testUserB, testFriendsA, testFriendsB, JEST_TIMEOUT_MS, testUserC, testUserD, testFriendsC, testFriendsD, testUserE, testFriendsE, testHistoryB, testHistoryC, testHistoryA, testHistoryD } from "../res/data";
 import jwt from "jsonwebtoken";
 
@@ -13,20 +12,14 @@ describe("Unmocked: POST /friends/requests", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
-
-    afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -161,20 +154,14 @@ describe("Unmocked: POST /friends/requests/accept", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
-
-    afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -308,20 +295,14 @@ describe("Unmocked: DELETE /friends", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
-
-    afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -437,20 +418,14 @@ describe("Unmocked: DELETE /friends/requests", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
-
-    afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -555,20 +530,14 @@ describe("Unmocked: GET /friends", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
-
-    afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -662,20 +631,14 @@ describe("Unmocked: GET /friends/requests", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
-
-    afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -766,20 +729,14 @@ describe("Unmocked: GET /friends/requests/outgoing", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
-
-    afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -870,22 +827,14 @@ describe("Unmocked: GET /friends/history/:user_uuid", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
-        await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
-
-    afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
-        await historyCollection.drop();
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -1013,22 +962,14 @@ describe("Unmocked: POST /friends/notifications", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
-        await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
-
-    afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
-        await historyCollection.drop();
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
@@ -1310,22 +1251,14 @@ describe("Unmocked: GET /friends/ecoscore_score/:user_uuid", () => {
 
     beforeAll(async () => {
         await client.connect();
-        await friendsCollection.drop();
-        await usersCollection.drop();
-        await historyCollection.drop();
     });
 
-    beforeEach(() => {
-        dotenv.config({ path: './res/.env.test' });
-    });
-
-    afterEach(async () => {
-        await friendsCollection.drop();
-        await usersCollection.drop();
-        await historyCollection.drop();
+    beforeEach(async () => {
+        await usersDatabase.dropDatabase();
     });
 
     afterAll(async () => {
+        await usersDatabase.dropDatabase();
         await client.close();
     });
 
