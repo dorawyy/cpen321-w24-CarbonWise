@@ -22,10 +22,6 @@ class AddFriendDialogFragment : BottomSheetDialogFragment() {
 
     private lateinit var friendsViewModel: FriendsViewModel
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -41,6 +37,13 @@ class AddFriendDialogFragment : BottomSheetDialogFragment() {
 
         friendsViewModel.userFriendCode.observe(viewLifecycleOwner) { friendCode ->
             binding.textFriendCode.text = friendCode
+        }
+
+        friendsViewModel.friendActions.observe(viewLifecycleOwner) { message ->
+            if (!message.isNullOrEmpty()) {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                friendsViewModel.clearFriendActionMessage()
+            }
         }
 
         binding.imageClipboard.setOnClickListener {
@@ -73,11 +76,6 @@ class AddFriendDialogFragment : BottomSheetDialogFragment() {
                     friendsViewModel.sendFriendRequest(friendCode)
                     hideKeyboardAndClearFocus()
                     binding.editFriendCode.text.clear()
-                    if (!friendsViewModel.friendActions.value.isNullOrEmpty()) {
-                        val message = friendsViewModel.friendActions.value
-                        Toast.makeText(requireContext(), "$message", Toast.LENGTH_SHORT)
-                            .show()
-                    }
                 }
             }
         }
@@ -102,5 +100,4 @@ class AddFriendDialogFragment : BottomSheetDialogFragment() {
         super.onDestroyView()
         _binding = null
     }
-
 }

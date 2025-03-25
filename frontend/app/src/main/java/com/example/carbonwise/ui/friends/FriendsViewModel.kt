@@ -100,7 +100,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                     fetchAllFriendEcoscores(friendList)
                 } else {
                     _friendActions.value = "Failed to load friends"
-                    networkFailure.postValue(true)
                 }
             }
 
@@ -170,11 +169,10 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                             _friendActions.value = "Friend request already sent."
                         }
                         "User not found." -> {
-                            _friendActions.value = "User not found."
+                            _friendActions.value = "User does not exist."
                         }
                         else -> {
                             _friendActions.value = errorMessage
-                            networkFailure.postValue(true)
                         }
                     }
                 }
@@ -244,6 +242,10 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                 networkFailure.postValue(true)
             }
         })
+    }
+
+    fun clearFriendActionMessage() {
+        _friendActions.value = ""
     }
 
     class Factory(private val apiService: FriendsApiService, private val token: String) : ViewModelProvider.Factory {
