@@ -61,8 +61,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                             ecoscoreMap[friend.user_uuid] = score
                             _friendEcoscores.postValue(ecoscoreMap)
                         }
-                    } else {
-                        networkFailure.postValue(true)
                     }
                 }
                 override fun onFailure(call: Call<EcoscoreResponse>, t: Throwable) {
@@ -80,7 +78,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                     _userFriendCode.value = response.body()?.user_uuid ?: "Unknown"
                 } else {
                     _userFriendCode.value = "Error fetching code"
-                    networkFailure.postValue(true)
                 }
             }
 
@@ -195,7 +192,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                     _friendActions.value = "Friend request accepted!"
                 } else {
                     _friendActions.value = "Failed to accept friend request"
-                    networkFailure.postValue(true)
                 }
             }
 
@@ -214,7 +210,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                     _friendActions.value = "Friend request rejected"
                 } else {
                     _friendActions.value = "Failed to reject friend request"
-                    networkFailure.postValue(true)
                 }
             }
 
@@ -233,7 +228,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                     _friendActions.value = "Friend removed"
                 } else {
                     _friendActions.value = "Failed to remove friend"
-                    networkFailure.postValue(true)
                 }
             }
 
