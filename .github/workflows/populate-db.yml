@@ -44,19 +44,45 @@ jobs:
               
               # Copy archive into MongoDB container
               docker cp products_db.archive mongo_instance:/products_db.archive
+
+              # Start a keep-alive echo loop in the background
+              (while true; do echo "[keep-alive] Still restoring..."; sleep 30; done) &
+              WATCHDOG_PID=$!
               
               # Restore the database
               docker exec mongo_instance mongorestore --verbose --db products_db --archive=/products_db.archive --gzip --drop
-              
-              # Remove archive from MongoDB container
-              docker exec mongo_instance rm /products_db.archive
-              
-              # Remove archive from EC2 instance
-              rm -f products_db.archive
-              
+                    
+              # Stop the keep-alive loop
+              kill $WATCHDOG_PID
+
               echo "Products database restored and cleanup completed!"
             else
               echo "Skipping products database restoration."
             fi
 
             echo "Database setup completed successfully!"
+
+
+  cleanup:
+    needs: setup-db
+    if: ${{ github.event.inputs.restore_products_db == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clean up archive from EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          if: always()
+          script_stop: false
+          script: |
+            # Restore Products Database if requested
+            if [[ "${{ github.event.inputs.restore_products_db }}" == "true" ]]; then
+
+              # Remove archive from MongoDB container
+              docker exec mongo_instance rm /products_db.archive
+              
+              # Remove archive from EC2 instance
+              rm -f products_db.archive
+            fi
