@@ -42,7 +42,7 @@ class AddFriendDialogFragment : BottomSheetDialogFragment() {
         friendsViewModel.friendActions.observe(viewLifecycleOwner) { message ->
             if (!message.isNullOrEmpty()) {
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                friendsViewModel.clearFriendActionMessage()
+                friendsViewModel._friendActions.value = ""
             }
         }
 

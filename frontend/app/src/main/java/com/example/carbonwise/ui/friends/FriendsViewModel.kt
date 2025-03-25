@@ -16,6 +16,7 @@ import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.IOException
 
 class FriendsViewModel(private val apiService: FriendsApiService, private var token: String) : ViewModel() {
 
@@ -35,7 +36,7 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
     private val _outgoingRequests = MutableLiveData<List<FriendRequest>>()
     val outgoingRequests: LiveData<List<FriendRequest>> get() = _outgoingRequests
 
-    private val _friendActions = MutableLiveData<String>()
+    val _friendActions = MutableLiveData<String>()
     val friendActions: LiveData<String> get() = _friendActions
 
     private val _userFriendCode = MutableLiveData<String>()
@@ -154,7 +155,7 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                     val errorBody = response.errorBody()?.string()
                     val errorMessage = try {
                         JSONObject(errorBody).getString("message")
-                    } catch (e: Exception) {
+                    } catch (e: IOException) {
                         "Failed to send friend request"
                     }
 
@@ -236,10 +237,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                 networkFailure.postValue(true)
             }
         })
-    }
-
-    fun clearFriendActionMessage() {
-        _friendActions.value = ""
     }
 
     class Factory(private val apiService: FriendsApiService, private val token: String) : ViewModelProvider.Factory {
