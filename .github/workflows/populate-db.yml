@@ -46,7 +46,7 @@ jobs:
               docker cp products_db.archive mongo_instance:/products_db.archive
               
               # Restore the database
-              docker exec mongo_instance mongorestore --db products_db --archive=/products_db.archive --gzip --drop
+              docker exec mongo_instance mongorestore --verbose --db products_db --archive=/products_db.archive --gzip --drop
               
               # Remove archive from MongoDB container
               docker exec mongo_instance rm /products_db.archive
