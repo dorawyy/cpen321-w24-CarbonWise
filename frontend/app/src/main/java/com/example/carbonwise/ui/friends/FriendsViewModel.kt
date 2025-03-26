@@ -16,6 +16,7 @@ import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.IOException
 
 class FriendsViewModel(private val apiService: FriendsApiService, private var token: String) : ViewModel() {
 
@@ -35,7 +36,7 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
     private val _outgoingRequests = MutableLiveData<List<FriendRequest>>()
     val outgoingRequests: LiveData<List<FriendRequest>> get() = _outgoingRequests
 
-    private val _friendActions = MutableLiveData<String>()
+    val _friendActions = MutableLiveData<String>()
     val friendActions: LiveData<String> get() = _friendActions
 
     private val _userFriendCode = MutableLiveData<String>()
@@ -61,8 +62,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                             ecoscoreMap[friend.user_uuid] = score
                             _friendEcoscores.postValue(ecoscoreMap)
                         }
-                    } else {
-                        networkFailure.postValue(true)
                     }
                 }
                 override fun onFailure(call: Call<EcoscoreResponse>, t: Throwable) {
@@ -80,7 +79,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                     _userFriendCode.value = response.body()?.user_uuid ?: "Unknown"
                 } else {
                     _userFriendCode.value = "Error fetching code"
-                    networkFailure.postValue(true)
                 }
             }
 
@@ -100,7 +98,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                     fetchAllFriendEcoscores(friendList)
                 } else {
                     _friendActions.value = "Failed to load friends"
-                    networkFailure.postValue(true)
                 }
             }
 
@@ -158,7 +155,7 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                     val errorBody = response.errorBody()?.string()
                     val errorMessage = try {
                         JSONObject(errorBody).getString("message")
-                    } catch (e: Exception) {
+                    } catch (e: IOException) {
                         "Failed to send friend request"
                     }
 
@@ -170,11 +167,10 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                             _friendActions.value = "Friend request already sent."
                         }
                         "User not found." -> {
-                            _friendActions.value = "User not found."
+                            _friendActions.value = "User does not exist."
                         }
                         else -> {
                             _friendActions.value = errorMessage
-                            networkFailure.postValue(true)
                         }
                     }
                 }
@@ -197,7 +193,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                     _friendActions.value = "Friend request accepted!"
                 } else {
                     _friendActions.value = "Failed to accept friend request"
-                    networkFailure.postValue(true)
                 }
             }
 
@@ -216,7 +211,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                     _friendActions.value = "Friend request rejected"
                 } else {
                     _friendActions.value = "Failed to reject friend request"
-                    networkFailure.postValue(true)
                 }
             }
 
@@ -235,7 +229,6 @@ class FriendsViewModel(private val apiService: FriendsApiService, private var to
                     _friendActions.value = "Friend removed"
                 } else {
                     _friendActions.value = "Failed to remove friend"
-                    networkFailure.postValue(true)
                 }
             }
 

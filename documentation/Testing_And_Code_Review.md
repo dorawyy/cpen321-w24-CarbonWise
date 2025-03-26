@@ -288,6 +288,49 @@
 
       Build Analyzer results available
       ```
+- **Use Case: Manage Friends**
+
+  - **Expected Behaviors:**
+
+    | **Scenario Steps (Send Friend Request)**                                          | **Test Case Steps**                                                                                                                |
+    |------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+    | User navigates to the friends tab.                                                 | `onView(withId(R.id.navigation_friends)).perform(click())` navigates to the friends tab.                                          |
+    | User enters the friend’s code and sends the request.                               | Enters friend code via `editFriendCode`, clicks `buttonAddFriend`.                                                                |
+    | System sends the request and notifies the user of success.                         | Expected Toast: "Friend request sent!" (commented out due to Toast matcher limitations).                                           |
+    | **Failure 3a:** Invalid friend code.                                               | In `sendFriendRequestFailureNoMatchingUser()` with code `NONEXISTENT_CODE`. Expected Toast: "Enter a valid friend code".          |
+    | **Failure 3d:** Sending friend request to self.                                    | In `testSendFriendRequestToSelf()`, uses own friend code. Verifies Toast: "You cannot send a friend request to yourself!".        |
+
+    ```
+    > Task :app:compileDebugJavaWithJavac UP-TO-DATE
+    > Task :app:processDebugJavaRes UP-TO-DATE
+    > Task :app:mergeDebugJavaResource UP-TO-DATE
+    > Task :app:bundleDebugClassesToCompileJar
+    > Task :app:dexBuilderDebug
+    > Task :app:mergeProjectDexDebug
+    > Task :app:packageDebug
+    > Task :app:createDebugApkListingFileRedirect UP-TO-DATE
+    > Task :app:compileDebugAndroidTestKotlin
+    > Task :app:compileDebugAndroidTestJavaWithJavac UP-TO-DATE
+    > Task :app:processDebugAndroidTestJavaRes UP-TO-DATE
+    > Task :app:mergeDebugAndroidTestJavaResource UP-TO-DATE
+    > Task :app:dexBuilderDebugAndroidTest
+    > Task :app:mergeProjectDexDebugAndroidTest
+    > Task :app:packageDebugAndroidTest
+    > Task :app:createDebugAndroidTestApkListingFileRedirect UP-TO-DATE
+    Connected to process 12794 on device 'Pixel_9_API_35 [emulator-5554]'.
+
+    > Task :app:connectedDebugAndroidTest
+    Starting 3 tests on Pixel_9_API_35(AVD) - 15
+
+    Pixel_9_API_35(AVD) - 15 Tests 1/3 completed. (0 skipped) (0 failed)
+    Pixel_9_API_35(AVD) - 15 Tests 2/3 completed. (0 skipped) (0 failed)
+    Finished 3 tests on Pixel_9_API_35(AVD) - 15
+
+    BUILD SUCCESSFUL in 42s
+    71 actionable tasks: 11 executed, 60 up-to-date
+
+    Build Analyzer results available
+    ```
 
 ## 5. Automated Code Review Results
 
