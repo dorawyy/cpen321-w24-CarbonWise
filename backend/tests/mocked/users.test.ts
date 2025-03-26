@@ -44,7 +44,7 @@ describe("Mocked: GET /users/history", () => {
             })
         );
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
         await historyCollection.insertOne(testHistoryA);
 
         const res = await supertest(app).get("/users/history").set("token", token);
@@ -68,7 +68,7 @@ describe("Mocked: GET /users/history", () => {
             })
         );
 
-        const token = jwt.sign(testUserE, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserE, process.env.JWT_SECRET ?? "test-jwt-secret");
         await historyCollection.insertOne(testHistoryE);
 
         const res = await supertest(app).get("/users/history").set("token", token);
@@ -94,7 +94,7 @@ describe("Mocked: GET /users/history", () => {
             })
         );
 
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
         await historyCollection.insertOne(testHistoryC);
 
         const res = await supertest(app).get("/users/history").set("token", token);
@@ -117,7 +117,7 @@ describe("Mocked: GET /users/history", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app).get("/users/history").set("token", token);
         expect(res.status).toBe(500);
@@ -160,7 +160,7 @@ describe("Mocked: POST /users/history", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app).post("/users/history").set("token", token).send({ product_id: testProductAId });
         expect(res.status).toBe(500);
@@ -202,7 +202,7 @@ describe("Mocked: DELETE /users/history", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app).delete("/users/history").set("token", token).query({ scan_uuid: testHistoryA.products[0].scan_uuid });
         expect(res.status).toBe(500);
@@ -244,7 +244,7 @@ describe("Mocked: POST /users/fcm_registration_token", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app).post("/users/fcm_registration_token").set("token", token).send({ fcm_registration_token: "new_token" });
         expect(res.status).toBe(500);
@@ -287,7 +287,7 @@ describe("Mocked: GET /users/uuid", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app).get("/users/uuid").set("token", token);
         expect(res.status).toBe(500);
@@ -330,7 +330,7 @@ describe("Mocked: GET /users/ecoscore_score", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app).get("/users/ecoscore_score").set("token", token);
         expect(res.status).toBe(500);

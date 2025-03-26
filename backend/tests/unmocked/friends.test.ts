@@ -28,7 +28,7 @@ describe("Unmocked: POST /friends/requests", () => {
     // Expected behavior: Friend request and notification is not sent
     // Expected output: Confirmation message
     test("Successfully sent friend request, target user not returned for sending notification", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -54,7 +54,7 @@ describe("Unmocked: POST /friends/requests", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Already friends", async () => {
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserC);
         await usersCollection.insertOne(testUserD);
@@ -76,7 +76,7 @@ describe("Unmocked: POST /friends/requests", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Already sent request", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -98,7 +98,7 @@ describe("Unmocked: POST /friends/requests", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Cannot send friend request to yourself", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         const res = await supertest(app)
             .post("/friends/requests")
@@ -114,7 +114,7 @@ describe("Unmocked: POST /friends/requests", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Cannot send friend request to non-existent user", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         const res = await supertest(app)
             .post("/friends/requests")
@@ -170,7 +170,7 @@ describe("Unmocked: POST /friends/requests/accept", () => {
     // Expected behavior: Friend request is accepted
     // Expected output: Confirmation message
     test("Successfully accepted friend request", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -200,7 +200,7 @@ describe("Unmocked: POST /friends/requests/accept", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("No such friend request", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -225,7 +225,7 @@ describe("Unmocked: POST /friends/requests/accept", () => {
     // Expected behavior: None
     // Expected output: Confirmation message
     test("Friend does not exist, make friends document and accept", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -254,7 +254,7 @@ describe("Unmocked: POST /friends/requests/accept", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Cannot accept friend request from yourself", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         const res = await supertest(app)
             .post("/friends/requests/accept")
@@ -311,7 +311,7 @@ describe("Unmocked: DELETE /friends", () => {
     // Expected behavior: Friend is removed
     // Expected output: Confirmation message
     test("Successfully remove friend", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -350,7 +350,7 @@ describe("Unmocked: DELETE /friends", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Friend not found", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -375,7 +375,7 @@ describe("Unmocked: DELETE /friends", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Cannot remove yourself as a friend", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         const res = await supertest(app)
             .delete("/friends")
@@ -431,7 +431,7 @@ describe("Unmocked: DELETE /friends/requests", () => {
     // Expected behavior: Friend request is rejected
     // Expected output: Confirmation message
     test("Successfully reject friend request", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -460,7 +460,7 @@ describe("Unmocked: DELETE /friends/requests", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Friend request not found", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -485,7 +485,7 @@ describe("Unmocked: DELETE /friends/requests", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Cannot reject your own friend request", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         const res = await supertest(app)
             .delete("/friends/requests")
@@ -541,7 +541,7 @@ describe("Unmocked: GET /friends", () => {
     // Expected behavior: None
     // Expected output: List of friends
     test("Successfully get friends list", async () => {
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserC);
         await usersCollection.insertOne(testUserD);
@@ -565,7 +565,7 @@ describe("Unmocked: GET /friends", () => {
     // Expected behavior: None
     // Expected output: Empty list
     test("Get friends list when no friends", async () => {
-        const token = jwt.sign(testUserE, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserE, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserE);
 
@@ -584,7 +584,7 @@ describe("Unmocked: GET /friends", () => {
     // Expected behavior: None
     // Expected output: Empty list
     test("Get friends list when no friends", async () => {
-        const token = jwt.sign(testUserE, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserE, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserE);
 
@@ -641,7 +641,7 @@ describe("Unmocked: GET /friends/requests", () => {
     // Expected behavior: None
     // Expected output: List of incoming friend requests
     test("Successfully get incoming friend requests", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -661,7 +661,7 @@ describe("Unmocked: GET /friends/requests", () => {
     // Expected behavior: None
     // Expected output: Empty list
     test("Get incoming friend requests when none exist", async () => {
-        const token = jwt.sign(testUserE, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserE, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserE);
 
@@ -680,7 +680,7 @@ describe("Unmocked: GET /friends/requests", () => {
     // Expected behavior: None
     // Expected output: Empty list
     test("Get incoming friend requests when no friends document", async () => {
-        const token = jwt.sign(testUserE, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserE, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserE);
 
@@ -737,7 +737,7 @@ describe("Unmocked: GET /friends/requests/outgoing", () => {
     // Expected behavior: None
     // Expected output: List of outgoing friend requests
     test("Successfully get outgoing friend requests", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -757,7 +757,7 @@ describe("Unmocked: GET /friends/requests/outgoing", () => {
     // Expected behavior: None
     // Expected output: Empty list
     test("Get outgoing friend requests when none exist", async () => {
-        const token = jwt.sign(testUserE, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserE, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserE);
 
@@ -776,7 +776,7 @@ describe("Unmocked: GET /friends/requests/outgoing", () => {
     // Expected behavior: None
     // Expected output: Empty list
     test("Get outgoing friend requests when no friends document", async () => {
-        const token = jwt.sign(testUserE, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserE, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserE);
 
@@ -833,7 +833,7 @@ describe("Unmocked: GET /friends/history/:user_uuid", () => {
     // Expected behavior: None
     // Expected output: Friend's detailed history
     test("Successfully get friend's history by UUID, friend has no history", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -859,7 +859,7 @@ describe("Unmocked: GET /friends/history/:user_uuid", () => {
     // Expected behavior: None
     // Expected output: Friend's detailed history
     test("Successfully get friend's history by UUID, friend has history", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserC);
         await usersCollection.insertOne(testUserB);
@@ -885,7 +885,7 @@ describe("Unmocked: GET /friends/history/:user_uuid", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Get friend's history by UUID, users are not friends", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserC);
         await usersCollection.insertOne(testUserB);
@@ -911,7 +911,7 @@ describe("Unmocked: GET /friends/history/:user_uuid", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Get friend's history with invalid UUID", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
 
@@ -968,7 +968,7 @@ describe("Unmocked: POST /friends/notifications", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Send product notification with invalid friend UUID", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
 
@@ -990,7 +990,7 @@ describe("Unmocked: POST /friends/notifications", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Send product notification with invalid scan UUID", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -1019,7 +1019,7 @@ describe("Unmocked: POST /friends/notifications", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Send product notification with invalid message type", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -1087,7 +1087,7 @@ describe("Unmocked: POST /friends/notifications", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Send product notification to self", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
 
@@ -1109,7 +1109,7 @@ describe("Unmocked: POST /friends/notifications", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Send product notification with scan UUID not in history", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -1144,7 +1144,7 @@ describe("Unmocked: POST /friends/notifications", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Send product notification with product not found", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
@@ -1257,7 +1257,7 @@ describe("Unmocked: GET /friends/ecoscore_score/:user_uuid", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Get friend ecoscore with invalid friend UUID", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
 
@@ -1274,7 +1274,7 @@ describe("Unmocked: GET /friends/ecoscore_score/:user_uuid", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Get friend ecoscore with friend without history", async () => {
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserC);
         await usersCollection.insertOne(testUserD);

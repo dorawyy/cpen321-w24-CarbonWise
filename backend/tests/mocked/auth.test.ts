@@ -52,12 +52,11 @@ describe("Mocked: POST /auth/google", () => {
             .post("/auth/google")
             .send({ google_id_token: "valid_google_id_token" });
 
-
         expect(res.status).toStrictEqual(200);
         expect(res.body).toHaveProperty("token");
 
         const token = res.body.token;
-        const decoded_token = jwt.verify(token as string, process.env.JWT_SECRET as string);
+        const decoded_token = jwt.verify(token as string, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         expect(decoded_token).toMatchObject(testUserA);
     });
@@ -87,7 +86,7 @@ describe("Mocked: POST /auth/google", () => {
         expect(res.body).toHaveProperty("token");
 
         const token = res.body.token;
-        const decoded_token = jwt.verify(token as string, process.env.JWT_SECRET as string);
+        const decoded_token = jwt.verify(token as string, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         expect(decoded_token).toMatchObject({
             _id: expect.any(String),

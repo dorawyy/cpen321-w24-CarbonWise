@@ -65,7 +65,12 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    const decoded = jwt.verify(token as string, process.env.JWT_SECRET as string);
+
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined in environment variables.");
+    }
+
+    const decoded = jwt.verify(token as string, process.env.JWT_SECRET);
 
     (req as any).user = decoded;
 

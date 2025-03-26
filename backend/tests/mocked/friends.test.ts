@@ -48,7 +48,7 @@ describe("Mocked: POST /friends/requests", () => {
     // Expected behavior: Friend request and notification is sent
     // Expected output: Confirmation message
     test("Successfully sent friend request", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserE);
         await usersCollection.insertOne(testUserB);
@@ -87,7 +87,7 @@ describe("Mocked: POST /friends/requests", () => {
     // Expected behavior: Friend request but notification is not sent
     // Expected output: Confirmation message
     test("Friend request sent but notification not sent, firebase error", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserE);
         await usersCollection.insertOne(testUserB);
@@ -126,7 +126,7 @@ describe("Mocked: POST /friends/requests", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app)
             .post("/friends/requests")
@@ -148,7 +148,7 @@ describe("Mocked: POST /friends/requests", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app)
             .post("/friends/requests")
@@ -190,7 +190,7 @@ describe("Mocked: POST /friends/requests/accept", () => {
     // Expected behavior: Friend request accepted and notification is sent
     // Expected output: Confirmation message
     test("Successfully accepted friend request", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserB);
         await usersCollection.insertOne(testUserA);
@@ -229,7 +229,7 @@ describe("Mocked: POST /friends/requests/accept", () => {
     // Expected behavior: Friend request accepted but notification is not sent
     // Expected output: Confirmation message
     test("Friend request accepted but notification not sent, firebase error", async () => {
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserB);
         await usersCollection.insertOne(testUserA);
@@ -268,7 +268,7 @@ describe("Mocked: POST /friends/requests/accept", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app)
             .post("/friends/requests/accept")
@@ -290,7 +290,7 @@ describe("Mocked: POST /friends/requests/accept", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app)
             .post("/friends/requests/accept")
@@ -336,7 +336,7 @@ describe("Mocked: DELETE /friends", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app)
             .delete("/friends")
@@ -382,7 +382,7 @@ describe("Mocked: DELETE /friends/requests", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app)
             .delete("/friends")
@@ -428,7 +428,7 @@ describe("Mocked: GET /friends", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app)
             .get("/friends")
@@ -473,7 +473,7 @@ describe("Mocked: GET /friends/requests", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app)
             .get("/friends/requests")
@@ -518,7 +518,7 @@ describe("Mocked: GET /friends/requests/outgoing", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app)
             .get("/friends/requests/outgoing")
@@ -542,7 +542,7 @@ describe("Mocked: GET /friends/requests/outgoing", () => {
             throw new Error("Database error");
         });
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app)
             .get("/friends/requests/outgoing")
@@ -592,7 +592,7 @@ describe("Mocked: GET /friends/history/:user_uuid", () => {
         await friendsCollection.insertOne(testFriendsC);
         await friendsCollection.insertOne(testFriendsD);
 
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app)
             .get(`/friends/history/${testUserD.user_uuid}`)
@@ -616,7 +616,7 @@ describe("Mocked: GET /friends/history/:user_uuid", () => {
         await friendsCollection.insertOne(testFriendsC);
         await friendsCollection.insertOne(testFriendsD);
 
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
         
         const res = await supertest(app)
             .get(`/friends/history/${testUserD.user_uuid}`)
