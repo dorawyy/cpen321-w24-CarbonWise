@@ -432,8 +432,6 @@ describe("Unmocked: GET /users/uuid", () => {
         await usersCollection.drop();
     });
 
-    
-
     afterEach(async () => {
         await usersCollection.drop();
     });
@@ -485,6 +483,21 @@ describe("Unmocked: GET /users/uuid", () => {
         const res = await supertest(app).get("/users/uuid").set("token", "invalid_token");
         expect(res.status).toBe(403);
         expect(res.body).toHaveProperty("message", "Authentication error.");
+    });
+
+    // Input: No JWT secret environment variable
+    // Expected status code: 403
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Access with invalid token", async () => {
+        const originalJwtSecret = process.env.JWT_SECRET;
+        delete process.env.JWT_SECRET;
+
+        const res = await supertest(app).get("/users/uuid").set("token", "invalid_token");
+        expect(res.status).toBe(403);
+        expect(res.body).toHaveProperty("message", "Authentication error.");
+
+        process.env.JWT_SECRET = originalJwtSecret;
     });
 });
 

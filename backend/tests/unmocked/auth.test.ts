@@ -55,6 +55,7 @@ describe("Unmocked: POST /auth/google", () => {
     // Expected output: Error message
     test("JWT_SECRET is not defined", async () => {
 
+        const originalJwtSecret = process.env.JWT_SECRET;
         delete process.env.JWT_SECRET;
 
         const res = await supertest(app)
@@ -62,6 +63,8 @@ describe("Unmocked: POST /auth/google", () => {
             .send({ google_id_token: "valid_google_id_token" });
 
         expect(res.status).toStrictEqual(500);
+
+        process.env.JWT_SECRET = originalJwtSecret;
     });
     
 });
