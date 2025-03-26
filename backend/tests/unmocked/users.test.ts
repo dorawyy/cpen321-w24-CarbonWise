@@ -559,7 +559,7 @@ describe("Unmocked: GET /users/ecoscore_score", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("User has no longer valid product_id in history", async () => {
-        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET!);
 
         await historyCollection.insertOne(testHistoryD);
 

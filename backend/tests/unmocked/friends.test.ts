@@ -1179,7 +1179,7 @@ describe("Unmocked: POST /friends/notifications", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Send product notification to user without FCM token, praise", async () => {
-        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET!);
 
         await usersCollection.insertOne(testUserC);
         await usersCollection.insertOne(testUserD);
@@ -1208,7 +1208,7 @@ describe("Unmocked: POST /friends/notifications", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Send product notification to user without FCM token, shame", async () => {
-        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET!);
 
         await usersCollection.insertOne(testUserC);
         await usersCollection.insertOne(testUserD);
@@ -1295,7 +1295,7 @@ describe("Unmocked: GET /friends/ecoscore_score/:user_uuid", () => {
     // Expected behavior: None
     // Expected output: Friend's ecoscore
     test("Get friend ecoscore with friend with history", async () => {
-        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET!);
 
         await usersCollection.insertOne(testUserD);
         await usersCollection.insertOne(testUserC);

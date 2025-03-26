@@ -656,7 +656,7 @@ describe("Mocked: POST /friends/notifications", () => {
     // Expected behavior: Notification sent
     // Expected output: Confirmation message
     test("Send product notification to user without FCM token, shame", async () => {
-        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET!);
 
         await usersCollection.insertOne({...testUserC, fcm_registration_token: "fcm-token-C"});
         await usersCollection.insertOne(testUserD);
@@ -696,7 +696,7 @@ describe("Mocked: POST /friends/notifications", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("Send product notification to user without FCM token, praise", async () => {
-        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET!);
 
         await usersCollection.insertOne({...testUserC, fcm_registration_token: "fcm-token-C"});
         await usersCollection.insertOne(testUserD);
@@ -744,7 +744,7 @@ describe("Mocked: POST /friends/notifications", () => {
         await historyCollection.insertOne(testHistoryD);
         await historyCollection.insertOne(testHistoryC);
 
-        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET!);
         
         const res = await supertest(app)
             .post("/friends/notifications")
@@ -776,7 +776,7 @@ describe("Mocked: POST /friends/notifications", () => {
         await historyCollection.insertOne(testHistoryD);
         await historyCollection.insertOne(testHistoryC);
 
-        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET!);
         
         const res = await supertest(app)
             .post("/friends/notifications")
@@ -807,7 +807,7 @@ describe("Mocked: POST /friends/notifications", () => {
         await historyCollection.insertOne(testHistoryD);
         await historyCollection.insertOne(testHistoryC);
 
-        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET!);
         
         const res = await supertest(app)
             .post("/friends/notifications")
@@ -860,7 +860,7 @@ describe("Mocked: GET /friends/ecoscore_score/:user_uuid", () => {
         await usersCollection.insertOne(testUserD);
         await usersCollection.insertOne(testUserC);
 
-        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET!);
         
         const res = await supertest(app)
             .get(`/friends/ecoscore_score/${testUserC.user_uuid}`)
@@ -884,7 +884,7 @@ describe("Mocked: GET /friends/ecoscore_score/:user_uuid", () => {
         await friendsCollection.insertOne(testFriendsD);
         await friendsCollection.insertOne(testFriendsC);
 
-        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET!);
         
         const res = await supertest(app)
             .get(`/friends/ecoscore_score/${testUserC.user_uuid}`)
