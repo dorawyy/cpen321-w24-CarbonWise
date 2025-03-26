@@ -3,6 +3,7 @@ package com.example.carbonwise
 import android.Manifest
 import android.content.Context
 import android.os.IBinder
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.test.core.app.ActivityScenario
@@ -19,6 +20,8 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
+import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiSelector
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.TypeSafeMatcher
@@ -30,6 +33,8 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class FriendsFragmentTest {
+
+    private lateinit var device: UiDevice
 
     @get:Rule
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.CAMERA)
@@ -150,6 +155,41 @@ class FriendsFragmentTest {
                     return false
                 }
             }
+        }
+    }
+
+    private fun navigateToLoginFragment() {
+        // Helper function to navigate to the login tab
+        val loginButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/navigation_login"))
+        if (loginButton.waitForExists(5000)) {
+            loginButton.click()
+        }
+    }
+
+    private fun handleGoogleSignIn() {
+        val TAG = "GoogleSignInTest"
+
+        // Step 3a: Look for the "Continue" or "@gmail.com" button
+        val continueSelector = device.findObject(UiSelector().textContains("Continue"))
+        val emailSelector = device.findObject(UiSelector().textContains("@gmail.com"))
+
+        if (continueSelector.waitForExists(5000)) {
+            Log.d(TAG, "\"Continue\" button found. Clicking it.")
+            continueSelector.click()
+        } else if (emailSelector.waitForExists(5000)) {
+            Log.d(TAG, "\"@gmail.com\" account button found. Clicking it.")
+            emailSelector.click()
+        } else {
+            Log.d(TAG, "No account selection button found.")
+        }
+
+        // Step 3b: Grant permission
+        val allowButton = device.findObject(UiSelector().textContains("Allow"))
+        if (allowButton.waitForExists(5000)) {
+            Log.d(TAG, "\"Allow\" button found. Clicking it.")
+            allowButton.click()
+        } else {
+            Log.d(TAG, "\"Allow\" button not found.")
         }
     }
 }

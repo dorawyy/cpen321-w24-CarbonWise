@@ -13,9 +13,6 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="ScanProductsTest">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="FriendsFragmentTest">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2025-03-14T07:05:25.499630200Z">
@@ -27,10 +24,16 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="testSendFriendRequestToSelf()">
+      <SelectionState runConfigName="HistoryTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="testSendFriendRequestSuccess()">
+      <SelectionState runConfigName="ScanProductsTest">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="testScanProductC_NoProductInfo_ShowsErrorMessage()">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="testScanProductD_ProductInDB_NoErrorMessage()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

@@ -61,4 +61,11 @@
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="24dp" />
 
+    <Button
+        android:id="@+id/debugInjectBarcodeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Inject Test Barcode"
+        android:visibility="gone" />
+
 </FrameLayout>

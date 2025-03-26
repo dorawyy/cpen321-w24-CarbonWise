@@ -95,4 +95,5 @@ dependencies {
 
     androidTestImplementation("org.mockito:mockito-android:5.3.1")
     androidTestImplementation("androidx.test.espresso:espresso-idling-resource:3.5.1")
+    androidTestImplementation("androidx.fragment:fragment-testing:1.5.7")
 }
