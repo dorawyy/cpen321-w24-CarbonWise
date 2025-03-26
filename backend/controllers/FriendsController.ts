@@ -31,12 +31,12 @@ export class FriendsController {
         const targetFriends = await friendsCollection.findOne({ user_uuid: friend_uuid });
 
         // Check if users are already friends
-        if (userFriends && userFriends.friends.some(friend => friend.user_uuid === friend_uuid)) {
+        if (userFriends?.friends.some(friend => friend.user_uuid === friend_uuid)) {
             return res.status(400).send({message: "Already friends."});
         }
 
         // Check if friend request has already been sent
-        if (!targetFriends || !targetFriends.incoming_requests.some(request => request.user_uuid === user_uuid)) {
+        if (!targetFriends?.incoming_requests.some(request => request.user_uuid === user_uuid)) {
             await friendsCollection.updateOne(
                 { user_uuid: friend_uuid },
                 { $addToSet: { incoming_requests: { user_uuid, name: user.name } } },
@@ -68,7 +68,7 @@ export class FriendsController {
         const friend = await usersCollection.findOne({ user_uuid: friend_uuid });
 
         // Check if friend request exists
-        if (friend && userFriends && userFriends.incoming_requests.some(request => request.user_uuid === friend_uuid)) {
+        if (friend && userFriends?.incoming_requests.some(request => request.user_uuid === friend_uuid)) {
 
             await friendsCollection.updateOne(
                 { user_uuid },
@@ -308,7 +308,7 @@ export class FriendsController {
 
         // Send notification to target user
         getMessaging().send(message as TokenMessage)
-            .then(() => {
+        .then(() => {
                 res.status(200).send({message: "Notification sent."});
             })
             .catch(() => {
