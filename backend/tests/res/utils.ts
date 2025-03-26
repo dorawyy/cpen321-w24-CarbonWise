@@ -46,6 +46,6 @@ export function checkHistory(history: History, realHistory: History, products: P
         expect(product).toHaveProperty("product");
         const expectedProduct = products[index];
         expect(expectedProduct).toBeDefined();
-        checkProduct(product.product!, expectedProduct!);
+        checkProduct(product.product!, expectedProduct);
     });
 }

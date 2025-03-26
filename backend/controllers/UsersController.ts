@@ -8,6 +8,7 @@ import { HISTORY_ECOSCORE_AVERAGE_COUNT } from "../constants";
 
 export class UsersController {
     
+    // POST /users/history
     async addToHistory(req: Request, res: Response) {
         const { product_id } = req.body;
         const user = req.user as User;
@@ -38,6 +39,7 @@ export class UsersController {
         res.status(200).json(historyEntry);
     }
 
+    // GET /users/history
     async getHistory(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -69,6 +71,7 @@ export class UsersController {
         }
     }
 
+    // DELETE /users/history
     async deleteFromHistory(req: Request, res: Response) {
         const { scan_uuid } = req.query;
         const user = req.user as User;
@@ -87,8 +90,7 @@ export class UsersController {
         }
     }
 
-
-    // Update the Firebase Cloud Messaging (FCM) registration token for the user
+    // POST /users/fcm_registration_token
     async setFCMRegistrationToken(req: Request, res: Response) {
         const { fcm_registration_token } = req.body;
         const user = req.user as User;
@@ -103,6 +105,7 @@ export class UsersController {
         res.status(200).send({message: "FCM registration token updated."});
     }
 
+    // GET /users/uuid
     async getUserUUID(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -115,6 +118,7 @@ export class UsersController {
         res.status(200).send({ user_uuid: result.user_uuid });
     }
 
+    // GET /users/ecoscore_score
     async getEcoscoreAverage(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -130,7 +134,7 @@ export class UsersController {
                 const ecoscoreData = await fetchEcoscoresByProductId(product.product_id);
                 return {
                     ...product,
-                    ecoscore_score: ecoscoreData?.ecoscore_score || 0
+                    ecoscore_score: ecoscoreData?.ecoscore_score ?? 0
                 };
             }));
 
@@ -154,7 +158,6 @@ export async function getHistoryByUserUUID(user_uuid: string) {
     return await historyCollection.find(query).toArray();
 }
 
-
 // Helper function to update the average ecoscore for a user
 async function updateEcoscoreAverage(user_uuid: string) {
 
@@ -169,7 +172,7 @@ async function updateEcoscoreAverage(user_uuid: string) {
             const ecoscoreData = await fetchEcoscoresByProductId(product.product_id);
             return {
                 ...product,
-                ecoscore_score: ecoscoreData?.ecoscore_score || 0
+                ecoscore_score: ecoscoreData?.ecoscore_score ?? 0
             };
         }));
 

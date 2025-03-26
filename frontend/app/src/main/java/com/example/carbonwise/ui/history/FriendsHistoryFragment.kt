@@ -60,7 +60,6 @@ class FriendsHistoryFragment : Fragment() {
 
         // Fetch friend's history and score
         fetchFriendHistory()
-        fetchFriendEcoscore()
 
         return root
     }
@@ -95,6 +94,13 @@ class FriendsHistoryFragment : Fragment() {
                             historyAdapter.submitList(historyItems)
                             binding.progressBar.visibility = View.GONE
                             binding.textViewEmptyHistory.visibility = if (historyItems.isNullOrEmpty()) View.VISIBLE else View.GONE
+                            val hasValidProducts = historyItems.any { it.products.isNotEmpty() }
+                            if (hasValidProducts) {
+                                fetchFriendEcoscore()
+                            } else {
+                                binding.circularContainer.visibility = View.GONE
+                                binding.ecoScoreCard.visibility = View.GONE
+                            }
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()

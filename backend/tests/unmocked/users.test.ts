@@ -34,7 +34,7 @@ describe("Unmocked: GET /users/history", () => {
     test("Successfully retrieved user history with 1 product", async () => {
 
   
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
         await historyCollection.insertOne(testHistoryA);
 
         const res = await supertest(app).get("/users/history").set("token", token);
@@ -50,7 +50,7 @@ describe("Unmocked: GET /users/history", () => {
     // Expected output: User history with no products
     test("Successfully retrieved user history with no products", async () => {
 
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
         await historyCollection.insertOne(testHistoryB);
 
         const res = await supertest(app).get("/users/history").set("token", token);
@@ -66,7 +66,7 @@ describe("Unmocked: GET /users/history", () => {
     // Expected output: User history with more than 1 product
     test("Successfully retrieved user history with more than 1 product", async () => {
 
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
         await historyCollection.insertOne(testHistoryC);
 
         const res = await supertest(app).get("/users/history").set("token", token);
@@ -82,7 +82,7 @@ describe("Unmocked: GET /users/history", () => {
     // Expected output: Error message
     test("Failed to find user history", async () => {
 
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         const res = await supertest(app).get("/users/history").set("token", token);
         
@@ -138,7 +138,7 @@ describe("Unmocked: POST /users/history", () => {
     // Expected output: Confirmation message
     test("Successfully added product to empty user history", async () => {
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         const res = await supertest(app).post("/users/history").set("token", token).send({ product_id: testProductAId });
         expect(res.status).toBe(200);
@@ -155,7 +155,7 @@ describe("Unmocked: POST /users/history", () => {
     // Expected output: Error message
     test("Invalid product_id to empty user history", async () => {
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         const res = await supertest(app).post("/users/history").set("token", token).send({ product_id: "invalid_product_id" });
         expect(res.status).toBe(404);
@@ -170,7 +170,7 @@ describe("Unmocked: POST /users/history", () => {
     // Expected output: Confirmation message
     test("Successfully added product to non-empty user history", async () => {
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
         await historyCollection.insertOne(testHistoryA);
 
         const res = await supertest(app).post("/users/history").set("token", token).send({ product_id: testProductBId });
@@ -188,7 +188,7 @@ describe("Unmocked: POST /users/history", () => {
     // Expected output: Confirmation message
     test("Adding duplicate product_id to non-empty user history", async () => {
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
         await historyCollection.insertOne(testHistoryA);
 
         const res = await supertest(app).post("/users/history").set("token", token).send({ product_id: testProductAId });
@@ -205,7 +205,7 @@ describe("Unmocked: POST /users/history", () => {
     // Expected output: Error message
     test("Invalid product_id to non-empty user history", async () => {
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
         await historyCollection.insertOne(testHistoryA);
 
         const res = await supertest(app).post("/users/history").set("token", token).send({ product_id: "invalid_product_id" });
@@ -219,7 +219,7 @@ describe("Unmocked: POST /users/history", () => {
     // Expected output: Confirmation message
     test("Manually add invalid product_id to history, then add another valid product_id", async () => {
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
         await historyCollection.insertOne({
             user_uuid: testUserA.user_uuid,
             products: [{ product_id: "invalid_product_id_1", timestamp: new Date(), scan_uuid: "uuid_1" }],
@@ -233,7 +233,7 @@ describe("Unmocked: POST /users/history", () => {
         expect(history?.products).toHaveLength(2);
         expect(history?.products[1].product_id).toBe(testProductAId);
         expect(history?.products[0].product_id).toBe("invalid_product_id_1");
-        expect(history?.ecoscore_score).toBe(testProductA.ecoscore_score as number / 2);
+        expect(history?.ecoscore_score).toBe(15);
     });
 
     // Input: No token provided
@@ -284,7 +284,7 @@ describe("Unmocked: DELETE /users/history", () => {
     // Expected output: Confirmation message
     test("Successfully deleted history entry with valid scan_uuid", async () => {
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
         await historyCollection.insertOne(testHistoryA);
 
         const res = await supertest(app).delete("/users/history").set("token", token).query({ scan_uuid: testHistoryA.products[0].scan_uuid });
@@ -302,7 +302,7 @@ describe("Unmocked: DELETE /users/history", () => {
     // Expected output: Error message
     test("Failed to delete history entry with invalid scan_uuid", async () => {
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
         await historyCollection.insertOne(testHistoryA);
 
         const res = await supertest(app).delete("/users/history").set("token", token).query({ scan_uuid: "invalid_scan_uuid" });
@@ -358,7 +358,7 @@ describe("Unmocked: POST /users/fcm_registration_token", () => {
     // Expected output: Confirmation message
     test("Successfully updated FCM registration token", async () => {
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
         const fcmToken = "valid_fcm_token";
 
         const res = await supertest(app).post("/users/fcm_registration_token").set("token", token).send({ fcm_registration_token: fcmToken });
@@ -372,7 +372,7 @@ describe("Unmocked: POST /users/fcm_registration_token", () => {
     // Expected output: Error message
     test("Failed to update FCM registration token due to missing token", async () => {
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         const res = await supertest(app).post("/users/fcm_registration_token").set("token", token).send({});
         expect(res.status).toBe(400);
@@ -393,7 +393,7 @@ describe("Unmocked: POST /users/fcm_registration_token", () => {
     // Expected output: Confirmation message
     test("Update FCM registration token to the same token", async () => {
 
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         const res = await supertest(app).post("/users/fcm_registration_token").set("token", token).send({ fcm_registration_token: testUserB.fcm_registration_token });
         expect(res.status).toBe(200);
@@ -432,8 +432,6 @@ describe("Unmocked: GET /users/uuid", () => {
         await usersCollection.drop();
     });
 
-    
-
     afterEach(async () => {
         await usersCollection.drop();
     });
@@ -448,7 +446,7 @@ describe("Unmocked: GET /users/uuid", () => {
     // Expected output: User UUID
     test("Successfully retrieve user UUID with valid token", async () => {
 
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
         await usersCollection.insertOne(testUserA);
         const res = await supertest(app).get("/users/uuid").set("token", token);
         expect(res.status).toBe(200);
@@ -460,7 +458,7 @@ describe("Unmocked: GET /users/uuid", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("User not found", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);    
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");    
         const res = await supertest(app).get("/users/uuid").set("token", token);
         expect(res.status).toBe(404);
         expect(res.body).toHaveProperty("message", "User not found.");
@@ -485,6 +483,21 @@ describe("Unmocked: GET /users/uuid", () => {
         const res = await supertest(app).get("/users/uuid").set("token", "invalid_token");
         expect(res.status).toBe(403);
         expect(res.body).toHaveProperty("message", "Authentication error.");
+    });
+
+    // Input: No JWT secret environment variable
+    // Expected status code: 403
+    // Expected behavior: None
+    // Expected output: Error message
+    test("Access with invalid token", async () => {
+        const originalJwtSecret = process.env.JWT_SECRET;
+        delete process.env.JWT_SECRET;
+
+        const res = await supertest(app).get("/users/uuid").set("token", "invalid_token");
+        expect(res.status).toBe(403);
+        expect(res.body).toHaveProperty("message", "Authentication error.");
+
+        process.env.JWT_SECRET = originalJwtSecret;
     });
 });
 
@@ -518,7 +531,7 @@ describe("Unmocked: GET /users/ecoscore_score", () => {
     // Expected output: Error message
     test("User has no history", async () => {
 
-        const token = jwt.sign(testUserB, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await historyCollection.insertOne(testHistoryB);
 
@@ -533,7 +546,7 @@ describe("Unmocked: GET /users/ecoscore_score", () => {
     // Expected output: Ecoscore
     test("Successfully retrieve ecoscore with valid token", async () => {
 
-        const token = jwt.sign(testUserC, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserC, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await historyCollection.insertOne(testHistoryC);
 
@@ -547,7 +560,7 @@ describe("Unmocked: GET /users/ecoscore_score", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("User has no history document", async () => {
-        const token = jwt.sign(testUserA, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserA, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         const res = await supertest(app).get("/users/ecoscore_score").set("token", token);
         expect(res.status).toBe(404);
@@ -559,7 +572,7 @@ describe("Unmocked: GET /users/ecoscore_score", () => {
     // Expected behavior: None
     // Expected output: Error message
     test("User has no longer valid product_id in history", async () => {
-        const token = jwt.sign(testUserD, process.env.JWT_SECRET as string);
+        const token = jwt.sign(testUserD, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await historyCollection.insertOne(testHistoryD);
 

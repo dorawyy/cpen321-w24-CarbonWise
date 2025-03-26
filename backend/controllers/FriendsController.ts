@@ -2,16 +2,14 @@ import { Request, Response } from "express";
 import { Filter, Document } from "mongodb";
 import { fetchProductById, fetchProductImageById } from "./ProductsController";
 import { getMessaging, TokenMessage } from 'firebase-admin/messaging';
-import { client, getFirebaseApp, friendsCollection, usersCollection, historyCollection } from "../services";
-import { User, History } from "../types";
+import { getFirebaseApp, friendsCollection, usersCollection, historyCollection } from "../services";
+import { User, FriendRequestBody } from "../types";
 import { getHistoryByUserUUID } from "./UsersController";
 import { sendNotification } from "../utils";
-interface FriendRequestBody {
-    user_uuid: string;
-}
 
 export class FriendsController {
     
+    // POST /friends/requests
     async sendFriendRequest(req: Request<object, object, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.body;
         const user = req.user as User;
@@ -24,7 +22,8 @@ export class FriendsController {
 
         const userFriends = await friendsCollection.findOne({ user_uuid });
         const friendUserDocument = await usersCollection.findOne({ user_uuid: friend_uuid });
-
+        
+        // If a user does not have a friend document, they are no longer a user
         if (!friendUserDocument) {
             return res.status(400).send({message: "User does not exist."});
         }
@@ -32,12 +31,12 @@ export class FriendsController {
         const targetFriends = await friendsCollection.findOne({ user_uuid: friend_uuid });
 
         // Check if users are already friends
-        if (userFriends && userFriends.friends.some(friend => friend.user_uuid === friend_uuid)) {
+        if (userFriends?.friends.some(friend => friend.user_uuid === friend_uuid)) {
             return res.status(400).send({message: "Already friends."});
         }
 
         // Check if friend request has already been sent
-        if (!targetFriends || !targetFriends.incoming_requests.some(request => request.user_uuid === user_uuid)) {
+        if (!targetFriends?.incoming_requests.some(request => request.user_uuid === user_uuid)) {
             await friendsCollection.updateOne(
                 { user_uuid: friend_uuid },
                 { $addToSet: { incoming_requests: { user_uuid, name: user.name } } },
@@ -53,6 +52,7 @@ export class FriendsController {
         }
     }
 
+    // POST /friends/requests/accept
     async acceptFriendRequest(req: Request<object, object, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.body;
         const user = req.user as User;
@@ -68,7 +68,7 @@ export class FriendsController {
         const friend = await usersCollection.findOne({ user_uuid: friend_uuid });
 
         // Check if friend request exists
-        if (friend && userFriends && userFriends.incoming_requests.some(request => request.user_uuid === friend_uuid)) {
+        if (friend && userFriends?.incoming_requests.some(request => request.user_uuid === friend_uuid)) {
 
             await friendsCollection.updateOne(
                 { user_uuid },
@@ -96,6 +96,7 @@ export class FriendsController {
         }
     }
 
+    // DELETE /friends
     async removeFriend(req: Request<object, object, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.query;
         const user = req.user as User;
@@ -123,6 +124,7 @@ export class FriendsController {
         }
     }
 
+    // DELETE /friends/requests
     async rejectFriendRequest(req: Request<object, object, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.query;
         const user = req.user as User;
@@ -132,7 +134,6 @@ export class FriendsController {
         if (friend_uuid === user_uuid) {
             return res.status(400).send({message: "Cannot reject friend request from yourself"});
         }
-
 
         const result = await friendsCollection.updateOne(
             { user_uuid },
@@ -146,6 +147,7 @@ export class FriendsController {
         }
     }
 
+    // GET /friends/requests
     async getFriendRequests(req: Request<object, object, FriendRequestBody>, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -159,6 +161,7 @@ export class FriendsController {
         }
     }
 
+    // GET /friends/requests/outgoing
     async getOutgoingFriendRequests(req: Request<object, object, FriendRequestBody>, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -186,6 +189,7 @@ export class FriendsController {
         res.status(200).send(users);
     }
 
+    // GET /friends
     async getCurrentFriends(req: Request<object, object, FriendRequestBody>, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -199,6 +203,7 @@ export class FriendsController {
         }
     }
 
+    // GET /friends/history/:user_uuid
     async getFriendHistoryByUUID(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -240,6 +245,7 @@ export class FriendsController {
         res.status(200).send(detailedHistory);
     }
 
+    // POST /friends/notifications
     async sendProductNotification(req: Request, res: Response) {
 
         getFirebaseApp();
@@ -302,14 +308,15 @@ export class FriendsController {
 
         // Send notification to target user
         getMessaging().send(message as TokenMessage)
-            .then((response: string) => {
+        .then(() => {
                 res.status(200).send({message: "Notification sent."});
             })
-            .catch((error: any) => {
+            .catch(() => {
                 res.status(500).send({message: "Error sending notification."});
             });
     }
 
+    // GET /friends/ecoscore_score/:user_uuid
     async getFriendEcoscore(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;

@@ -22,7 +22,6 @@ function createServer() {
     app.use(express.json());
     app.use(morgan('tiny'));
 
-    
     app.use(session({ secret: process.env.JWT_SECRET as string, resave: false, saveUninitialized: false }));
     app.use(passport.initialize());
     app.use(passport.session());
@@ -78,7 +77,7 @@ async function sendNotification(user_uuid: string, messageBody: string) {
 
 
     getMessaging().send(message as TokenMessage)
-        .catch((error: Error) => {
+        .catch(() => {
             return false;
         });
 

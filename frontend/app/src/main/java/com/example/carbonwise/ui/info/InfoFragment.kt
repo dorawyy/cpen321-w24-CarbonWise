@@ -78,7 +78,8 @@ class InfoFragment : Fragment() {
         }
 
         val showButton = arguments?.getBoolean(SHOW_ADD_BUTTON, false) ?: false
-        if (showButton) {
+        val token = MainActivity.getJWTToken(requireContext())
+        if (showButton && !token.isNullOrEmpty()) {
             binding.addToHistoryButton.visibility = View.VISIBLE
             binding.addToHistoryButton.setOnClickListener {
                 addToHistory(upcCode)
@@ -192,6 +193,7 @@ class InfoFragment : Fragment() {
         updateProductImage(imageBase64)
 
         val recommendations = json.optJSONArray("recommendations")
+        Log.d("HAHA", "recommendations: $recommendations")
         if (recommendations != null) {
             val recommendationList = mutableListOf<Recommendation>()
             for (i in 0 until recommendations.length()) {

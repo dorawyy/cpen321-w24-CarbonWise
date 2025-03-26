@@ -1,6 +1,7 @@
 import {createServer} from "../../utils";
 import supertest from "supertest";
 import { JEST_TIMEOUT_MS } from "../res/data";
+
 // Interface POST /auth/google
 describe("Unmocked: POST /auth/google", () => {
 
@@ -9,8 +10,8 @@ describe("Unmocked: POST /auth/google", () => {
 
     // Input: No google_id_token is sent
     // Expected status code: 401
-    // Expected behavior: none
-    // Expected output: error message
+    // Expected behavior: None
+    // Expected output: Error message
     test("Missing Google ID Token", async () => {
         const res = await supertest(app)
             .post("/auth/google")
@@ -23,8 +24,8 @@ describe("Unmocked: POST /auth/google", () => {
 
     // Input: Invalid google_id_token is sent
     // Expected status code: 401
-    // Expected behavior: none
-    // Expected output: error message
+    // Expected behavior: None
+    // Expected output: Error message
     test("Invalid Google ID Token", async () => {
         const res = await supertest(app)
             .post("/auth/google")
@@ -37,8 +38,8 @@ describe("Unmocked: POST /auth/google", () => {
 
     // Input: No body is sent
     // Expected status code: 401
-    // Expected behavior: none
-    // Expected output: error message
+    // Expected behavior: None
+    // Expected output: Error message
     test("Missing Body", async () => {
         const res = await supertest(app)
             .post("/auth/google");
@@ -50,10 +51,11 @@ describe("Unmocked: POST /auth/google", () => {
 
     // Input: process.env.JWT_SECRET is not defined
     // Expected status code: 500
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Error message
     test("JWT_SECRET is not defined", async () => {
 
+        const originalJwtSecret = process.env.JWT_SECRET;
         delete process.env.JWT_SECRET;
 
         const res = await supertest(app)
@@ -61,6 +63,8 @@ describe("Unmocked: POST /auth/google", () => {
             .send({ google_id_token: "valid_google_id_token" });
 
         expect(res.status).toStrictEqual(500);
+
+        process.env.JWT_SECRET = originalJwtSecret;
     });
     
 });

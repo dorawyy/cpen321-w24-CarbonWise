@@ -78,7 +78,7 @@ export const testFriendsE: Friends = {
 }
 
 
-export const testProductAId: string = "3017620422003";
+export const testProductAId = "3017620422003";
 export const testProductA: Product = {
     _id: testProductAId,
     product_name: "Nutella",
@@ -154,7 +154,7 @@ export const testProductA: Product = {
     ]
 }
 
-export const testProductBId: string = "6111242100992";
+export const testProductBId = "6111242100992";
 export const testProductB: Product = {
     _id: testProductBId,
     product_name: "Perly",
@@ -205,11 +205,11 @@ export const testProductB: Product = {
     ]
 }
 
-export const testProductImageA: string = "test_product_image_A";
-export const testProductImageB: string = "test_product_image_B";
-export const testProductImageE: string = "test_product_image_E";
-export const testRecommendationImageA: string = "test_recommendation_image_A";
-export const testRecommendationImageB: string = "test_recommendation_image_B";
+export const testProductImageA = "test_product_image_A";
+export const testProductImageB = "test_product_image_B";
+export const testProductImageE = "test_product_image_E";
+export const testRecommendationImageA = "test_recommendation_image_A";
+export const testRecommendationImageB = "test_recommendation_image_B";
 
 export const testHistoryA: History = {
     user_uuid: "user-uuid-A",

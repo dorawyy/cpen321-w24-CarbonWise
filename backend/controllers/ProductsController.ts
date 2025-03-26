@@ -7,6 +7,7 @@ import { RECOMMENDATIONS_UPPER_LIMIT, RECOMMENDATIONS_LOWER_LIMIT, OPENFOODFACTS
 
 export class ProductsController {
     
+    // GET /products/:product_id
     async getProductById(req: Request, res: Response) {
         try {
             const { product_id } = req.params;
@@ -141,8 +142,7 @@ export async function fetchProductById(product_id: string): Promise<Product | nu
     return null;
 }
 
-
-
+// Helper function to fetch images of products
 export async function fetchProductImageById(product_id: string): Promise<string | null> {
     try {
         const imageKey =
@@ -159,7 +159,7 @@ export async function fetchProductImageById(product_id: string): Promise<string 
     }
 }
 
-
+// Helper function to fetch ecoscore of products
 export async function fetchEcoscoresByProductId(product_id: string): Promise<{ ecoscore_score: number } | null> {
 
     // Try to fetch product from the database
@@ -177,6 +177,7 @@ export async function fetchEcoscoresByProductId(product_id: string): Promise<{ e
     return result;
 }
 
+// Helper function to calculate difference between product categories_tags
 function calculateTagDifference(baseTags: string[], productTags: string[]): number {
     return new Set([...baseTags, ...productTags]).size - new Set(baseTags).size;
 }

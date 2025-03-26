@@ -54,7 +54,7 @@ class HistoryFragment : Fragment() {
 
         historyViewModel.historyItems.observe(viewLifecycleOwner) { history ->
             historyAdapter.submitList(history)
-            binding.textViewEmptyHistory.visibility = if (history.isEmpty()) View.VISIBLE else View.GONE
+            binding.textViewEmptyHistory.visibility = if (history.isNullOrEmpty()) View.VISIBLE else View.GONE
             binding.ecoScoreCard.visibility = if (history.isEmpty()) View.GONE else View.VISIBLE
         }
 

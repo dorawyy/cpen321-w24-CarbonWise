@@ -17,7 +17,7 @@ describe("Mocked: GET /products/:product_id", () => {
         await client.connect();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -29,7 +29,7 @@ describe("Mocked: GET /products/:product_id", () => {
     
     // Input: Valid product_id found in the database without images
     // Expected status code: 200
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Product details with recommendations without images
     test("Valid Product ID Found in DB with Recommendations Without Images", async () => {
 
@@ -67,7 +67,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Valid product_id found in the database with images
     // Expected status code: 200
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Product details with recommendations with images
     test("Valid Product ID Found in DB with Recommendations With Images", async () => {
 
@@ -110,7 +110,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Valid product_id found in the database with product image and no recommendation image
     // Expected status code: 200
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Product details with image and recommendations without images
     test("Valid Product ID Found in DB with Product Image and No Recommendation Image", async () => {
 
@@ -153,7 +153,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Valid product_id found in the database with no product image and recommendation image
     // Expected status code: 200
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Product details with no image and recommendations with image
     test("Valid Product ID Found in DB with no Product Image and Recommendation Image", async () => {
 
@@ -262,7 +262,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Valid product_id not found in database and not found in OpenFoodFacts
     // Expected status code: 404
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Error message
     test("Valid Product ID Not Found in DB and Not Found in OpenFoodFacts", async () => {
 
@@ -309,7 +309,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Valid product_id not found in database and found in OpenFoodFacts without all required fields
     // Expected status code: 404
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Error message
     test("Valid Product ID Not Found in DB and Found in OpenFoodFacts Without All Required Fields", async () => {
 
@@ -355,7 +355,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Valid product_id found in the database
     // Expected status code: 200
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Product details with multiple recommendations with images
     test("Valid Product ID Found in DB with Multiple Recommendations With Images", async () => {
 
@@ -407,7 +407,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Valid product_id found in the database with language filters for recommendations
     // Expected status code: 200
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Product details with german language recommendations
     test("Valid Product ID Found in DB with Language Filters for Recommendations", async () => {
 
@@ -423,8 +423,6 @@ describe("Mocked: GET /products/:product_id", () => {
 
         const res = await supertest(app).get(`/products/${testProductAId}`).query({ num_recommendations: 1, include_languages: "de" });
     
-
-
         expect(res.status).toStrictEqual(200);
         expect(res.body).toHaveProperty("product");
         expect(res.body).toHaveProperty("recommendations");
@@ -455,7 +453,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Valid product_id found in the database with countries filters for recommendations
     // Expected status code: 200
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Product details with belgian country recommendations
     test("Valid Product ID Found in DB with Countries Filters for Recommendations", async () => {
 
@@ -503,7 +501,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Valid product_id found in the database with languauge and countries filters for recommendations
     // Expected status code: 200
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Product details with united kingdom country and english language recommendations
     test("Valid Product ID Found in DB with Countries and Languages Filters for Recommendations", async () => {
 
@@ -552,7 +550,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Valid product_id found in the database with language filters to get no recommendations
     // Expected status code: 200
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Product details with no recommendations
     test("Valid Product ID Found in DB with Languages Filters to Get No Recommendations", async () => {
 
@@ -592,7 +590,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Products database findOne error
     // Expected status code: 500
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Error message
     test("Products Database FindOne Error", async () => {
 
@@ -609,7 +607,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
     // Input: Products database insertOne error
     // Expected status code: 500
-    // Expected behavior: none
+    // Expected behavior: None
     // Expected output: Error message
     test("Products Database InsertOne Error", async () => {
 

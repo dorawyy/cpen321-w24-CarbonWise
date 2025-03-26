@@ -66,7 +66,7 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                         _historyItems.postValue(historyList.flatMap { it.products })
                     }
                 } else {
-                    networkFailure.postValue(true)
+                    _historyItems.postValue(emptyList())
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
