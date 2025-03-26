@@ -53,7 +53,7 @@ describe("Mocked: GET /products/:product_id", () => {
         checkProduct(product, testProductA);
         checkRecommendations(recommendations);
         expect(recommendations.length).toBe(DEFAULT_RECOMMENDATIONS_LIMIT);
-        expect(() => axios.get).toHaveBeenCalledTimes(2);
+        expect(axios.get).toHaveBeenCalledTimes(2);
         expect(axios.get).toHaveBeenNthCalledWith(1,
             expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
             { responseType: "arraybuffer" }
