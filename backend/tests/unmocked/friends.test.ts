@@ -1,7 +1,7 @@
 import { createServer } from "../../utils";
 import supertest from "supertest";
 import { client, friendsCollection, historyCollection, usersCollection, usersDatabase } from "../../services";
-import { testUserA, testUserB, testFriendsA, testFriendsB, JEST_TIMEOUT_MS, testUserC, testUserD, testFriendsC, testFriendsD, testUserE, testFriendsE, testHistoryB, testHistoryC, testHistoryA, testHistoryD } from "../res/data";
+import { testUserA, testUserB, testFriendsA, testFriendsB, JEST_TIMEOUT_MS, testUserC, testUserD, testFriendsC, testFriendsD, testUserE, testFriendsE, testHistoryB, testHistoryC, testHistoryD } from "../res/data";
 import jwt from "jsonwebtoken";
 
 // Interface POST /friends/requests

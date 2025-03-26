@@ -3,10 +3,9 @@ import { Filter, Document } from "mongodb";
 import { fetchProductById, fetchProductImageById } from "./ProductsController";
 import { getMessaging, TokenMessage } from 'firebase-admin/messaging';
 import { getFirebaseApp, friendsCollection, usersCollection, historyCollection } from "../services";
-import { User } from "../types";
+import { User, FriendRequestBody } from "../types";
 import { getHistoryByUserUUID } from "./UsersController";
 import { sendNotification } from "../utils";
-import { FriendRequestBody } from "../types";
 
 export class FriendsController {
     
@@ -309,10 +308,10 @@ export class FriendsController {
 
         // Send notification to target user
         getMessaging().send(message as TokenMessage)
-            .then((response: string) => {
+            .then(() => {
                 res.status(200).send({message: "Notification sent."});
             })
-            .catch((error: any) => {
+            .catch(() => {
                 res.status(500).send({message: "Error sending notification."});
             });
     }

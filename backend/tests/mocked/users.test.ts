@@ -21,7 +21,7 @@ describe("Mocked: GET /users/history", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -139,7 +139,7 @@ describe("Mocked: POST /users/history", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -181,7 +181,7 @@ describe("Mocked: DELETE /users/history", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -223,7 +223,7 @@ describe("Mocked: POST /users/fcm_registration_token", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -266,7 +266,7 @@ describe("Mocked: GET /users/uuid", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -309,7 +309,7 @@ describe("Mocked: GET /users/ecoscore_score", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();

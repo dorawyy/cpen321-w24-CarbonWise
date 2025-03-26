@@ -17,7 +17,7 @@ describe("Mocked: GET /products/:product_id", () => {
         await client.connect();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();

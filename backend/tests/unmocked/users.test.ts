@@ -233,7 +233,7 @@ describe("Unmocked: POST /users/history", () => {
         expect(history?.products).toHaveLength(2);
         expect(history?.products[1].product_id).toBe(testProductAId);
         expect(history?.products[0].product_id).toBe("invalid_product_id_1");
-        expect(history?.ecoscore_score).toBe(testProductA.ecoscore_score as number / 2);
+        expect(history?.ecoscore_score).toBe(15);
     });
 
     // Input: No token provided

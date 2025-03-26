@@ -19,7 +19,7 @@ describe("Mocked: POST /auth/google", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();

@@ -134,7 +134,7 @@ export class UsersController {
                 const ecoscoreData = await fetchEcoscoresByProductId(product.product_id);
                 return {
                     ...product,
-                    ecoscore_score: ecoscoreData?.ecoscore_score || 0
+                    ecoscore_score: ecoscoreData?.ecoscore_score ?? 0
                 };
             }));
 
@@ -172,7 +172,7 @@ async function updateEcoscoreAverage(user_uuid: string) {
             const ecoscoreData = await fetchEcoscoresByProductId(product.product_id);
             return {
                 ...product,
-                ecoscore_score: ecoscoreData?.ecoscore_score || 0
+                ecoscore_score: ecoscoreData?.ecoscore_score ?? 0
             };
         }));
 

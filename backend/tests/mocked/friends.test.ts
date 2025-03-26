@@ -32,7 +32,7 @@ describe("Mocked: POST /friends/requests", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -174,7 +174,7 @@ describe("Mocked: POST /friends/requests/accept", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -315,7 +315,7 @@ describe("Mocked: DELETE /friends", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -361,7 +361,7 @@ describe("Mocked: DELETE /friends/requests", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -407,7 +407,7 @@ describe("Mocked: GET /friends", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -452,7 +452,7 @@ describe("Mocked: GET /friends/requests", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -497,7 +497,7 @@ describe("Mocked: GET /friends/requests/outgoing", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -566,7 +566,7 @@ describe("Mocked: GET /friends/history/:user_uuid", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -640,7 +640,7 @@ describe("Mocked: POST /friends/notifications", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -836,7 +836,7 @@ describe("Mocked: GET /friends/ecoscore_score/:user_uuid", () => {
         await usersDatabase.dropDatabase();
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         jest.clearAllMocks();
         jest.resetAllMocks();
         jest.restoreAllMocks();
