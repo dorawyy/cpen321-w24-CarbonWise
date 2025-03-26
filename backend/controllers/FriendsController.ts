@@ -2,16 +2,15 @@ import { Request, Response } from "express";
 import { Filter, Document } from "mongodb";
 import { fetchProductById, fetchProductImageById } from "./ProductsController";
 import { getMessaging, TokenMessage } from 'firebase-admin/messaging';
-import { client, getFirebaseApp, friendsCollection, usersCollection, historyCollection } from "../services";
-import { User, History } from "../types";
+import { getFirebaseApp, friendsCollection, usersCollection, historyCollection } from "../services";
+import { User } from "../types";
 import { getHistoryByUserUUID } from "./UsersController";
 import { sendNotification } from "../utils";
-interface FriendRequestBody {
-    user_uuid: string;
-}
+import { FriendRequestBody } from "../types";
 
 export class FriendsController {
     
+    // POST /friends/requests
     async sendFriendRequest(req: Request<object, object, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.body;
         const user = req.user as User;
@@ -24,7 +23,8 @@ export class FriendsController {
 
         const userFriends = await friendsCollection.findOne({ user_uuid });
         const friendUserDocument = await usersCollection.findOne({ user_uuid: friend_uuid });
-
+        
+        // If a user does not have a friend document, they are no longer a user
         if (!friendUserDocument) {
             return res.status(400).send({message: "User does not exist."});
         }
@@ -53,6 +53,7 @@ export class FriendsController {
         }
     }
 
+    // POST /friends/requests/accept
     async acceptFriendRequest(req: Request<object, object, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.body;
         const user = req.user as User;
@@ -96,6 +97,7 @@ export class FriendsController {
         }
     }
 
+    // DELETE /friends
     async removeFriend(req: Request<object, object, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.query;
         const user = req.user as User;
@@ -123,6 +125,7 @@ export class FriendsController {
         }
     }
 
+    // DELETE /friends/requests
     async rejectFriendRequest(req: Request<object, object, FriendRequestBody>, res: Response) {
         const { user_uuid: friend_uuid } = req.query;
         const user = req.user as User;
@@ -132,7 +135,6 @@ export class FriendsController {
         if (friend_uuid === user_uuid) {
             return res.status(400).send({message: "Cannot reject friend request from yourself"});
         }
-
 
         const result = await friendsCollection.updateOne(
             { user_uuid },
@@ -146,6 +148,7 @@ export class FriendsController {
         }
     }
 
+    // GET /friends/requests
     async getFriendRequests(req: Request<object, object, FriendRequestBody>, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -159,6 +162,7 @@ export class FriendsController {
         }
     }
 
+    // GET /friends/requests/outgoing
     async getOutgoingFriendRequests(req: Request<object, object, FriendRequestBody>, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -186,6 +190,7 @@ export class FriendsController {
         res.status(200).send(users);
     }
 
+    // GET /friends
     async getCurrentFriends(req: Request<object, object, FriendRequestBody>, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -199,6 +204,7 @@ export class FriendsController {
         }
     }
 
+    // GET /friends/history/:user_uuid
     async getFriendHistoryByUUID(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;
@@ -240,6 +246,7 @@ export class FriendsController {
         res.status(200).send(detailedHistory);
     }
 
+    // POST /friends/notifications
     async sendProductNotification(req: Request, res: Response) {
 
         getFirebaseApp();
@@ -310,6 +317,7 @@ export class FriendsController {
             });
     }
 
+    // GET /friends/ecoscore_score/:user_uuid
     async getFriendEcoscore(req: Request, res: Response) {
         const user = req.user as User;
         const user_uuid = user.user_uuid;

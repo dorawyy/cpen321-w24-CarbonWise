@@ -299,9 +299,7 @@ describe("Mocked: POST /friends/requests/accept", () => {
 
         expect(res.status).toBe(500);
     });
-
 });
-
 
 // Interface DELETE /friends
 describe("Mocked: DELETE /friends", () => {
@@ -347,10 +345,7 @@ describe("Mocked: DELETE /friends", () => {
 
         expect(res.status).toBe(500);
     });
-
 });
-
-
 
 // Interface DELETE /friends/requests
 describe("Mocked: DELETE /friends/requests", () => {
@@ -396,9 +391,7 @@ describe("Mocked: DELETE /friends/requests", () => {
 
         expect(res.status).toBe(500);
     });
-
 });
-
 
 // Interface GET /friends
 describe("Mocked: GET /friends", () => {
@@ -443,10 +436,7 @@ describe("Mocked: GET /friends", () => {
 
         expect(res.status).toBe(500);
     });
-
 });
-
-
 
 // Interface GET /friends/requests
 describe("Mocked: GET /friends/requests", () => {
@@ -491,10 +481,7 @@ describe("Mocked: GET /friends/requests", () => {
 
         expect(res.status).toBe(500);
     });
-
 });
-
-
 
 // Interface GET /friends/requests/outgoing
 describe("Mocked: GET /friends/requests/outgoing", () => {
@@ -563,9 +550,7 @@ describe("Mocked: GET /friends/requests/outgoing", () => {
 
         expect(res.status).toBe(500);
     });
-
 });
-
 
 // Interface GET /friends/history/:user_uuid
 describe("Mocked: GET /friends/history/:user_uuid", () => {
@@ -639,9 +624,7 @@ describe("Mocked: GET /friends/history/:user_uuid", () => {
 
         expect(res.status).toBe(500);
     });
-
 });
-
 
 // Interface POST /friends/notifications
 describe("Mocked: POST /friends/notifications", () => {
@@ -839,7 +822,6 @@ describe("Mocked: POST /friends/notifications", () => {
     });
 });
 
-
 // Interface GET /friends/ecoscore_score/:user_uuid
 describe("Mocked: GET /friends/ecoscore_score/:user_uuid", () => {
     
@@ -887,8 +869,6 @@ describe("Mocked: GET /friends/ecoscore_score/:user_uuid", () => {
         expect(res.status).toBe(500);
     });
 
-    
-
     // Input: Authenticated user token, database error on history collection
     // Expected status code: 500
     // Expected behavior: None
@@ -913,7 +893,6 @@ describe("Mocked: GET /friends/ecoscore_score/:user_uuid", () => {
         expect(res.status).toBe(500);
     });
 
-
     // Input: No token provided
     // Expected status code: 401
     // Expected behavior: None
@@ -933,5 +912,4 @@ describe("Mocked: GET /friends/ecoscore_score/:user_uuid", () => {
         expect(res.status).toBe(403);
         expect(res.body).toHaveProperty("message", "Authentication error.");
     });
-
 });

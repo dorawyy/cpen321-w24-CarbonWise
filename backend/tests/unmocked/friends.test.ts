@@ -407,9 +407,6 @@ describe("Unmocked: DELETE /friends", () => {
     });
 });
 
-
-
-
 // Interface DELETE /friends/requests
 describe("Unmocked: DELETE /friends/requests", () => {
     
@@ -520,8 +517,6 @@ describe("Unmocked: DELETE /friends/requests", () => {
     });
 });
 
-
-
 // Interface GET /friends
 describe("Unmocked: GET /friends", () => {
     
@@ -622,7 +617,6 @@ describe("Unmocked: GET /friends", () => {
     });
 });
 
-
 // Interface GET /friends/requests
 describe("Unmocked: GET /friends/requests", () => {
     
@@ -719,8 +713,6 @@ describe("Unmocked: GET /friends/requests", () => {
     });
 });
 
-
-
 // Interface GET /friends/requests/outgoing
 describe("Unmocked: GET /friends/requests/outgoing", () => {
     
@@ -816,8 +808,6 @@ describe("Unmocked: GET /friends/requests/outgoing", () => {
         expect(res.body).toHaveProperty("message", "Authentication error.");
     });
 });
-
-
 
 // Interface GET /friends/history/:user_uuid
 describe("Unmocked: GET /friends/history/:user_uuid", () => {

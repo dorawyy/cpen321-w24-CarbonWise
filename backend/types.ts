@@ -65,4 +65,7 @@ export interface DetailedHistoryEntry extends HistoryEntry {
     products: DetailedProduct[];
 }
 
+export interface FriendRequestBody {
+    user_uuid: string;
+}
 

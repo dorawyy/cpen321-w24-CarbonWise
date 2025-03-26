@@ -125,7 +125,6 @@ describe("Mocked: GET /users/history", () => {
 
 });
 
-
 // Interface POST /users/history
 describe("Mocked: POST /users/history", () => {
     
@@ -166,9 +165,7 @@ describe("Mocked: POST /users/history", () => {
         const res = await supertest(app).post("/users/history").set("token", token).send({ product_id: testProductAId });
         expect(res.status).toBe(500);
     });
-
 });
-
 
 // Interface DELETE /users/history
 describe("Mocked: DELETE /users/history", () => {
@@ -338,5 +335,4 @@ describe("Mocked: GET /users/ecoscore_score", () => {
         const res = await supertest(app).get("/users/ecoscore_score").set("token", token);
         expect(res.status).toBe(500);
     });
-   
 });
