@@ -44,7 +44,10 @@ export function checkHistory(history: History, realHistory: History, products: P
     expect(history.products).toHaveLength(realHistory.products.length);
     history.products.forEach((product: HistoryProduct, index: number) => {
         expect(product).toHaveProperty("product");
-        const expectedProduct = JSON.parse(JSON.stringify(products[index]));
+        if (!Array.isArray(products) || index < 0 || index >= products.length) {
+            throw new Error("Invalid products array or index out of bounds");
+        }
+        const expectedProduct = products[index];
         expect(expectedProduct).toBeDefined();
         checkProduct(product.product!, expectedProduct);
     });
