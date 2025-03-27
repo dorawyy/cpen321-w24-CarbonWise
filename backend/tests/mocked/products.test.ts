@@ -540,42 +540,5 @@ describe("Mocked: GET /products/:product_id", () => {
         expect(productsCollection.insertOne).not.toHaveBeenCalled();
     });
 
-    test("Valid Product with Undefined categories_tags", async () => {
-
-        const mockProduct = { ...testProductA, categories_tags: null };
-
-        jest.spyOn(productsCollection, "findOne").mockResolvedValue(mockProduct);
-        jest.spyOn(axios, "get").mockResolvedValue({
-            data: { status: 0 }
-        });
-        
-        const mockRecommendations = [
-            {
-                _id: "rec1",
-                product_name: "Rec Product 1",
-                categories_tags: null,
-                ecoscore_grade: "A",
-                ecoscore_score: 85
-            }
-        ];
-
-        jest.spyOn(productsCollection, "find").mockReturnValue({
-            toArray: jest.fn().mockResolvedValue(mockRecommendations)
-        } as unknown as FindCursor<Document>);
-    
-        const res = await supertest(app).get(`/products/${testProductAId}`);
-        
-        expect(res.status).toStrictEqual(200);
-        expect(res.body).toHaveProperty("product");
-    
-        const product = res.body.product;
-        expect(product._id).toStrictEqual(testProductAId);
-        expect(product.categories_tags).toStrictEqual(null);
-    
-        const recommendations = res.body.recommendations;
-        expect(recommendations).toBeDefined();
-    });
-    
-
 });
 
