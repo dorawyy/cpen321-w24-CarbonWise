@@ -548,7 +548,7 @@ describe("Mocked: GET /products/:product_id", () => {
         jest.spyOn(axios, "get").mockResolvedValue({
             data: { status: 0 }
         });
-
+        
         const mockRecommendations = [
             {
                 _id: "rec1",
@@ -558,13 +558,10 @@ describe("Mocked: GET /products/:product_id", () => {
                 ecoscore_score: 85
             }
         ];
-    
-        const mockCursor: Partial<FindCursor<any>> = {
-            limit: jest.fn().mockReturnThis(),
+
+        jest.spyOn(productsCollection, "find").mockReturnValue({
             toArray: jest.fn().mockResolvedValue(mockRecommendations)
-        };
-    
-        jest.spyOn(productsCollection, "find").mockImplementation(() => mockCursor as FindCursor<any>);
+        } as any);
     
         const res = await supertest(app).get(`/products/${testProductAId}`);
         
