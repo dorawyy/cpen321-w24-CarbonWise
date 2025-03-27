@@ -33,11 +33,10 @@ describe("Mocked: GET /products/:product_id", () => {
     // Expected output: Product details with recommendations without images
     test("Valid Product ID Found in DB with Recommendations Without Images", async () => {
 
-        jest.spyOn(axios, "get").mockImplementation(() =>
-            Promise.resolve({
-                data: { status: 0 }
-            })
-        );
+        jest.spyOn(axios, "get").mockResolvedValue({
+            data: { status: 0 }
+        });
+        
 
         const res = await supertest(app).get(`/products/${testProductAId}`);
     
