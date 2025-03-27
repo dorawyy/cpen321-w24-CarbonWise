@@ -561,7 +561,7 @@ describe("Mocked: GET /products/:product_id", () => {
 
         jest.spyOn(productsCollection, "find").mockReturnValue({
             toArray: jest.fn().mockResolvedValue(mockRecommendations)
-        } as any);
+        } as unknown as FindCursor<Document>);
     
         const res = await supertest(app).get(`/products/${testProductAId}`);
         
