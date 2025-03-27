@@ -25,7 +25,7 @@ function createServer() {
     if (!process.env.JWT_SECRET) {
         throw new Error('JWT_SECRET is not defined in the environment variables.');
     }
-    app.use(session({ secret: process.env.JWT_SECRET as string, resave: false, saveUninitialized: false }));
+    app.use(session({ secret: process.env.JWT_SECRET, resave: false, saveUninitialized: false }));
     app.use(passport.initialize());
     app.use(passport.session());
 
