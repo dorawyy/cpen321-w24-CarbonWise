@@ -44,7 +44,7 @@ export function checkHistory(history: History, realHistory: History, products: P
     expect(history.products).toHaveLength(realHistory.products.length);
     history.products.forEach((product: HistoryProduct, index: number) => {
         expect(product).toHaveProperty("product");
-        const expectedProduct = products[index];
+        const expectedProduct = JSON.parse(JSON.stringify(products[index]));
         expect(expectedProduct).toBeDefined();
         checkProduct(product.product!, expectedProduct);
     });
