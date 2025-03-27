@@ -45,8 +45,8 @@ export function checkHistory(history: History, realHistory: History, products: P
     const productMap = new Map(products.map((product) => [product.product_name, product]));
     history.products.forEach((product: HistoryProduct) => {
         expect(product).toHaveProperty("product");
-        const expectedProduct = productMap.get((product.product as Product).product_name);
+        const expectedProduct = productMap.get((product.product ?? {}).product_name);
         expect(expectedProduct).toBeDefined();
-        checkProduct(product.product as Product, expectedProduct!);
+        checkProduct(product.product ?? {}, expectedProduct ?? {});
     });
 }
