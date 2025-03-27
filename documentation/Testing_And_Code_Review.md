@@ -348,12 +348,12 @@ _(Placeholder for screenshots of Codacyâ€™s Issues page)_
 
 ### 5.4. Justifications for Unfixed Issues
 
-- **Code Pattern: [Usage of Deprecated Modules](#)**
+- **Code Pattern: `Too many functions inside a/an file/class/object/interface...`**
 
   1. **Issue**
 
-     - **Location in Git:** [`src/services/chatService.js#L31`](#)
-     - **Justification:** ...
+     - **Location in Git:** [`frontend/app/src/main/java/com/example/carbonwise/network/FriendsApiService.kt`](#)
+     - **Justification:** The `FriendsApiService` class contains 11 functions because they all relate specifically to managing friendships and interactions between users, maintaining high cohesion within the service. Grouping these related endpoints together improves clarity, organization, and maintainability without violating separation of concerns. Although Codacy flags this for function count, the design remains clean and logically structured.
 
   2. ...
 
