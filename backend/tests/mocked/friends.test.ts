@@ -1,5 +1,7 @@
 import { createServer } from "../../utils";
 import supertest from "supertest";
+import * as admin from 'firebase-admin/app';
+import * as adminMessaging from 'firebase-admin/messaging';
 import { client, friendsCollection, historyCollection, usersCollection, usersDatabase } from "../../services";
 import {
     testUserA,
@@ -55,16 +57,16 @@ describe("Mocked: POST /friends/requests", () => {
         await friendsCollection.insertOne(testFriendsE);
         await friendsCollection.insertOne(testFriendsB);
 
-        jest.spyOn(require('firebase-admin/app'), 'getApps').mockReturnValue([{ name: 'mock-app' }]);
+        jest.spyOn(admin, 'getApps').mockReturnValue([{ name: 'mock-app', options: {} }]);
 
-        jest.spyOn(require('firebase-admin/messaging'), 'getMessaging').mockReturnValue({
+        jest.spyOn(adminMessaging, 'getMessaging').mockReturnValue({
             send: jest.fn().mockResolvedValue({
                 responses: [{
                     success: true,
                     fcm_messaging: "some_value"
                 }]
             })
-        });
+          } as unknown as adminMessaging.Messaging);
 
         const res = await supertest(app)
             .post("/friends/requests")
@@ -94,11 +96,12 @@ describe("Mocked: POST /friends/requests", () => {
         await friendsCollection.insertOne(testFriendsE);
         await friendsCollection.insertOne(testFriendsB);
 
-        jest.spyOn(require('firebase-admin/app'), 'getApps').mockReturnValue([{ name: 'mock-app' }]);
 
-        jest.spyOn(require('firebase-admin/messaging'), 'getMessaging').mockReturnValue({
+        jest.spyOn(admin, 'getApps').mockReturnValue([{ name: 'mock-app', options: {} }]);
+
+        jest.spyOn(adminMessaging, 'getMessaging').mockReturnValue({
             send: jest.fn().mockRejectedValue(new Error("Firebase error"))
-        });
+        } as unknown as adminMessaging.Messaging);
 
         const res = await supertest(app)
             .post("/friends/requests")
@@ -197,17 +200,18 @@ describe("Mocked: POST /friends/requests/accept", () => {
         await friendsCollection.insertOne(testFriendsB);
         await friendsCollection.insertOne(testFriendsA);
 
-        jest.spyOn(require('firebase-admin/app'), 'getApps').mockReturnValue([{ name: 'mock-app' }]);
 
-        jest.spyOn(require('firebase-admin/messaging'), 'getMessaging').mockReturnValue({
+        jest.spyOn(admin, 'getApps').mockReturnValue([{ name: 'mock-app', options: {} }]);
+
+        jest.spyOn(adminMessaging, 'getMessaging').mockReturnValue({
             send: jest.fn().mockResolvedValue({
                 responses: [{
                     success: true,
                     fcm_messaging: "some_value"
                 }]
             })
-        });
-
+        } as unknown as adminMessaging.Messaging);
+        
         const res = await supertest(app)
             .post("/friends/requests/accept")
             .set("token", token)
@@ -236,11 +240,11 @@ describe("Mocked: POST /friends/requests/accept", () => {
         await friendsCollection.insertOne(testFriendsB);
         await friendsCollection.insertOne(testFriendsA);
 
-        jest.spyOn(require('firebase-admin/app'), 'getApps').mockReturnValue([{ name: 'mock-app' }]);
+        jest.spyOn(admin, 'getApps').mockReturnValue([{ name: 'mock-app', options: {} }]);
 
-        jest.spyOn(require('firebase-admin/messaging'), 'getMessaging').mockReturnValue({
+        jest.spyOn(adminMessaging, 'getMessaging').mockReturnValue({
             send: jest.fn().mockRejectedValue(new Error("Firebase error"))
-        });
+        } as unknown as adminMessaging.Messaging);
 
         const res = await supertest(app)
             .post("/friends/requests/accept")
@@ -667,16 +671,16 @@ describe("Mocked: POST /friends/notifications", () => {
         await historyCollection.insertOne(testHistoryD);
         await historyCollection.insertOne(testHistoryC);
 
-        jest.spyOn(require('firebase-admin/app'), 'getApps').mockReturnValue([{ name: 'mock-app' }]);
+        jest.spyOn(admin, 'getApps').mockReturnValue([{ name: 'mock-app', options: {} }]);
 
-        jest.spyOn(require('firebase-admin/messaging'), 'getMessaging').mockReturnValue({
+        jest.spyOn(adminMessaging, 'getMessaging').mockReturnValue({
             send: jest.fn().mockResolvedValue({
                 responses: [{
                     success: true,
                     fcm_messaging: "some_value"
                 }]
             })
-        });
+          } as unknown as adminMessaging.Messaging);
 
         const res = await supertest(app)
             .post("/friends/notifications")
@@ -707,11 +711,11 @@ describe("Mocked: POST /friends/notifications", () => {
         await historyCollection.insertOne(testHistoryD);
         await historyCollection.insertOne(testHistoryC);
 
-        jest.spyOn(require('firebase-admin/app'), 'getApps').mockReturnValue([{ name: 'mock-app' }]);
+        jest.spyOn(admin, 'getApps').mockReturnValue([{ name: 'mock-app', options: {} }]);
 
-        jest.spyOn(require('firebase-admin/messaging'), 'getMessaging').mockReturnValue({
+        jest.spyOn(adminMessaging, 'getMessaging').mockReturnValue({
             send: jest.fn().mockRejectedValue(new Error("Firebase error"))
-        });
+        } as unknown as adminMessaging.Messaging);
 
         const res = await supertest(app)
             .post("/friends/notifications")

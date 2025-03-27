@@ -63,7 +63,10 @@ export class ProductsController {
             matchingProducts = matchingProducts
                 .map(product => ({
                     ...product,
-                    categories_tags_difference: calculateTagDifference(baseProduct.categories_tags!, product.categories_tags!)
+                    categories_tags_difference: calculateTagDifference(
+                        baseProduct.categories_tags ?? [], 
+                        product.categories_tags ?? []
+                    )
                 }))
                 .sort((a, b) => a.categories_tags_difference - b.categories_tags_difference);  
 
@@ -74,7 +77,7 @@ export class ProductsController {
                     .filter(product => product._id)
                     .slice(0, recommendationsLimit)
                     .map(async (product: Product) => {
-                        const productImage = await fetchProductImageById(product._id!);
+                        const productImage = product._id ? await fetchProductImageById(product._id) : null;
                         return { ...product, image: productImage ?? null };
                     })
             );

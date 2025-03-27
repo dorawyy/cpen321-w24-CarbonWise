@@ -42,10 +42,11 @@ export function checkHistory(history: History, realHistory: History, products: P
     expect(history).toHaveProperty("products");
     expect(history.products).toBeInstanceOf(Array);
     expect(history.products).toHaveLength(realHistory.products.length);
-    history.products.forEach((product: HistoryProduct, index: number) => {
+    const productMap = new Map(products.map((product) => [product.product_name, product]));
+    history.products.forEach((product: HistoryProduct) => {
         expect(product).toHaveProperty("product");
-        const expectedProduct = products[index];
+        const expectedProduct = productMap.get((product.product ?? {}).product_name);
         expect(expectedProduct).toBeDefined();
-        checkProduct(product.product!, expectedProduct);
+        checkProduct(product.product ?? {}, expectedProduct ?? {});
     });
 }
