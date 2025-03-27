@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express'
+import express, { Application, Request, Response } from 'express'
 import { ProductsRoutes } from './routes/ProductsRoutes';
 import { UsersRoutes } from './routes/UsersRoutes';
 import { FriendsRoutes } from './routes/FriendsRoutes';
@@ -31,7 +31,7 @@ function createServer() {
     const Routes = [...ProductsRoutes, ...UsersRoutes, ...FriendsRoutes]
 
     Routes.forEach((route) => {
-        (app as any)[route.method](
+        (app as Application)[route.method as keyof Application](
             route.route,
             route.validation,
             route.protected ? authenticateJWT : [],
