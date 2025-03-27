@@ -70,7 +70,6 @@ export class ProductsController {
                 }))
                 .sort((a, b) => a.categories_tags_difference - b.categories_tags_difference);  
 
-          
             // Fetch products and their images
             const recommendationsWithImages = await Promise.all(
                 matchingProducts

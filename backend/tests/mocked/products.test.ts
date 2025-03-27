@@ -6,6 +6,7 @@ import axios from "axios";
 import { testProductAId, testProductA, testProductImageA, testProductImageB, testRecommendationImageA, testRecommendationImageB, testProductBId, testProductB, JEST_TIMEOUT_MS } from "../res/data";
 import { DEFAULT_RECOMMENDATIONS_LIMIT, OPENFOODFACTS_API_URL, OPENFOODFACTS_IMAGE_API_URL } from "../../constants";
 import { checkProduct, checkRecommendations } from "../res/utils";
+import { FindCursor } from "mongodb";
 
 // Interface: GET /products/:product_id
 describe("Mocked: GET /products/:product_id", () => {
@@ -538,5 +539,46 @@ describe("Mocked: GET /products/:product_id", () => {
         expect(productsCollection.findOne).toHaveBeenCalledWith(expect.objectContaining({ _id: testProductAId }));
         expect(productsCollection.insertOne).not.toHaveBeenCalled();
     });
+
+    test("Valid Product with Undefined categories_tags", async () => {
+
+        const mockProduct = { ...testProductA, categories_tags: null };
+
+        jest.spyOn(productsCollection, "findOne").mockResolvedValue(mockProduct);
+        jest.spyOn(axios, "get").mockResolvedValue({
+            data: { status: 0 }
+        });
+
+        const mockRecommendations = [
+            {
+                _id: "rec1",
+                product_name: "Rec Product 1",
+                categories_tags: null,
+                ecoscore_grade: "A",
+                ecoscore_score: 85
+            }
+        ];
+    
+        const mockCursor: Partial<FindCursor<any>> = {
+            limit: jest.fn().mockReturnThis(),
+            toArray: jest.fn().mockResolvedValue(mockRecommendations)
+        };
+    
+        jest.spyOn(productsCollection, "find").mockImplementation(() => mockCursor as FindCursor<any>);
+    
+        const res = await supertest(app).get(`/products/${testProductAId}`);
+        
+        expect(res.status).toStrictEqual(200);
+        expect(res.body).toHaveProperty("product");
+    
+        const product = res.body.product;
+        expect(product._id).toStrictEqual(testProductAId);
+        expect(product.categories_tags).toStrictEqual(null);
+    
+        const recommendations = res.body.recommendations;
+        expect(recommendations).toBeDefined();
+    });
+    
+
 });
 

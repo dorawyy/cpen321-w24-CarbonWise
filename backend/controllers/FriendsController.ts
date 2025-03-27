@@ -31,12 +31,12 @@ export class FriendsController {
         const targetFriends = await friendsCollection.findOne({ user_uuid: friend_uuid });
 
         // Check if users are already friends
-        if (userFriends?.friends.some(friend => friend.user_uuid === friend_uuid)) {
+        if (userFriends && userFriends.friends.some(friend => friend.user_uuid === friend_uuid)) {
             return res.status(400).send({message: "Already friends."});
         }
 
         // Check if friend request has already been sent
-        if (!targetFriends?.incoming_requests.some(request => request.user_uuid === user_uuid)) {
+        if (targetFriends && !targetFriends.incoming_requests.some(request => request.user_uuid === user_uuid)) {
             await friendsCollection.updateOne(
                 { user_uuid: friend_uuid },
                 { $addToSet: { incoming_requests: { user_uuid, name: user.name } } },
