@@ -26,9 +26,9 @@ describe("Non-Functional: Product Information Response Time", () => {
         const res = await supertest(app).get("/products/3017620422003");
         const end = performance.now();
         const responseTime = end - start;
-
-        console.log(`Response time: ${responseTime} ms`);
-        console.log(`Response status: ${res.status}`);
+        
+        console.log("Response time: " + JSON.stringify(responseTime) + " ms");
+        console.log("Response status: " + JSON.stringify(res.status));
 
         expect(responseTime).toBeLessThanOrEqual(5000);
         expect(res.status).toBe(200);
