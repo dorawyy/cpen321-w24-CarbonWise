@@ -23,10 +23,9 @@ function createServer() {
     app.use(morgan('tiny'));
 
     if (!process.env.JWT_SECRET) {
-        console.error("No JWT secret found.");
-        return;
+        throw new Error('JWT_SECRET is not defined in the environment variables.');
     }
-    app.use(session({ secret: process.env.JWT_SECRET, resave: false, saveUninitialized: false }));
+    app.use(session({ secret: process.env.JWT_SECRET as string, resave: false, saveUninitialized: false }));
     app.use(passport.initialize());
     app.use(passport.session());
 
