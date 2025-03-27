@@ -22,7 +22,11 @@ function createServer() {
     app.use(express.json());
     app.use(morgan('tiny'));
 
-    app.use(session({ secret: process.env.JWT_SECRET as string, resave: false, saveUninitialized: false }));
+    if (!process.env.JWT_SECRET) {
+        console.error("No JWT secret found.");
+        return;
+    }
+    app.use(session({ secret: process.env.JWT_SECRET, resave: false, saveUninitialized: false }));
     app.use(passport.initialize());
     app.use(passport.session());
 
