@@ -27,8 +27,8 @@ describe("Non-Functional: Product Information Response Time", () => {
         const end = performance.now();
         const responseTime = end - start;
         
-        console.log("Response time: " + JSON.stringify(responseTime) + " ms");
-        console.log("Response status: " + JSON.stringify(res.status));
+        console.info("Response time: " + JSON.stringify(responseTime) + " ms");
+        console.info("Response status: " + JSON.stringify(res.status));
 
         expect(responseTime).toBeLessThanOrEqual(5000);
         expect(res.status).toBe(200);
