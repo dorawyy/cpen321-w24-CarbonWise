@@ -21,7 +21,7 @@ describe("Non-Functional: Product Information Response Time", () => {
     // Expected status code: 200
     // Expected output: Product information is returned within 5 seconds
     test("Product response time is under 5 seconds and product is returned", async () => {
-        console.log("Starting test for product response time...");
+        console.info("Starting test for product response time...");
         const start = performance.now();
         const res = await supertest(app).get("/products/3017620422003");
         const end = performance.now();
@@ -34,6 +34,6 @@ describe("Non-Functional: Product Information Response Time", () => {
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty("product");
         expect(res.body.product).toHaveProperty("_id", "3017620422003");
-        console.log("Non-Functional Test: Product response time is under 5 seconds and product is returned.");
+        console.info("Non-Functional Test: Product response time is under 5 seconds and product is returned.");
     }, JEST_TIMEOUT_MS);
 });
