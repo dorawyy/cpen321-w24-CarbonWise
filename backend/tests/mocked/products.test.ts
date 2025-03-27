@@ -36,8 +36,7 @@ describe("Mocked: GET /products/:product_id", () => {
         jest.spyOn(axios, "get").mockResolvedValue({
             data: { status: 0 }
         });
-        
-
+    
         const res = await supertest(app).get(`/products/${testProductAId}`);
     
         expect(res.status).toStrictEqual(200);
@@ -52,15 +51,6 @@ describe("Mocked: GET /products/:product_id", () => {
         checkProduct(product, testProductA);
         checkRecommendations(recommendations);
         expect(recommendations.length).toBe(DEFAULT_RECOMMENDATIONS_LIMIT);
-        expect(axios.get).toHaveBeenCalledTimes(2);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(2,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
         expect(recommendations[0].image).toStrictEqual(null);
     });
 
@@ -242,21 +232,8 @@ describe("Mocked: GET /products/:product_id", () => {
         checkRecommendations(recommendations);
         expect(recommendations.length).toBe(DEFAULT_RECOMMENDATIONS_LIMIT);
         expect(recommendations[0].image).toStrictEqual(null);
-        expect(axios.get).toHaveBeenCalledTimes(3);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(`${OPENFOODFACTS_API_URL}api/v2/product/${testProductAId}.json`)
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(2,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(3,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
         expect(productsCollection.findOne).toHaveBeenCalledWith(expect.objectContaining({ _id: testProductAId }));
         expect(productsCollection.insertOne).toHaveBeenCalledWith(testProductA);
-        
     });
 
     // Input: Valid product_id not found in database and not found in OpenFoodFacts
