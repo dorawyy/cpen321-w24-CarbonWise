@@ -97,9 +97,11 @@ class FriendsHistoryFragment : Fragment() {
                             val hasValidProducts = historyItems.any { it.products.isNotEmpty() }
                             if (hasValidProducts) {
                                 fetchFriendEcoscore()
+                                binding.textViewEmptyHistory.visibility = View.GONE
                             } else {
                                 binding.circularContainer.visibility = View.GONE
                                 binding.ecoScoreCard.visibility = View.GONE
+                                binding.textViewEmptyHistory.visibility = View.VISIBLE
                             }
                         }
                     } else {
@@ -152,12 +154,10 @@ class FriendsHistoryFragment : Fragment() {
 
                         binding.progressEcoscore.setProgressCompat(ecoscore.toInt(), false)
                         binding.textEcoscoreValue.text = ecoscore.toInt().toString()
-                        binding.textViewEmptyHistory.visibility = View.GONE
                     } else {
                         Log.d("FriendsHistoryFragment", "No ecoscore available for friend")
                         binding.circularContainer.visibility = View.GONE
                         binding.ecoScoreCard.visibility = View.GONE
-                        binding.textViewEmptyHistory.visibility = View.VISIBLE
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
