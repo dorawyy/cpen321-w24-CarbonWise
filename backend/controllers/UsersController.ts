@@ -185,5 +185,10 @@ async function updateEcoscoreAverage(user_uuid: string) {
             { user_uuid },
             { $set: { ecoscore_score: averageEcoscore } }
         );
+    } else {
+        await historyCollection.updateOne(
+            { user_uuid },
+            { $set: { ecoscore_score: 0 } }
+        );
     }
 }
