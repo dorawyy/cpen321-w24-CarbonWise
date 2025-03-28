@@ -60,7 +60,18 @@ class ScanFragment : Fragment() {
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         requestCameraPermission()
-        binding.buttonFlash.setOnClickListener { toggleFlash() }
+        binding.buttonFlash.setOnClickListener {
+            camera?.let {
+                val flashEnabled = it.cameraInfo.hasFlashUnit()
+                if (flashEnabled) {
+                    isFlashOn = !isFlashOn
+                    it.cameraControl.enableTorch(isFlashOn)
+                    binding.buttonFlash.text = if (isFlashOn) "Turn Flash Off" else "Turn Flash On"
+                } else {
+                    Toast.makeText(requireContext(), "Flash not available", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
 
         return binding.root
     }
@@ -158,20 +169,6 @@ class ScanFragment : Fragment() {
                 }
             }
         }, ContextCompat.getMainExecutor(requireContext()))
-    }
-
-
-    private fun toggleFlash() {
-        camera?.let {
-            val flashEnabled = it.cameraInfo.hasFlashUnit()
-            if (flashEnabled) {
-                isFlashOn = !isFlashOn
-                it.cameraControl.enableTorch(isFlashOn)
-                binding.buttonFlash.text = if (isFlashOn) "Turn Flash Off" else "Turn Flash On"
-            } else {
-                Toast.makeText(requireContext(), "Flash not available", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     @OptIn(ExperimentalGetImage::class)
