@@ -126,7 +126,6 @@ class HistoryTest {
         checkFriendHistoryAppears()
     }
 
-    // TODO: This test currently fails because friends component lacks proper error display
     @Test
     fun testViewFriendHistoryConnectionError() {
         // Step 1: Allow camera permission (navigation is not possible with the confirmation window on screen)
