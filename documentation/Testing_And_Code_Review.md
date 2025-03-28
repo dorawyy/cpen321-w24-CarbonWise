@@ -33,7 +33,7 @@
 | **GET /friends/ecoscore_score/:user_uuid**     | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database                                         |
 | **GET /friends/history/:user_uuid**            | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database                                         |
 | **GET /products/:product_id**                  | [`tests/unmocked/products.test.ts#L6`](#)             | [`tests/mocked/products.test.ts#L12`](#)            | Product Database, OpenFoodFacts API                    |
-| **POST /auth/google**                          | [`tests/unmocked/auth.test.ts#L6`](#)                 | [`tests/mocked/auth.test.ts#L9`](#)                | Users Database, Google OAuth                           |
+| **POST /auth/google**                          | [`backend/tests/unmocked/auth.test.ts#L6`](#)         | [`backend/tests/mocked/auth.test.ts#L9`](#)        | Users Database, Google OAuth                           |
 
 #### 2.1.2. Commit Hash Where Tests Run
 
