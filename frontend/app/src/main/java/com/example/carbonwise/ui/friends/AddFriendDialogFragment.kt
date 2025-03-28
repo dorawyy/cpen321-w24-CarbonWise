@@ -42,14 +42,6 @@ class AddFriendDialogFragment : BottomSheetDialogFragment() {
             binding.textFriendCode.text = friendCode
         }
 
-        friendsViewModel.friendActions.observeOnce(viewLifecycleOwner) { message ->
-            if (message.isNotEmpty()) {
-                if (message.contains("request", ignoreCase = true)) {
-                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
         binding.imageClipboard.setOnClickListener {
             val codeText = binding.textFriendCode.text.toString()
             Log.d("Clipboard", "Copying friend code: $codeText")
@@ -103,14 +95,5 @@ class AddFriendDialogFragment : BottomSheetDialogFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    fun <T> LiveData<T>.observeOnce(owner: LifecycleOwner, observer: Observer<T>) {
-        observe(owner, object : Observer<T> {
-            override fun onChanged(value: T) {
-                removeObserver(this)
-                observer.onChanged(value)
-            }
-        })
     }
 }
