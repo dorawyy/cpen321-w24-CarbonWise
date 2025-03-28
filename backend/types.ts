@@ -26,9 +26,14 @@ export interface HistoryEntry {
     scan_uuid: string;
 }
 
+export interface Friend {
+    user_uuid: string 
+    name: string
+}
+
 export interface Friends {
     user_uuid: string;
-    friends: { user_uuid: string, name: string }[];
+    friends: Friend[];
     incoming_requests: { user_uuid: string, name: string }[];
 }
 

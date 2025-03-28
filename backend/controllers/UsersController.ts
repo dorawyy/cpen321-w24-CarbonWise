@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import { productsCollection, historyCollection, usersCollection } from "../services";
 import { fetchEcoscoresByProductId, fetchProductById, fetchProductImageById } from "./ProductsController";
-import { User, Product, HistoryEntry } from "../types";
+import { User, Product, HistoryEntry, History } from "../types";
 import { v4 as uuidv4 } from 'uuid';
 import { HISTORY_ECOSCORE_AVERAGE_COUNT } from "../constants";
+import { Filter } from "mongodb";
 
 
 export class UsersController {
@@ -153,7 +154,7 @@ export class UsersController {
 // Helper function to fetch history entries for a user
 export async function getHistoryByUserUUID(user_uuid: string) {
 
-    const query: any = { user_uuid };
+    const query: Filter<History> = { user_uuid };
 
     return await historyCollection.find(query).toArray();
 }

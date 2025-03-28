@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
+import androidx.annotation.VisibleForTesting
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
@@ -20,6 +21,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.example.carbonwise.BuildConfig
 import com.example.carbonwise.R
 import com.example.carbonwise.databinding.FragmentScanBinding
 import com.google.common.util.concurrent.ListenableFuture
@@ -61,6 +63,19 @@ class ScanFragment : Fragment() {
         binding.buttonFlash.setOnClickListener { toggleFlash() }
 
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        if (BuildConfig.DEBUG && DebugConfig.showDebugButton) {
+            binding.debugInjectBarcodeButton.visibility = View.VISIBLE
+            binding.debugInjectBarcodeButton.setOnClickListener {
+                simulateBarcode("6009188002213")
+            }
+        } else {
+            binding.debugInjectBarcodeButton.visibility = View.GONE
+        }
     }
 
     override fun onResume() {
@@ -243,5 +258,14 @@ class ScanFragment : Fragment() {
         super.onDestroyView()
         _binding = null
         cameraExecutor.shutdown()
+    }
+
+    @VisibleForTesting
+    fun simulateBarcode(barcode: String) {
+        if (barcode != lastScannedResult && !isScanningLocked) {
+            isScanningLocked = true
+            lastScannedResult = barcode
+            showConfirmationDialog(barcode)
+        }
     }
 }

@@ -14,26 +14,26 @@
 
 #### 2.1.1. Tests
 
-| **Interface**                                   | **Describe Group Location, No Mocks**                 | **Describe Group Location, With Mocks**            | **Mocked Components**                                 |
-| ---------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------  |
-| **POST /users/history**                        | [`tests/unmocked/users.test.ts#L1`](#)                | [`tests/mocked/users.test.ts#L1`](#)               | Users Database                                         |
-| **GET /users/history**                         | [`tests/unmocked/users.test.ts#L1`](#)                | [`tests/mocked/users.test.ts#L1`](#)               | Users Database                                         |
-| **DELETE /users/history**                      | [`tests/unmocked/users.test.ts#L1`](#)                | [`tests/mocked/users.test.ts#L1`](#)               | Users Database                                         |
-| **GET /users/uuid**                            | [`tests/unmocked/users.test.ts#L1`](#)                | [`tests/mocked/users.test.ts#L1`](#)               | Users Database                                         |
-| **GET /users/ecoscore_score**                  | [`tests/unmocked/users.test.ts#L1`](#)                | [`tests/mocked/users.test.ts#L1`](#)               | Users Database                                         |
-| **POST /users/fcm_registration_token**         | [`tests/unmocked/users.test.ts#L1`](#)                | [`tests/mocked/users.test.ts#L1`](#)               | Users Database                                         |
-| **POST /friends/requests**                     | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database, Firebase Cloud Messaging               |
-| **POST /friends/requests/accept**              | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database, Firebase Cloud Messaging               |
-| **DELETE /friends**                            | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database                                         |
-| **DELETE /friends/requests**                   | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database                                         |
-| **GET /friends/requests**                      | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database                                         |
-| **GET /friends/requests/outgoing**             | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database                                         |
-| **GET /friends**                               | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database                                         |
-| **POST /friends/notifications**                | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database, Firebase Cloud Messaging               |
-| **GET /friends/ecoscore_score/:user_uuid**     | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database                                         |
-| **GET /friends/history/:user_uuid**            | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database                                         |
-| **GET /products/:product_id**                  | [`tests/unmocked/products.test.ts#L1`](#)             | [`tests/mocked/products.test.ts#L1`](#)            | Product Database, OpenFoodFacts API                    |
-| **POST /auth/google**                          | [`tests/unmocked/auth.test.ts#L1`](#)                 | [`tests/mocked/auth.test.ts#L1`](#)                | Users Database, Google OAuth                           |
+| **Interface**                                   | **Describe Group Location, No Mocks**                | **Describe Group Location, With Mocks**            | **Mocked Components**                                  |
+| ---------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------  | ------------------------------------------------------ |
+| **POST /users/history**                        | [`tests/unmocked/users.test.ts#L115`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/users.test.ts#L115)                | [`tests/mocked/users.test.ts#L129`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/mocked/users.test.ts#L129)               | Users Database                                         |
+| **GET /users/history**                         | [`tests/unmocked/users.test.ts#L9`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/users.test.ts#L9)                | [`tests/mocked/users.test.ts#L11`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/mocked/users.test.ts#L11)               | Users Database                                         |
+| **DELETE /users/history**                      | [`tests/unmocked/users.test.ts#L261`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/users.test.ts#L261)                | [`tests/mocked/users.test.ts#L171`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/mocked/users.test.ts#L171)               | Users Database                                         |
+| **GET /users/uuid**                            | [`tests/unmocked/users.test.ts#L425`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/users.test.ts#L425)                | [`tests/mocked/users.test.ts#L256`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/mocked/users.test.ts#L256)               | Users Database                                         |
+| **GET /users/ecoscore_score**                  | [`tests/unmocked/users.test.ts#L506`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/users.test.ts#L506)                | [`tests/mocked/users.test.ts#L299`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/mocked/users.test.ts#L299)               | Users Database                                         |
+| **POST /users/fcm_registration_token**         | [`tests/unmocked/users.test.ts#L335`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/users.test.ts#L335)                | [`tests/mocked/users.test.ts#L213`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/mocked/users.test.ts#L213)               | Users Database                                         |
+| **POST /friends/requests**                     | [`tests/unmocked/friends.test.ts#L8`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L8)              | [`tests/mocked/friends.test.ts#L24`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L24)             | Users Database, Firebase Cloud Messaging               |
+| **POST /friends/requests/accept**              | [`tests/unmocked/friends.test.ts#L150`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L150)              | [`tests/mocked/friends.test.ts#L215`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L215)             | Users Database, Firebase Cloud Messaging               |
+| **DELETE /friends**                            | [`tests/unmocked/friends.test.ts#L291`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L291)              | [`tests/mocked/friends.test.ts#L358`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L358)             | Users Database                                         |
+| **DELETE /friends/requests**                   | [`tests/unmocked/friends.test.ts#L411`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L411)              | [`tests/mocked/friends.test.ts#L404`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L404)             | Users Database                                         |
+| **GET /friends/requests**                      | [`tests/unmocked/friends.test.ts#L621`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L621)              | [`tests/mocked/friends.test.ts#L495`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L495)             | Users Database                                         |
+| **GET /friends/requests/outgoing**             | [`tests/unmocked/friends.test.ts#L717`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L717)              | [`tests/mocked/friends.test.ts#L540`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L540)             | Users Database                                         |
+| **GET /friends**                               | [`tests/unmocked/friends.test.ts#L521`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L521)              | [`tests/mocked/friends.test.ts#L450`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L450)             | Users Database                                         |
+| **POST /friends/notifications**                | [`tests/unmocked/friends.test.ts#L948`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L948)              | [`tests/mocked/friends.test.ts#L683`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L683)             | Users Database, Firebase Cloud Messaging               |
+| **GET /friends/ecoscore_score/:user_uuid**     | [`tests/unmocked/friends.test.ts#L1237`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L1237)              | [`tests/mocked/friends.test.ts#L879`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L879)             | Users Database                                         |
+| **GET /friends/history/:user_uuid**            | [`tests/unmocked/friends.test.ts#L813`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L813)              | [`tests/mocked/friends.test.ts#L609`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/friends.test.ts#L609)             | Users Database                                         |
+| **GET /products/:product_id**                  | [`tests/unmocked/products.test.ts#L6`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/products.test.ts#L6)             | [`tests/mocked/products.test.ts#L12`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/mocked/products.test.ts#L12)           | Product Database, OpenFoodFacts API                    |
+| **POST /auth/google**                          | [`tests/unmocked/auth.test.ts#L6`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/unmocked/auth.test.ts#L6)                 | [`tests/mocked/auth.test.ts#L9`](https://github.com/ethschan/cpen321-JELX/blob/main/backend/tests/mocked/auth.test.ts#L9)               | Users Database, Google OAuth                           |
 
 #### 2.1.2. Commit Hash Where Tests Run
 
@@ -49,9 +49,9 @@
      ```
 
     - Navigate to the backend directory:
-     ```
-     cd backend
-     ```
+      ```
+      cd backend
+      ```
 
    - Install dependencies:
      ```
@@ -84,10 +84,10 @@
 
 4. **Run the Tests**:
 
-  - Run the tests with mocks:
-     ```
-     npm run test:mocked
-     ```
+    - Run the tests with mocks:
+      ```
+      npm run test:mocked
+      ```
 
    - Run the tests without mocks:
      ```
@@ -143,23 +143,23 @@
 
 - **Product Database Size**
 
-  - **Verification:** This test ensures that the database contains at least 100,000 distinct products. It connects to the database and counts the number of products with essential fields like product name, categories, and countries. The test passes if the count meets or exceeds the minimum requirement, ensuring the database's capacity to provide comprehensive product information.
+  - **Verification:** This test ensures that the database contains at least 100,000 distinct products. It connects to the product database and counts the number of products with required fields such as product name, categories, and countries. The test passes if the count meets or exceeds the minimum requirement of 100,000 products.
   - **Log Output**
     ```
-    PASS tests/non-functional/product_database_size.test.ts (120.98 s)
+    PASS  tests/non-functional/product_database_size.test.ts (24.08 s)
     ● Console
 
-      console.log
+      console.info
         Starting test for product database size...
 
         at tests/non-functional/product_database_size.test.ts:21:17
 
-      console.log
+      console.info
         Product count (clipped at 100000): 100000
 
         at tests/non-functional/product_database_size.test.ts:32:17
 
-      console.log
+      console.info
         Non-Functional Test: Product database size is sufficient.
 
         at tests/non-functional/product_database_size.test.ts:34:17
@@ -167,32 +167,32 @@
 
 - **Product Information Response Time**
 
-  - **Verification:** This test measures the time taken to retrieve product information, ensuring it is under 5 seconds. It uses performance monitoring to track the response time for fetching details of a valid product ID. The test passes if the response time is within the acceptable limit, ensuring quick access to product information for users.
+  - **Verification:** This test measures the time taken to retrieve product information, ensuring it is under 5 seconds. It uses performance monitoring to track the response time for fetching details of a valid product ID. The test passes if the response time is within the acceptable time limit of 5000 ms.
   - **Log Output**
     ```
-    PASS tests/non-functional/product_information_response_time.test.ts
-      ● Console
+    PASS  tests/non-functional/product_information_response_time.test.ts
+    ● Console
 
-        console.log
-          Starting test for product response time...
+      console.info
+        Starting test for product response time...
 
-          at tests/non-functional/product_information_response_time.test.ts:24:17
+        at tests/non-functional/product_information_response_time.test.ts:24:17
 
-        console.log
-          Response time: 2073.9587931632996 ms
+      console.info
+        Response time: 4146.11356099695 ms
 
-          at tests/non-functional/product_information_response_time.test.ts:30:17
+        at tests/non-functional/product_information_response_time.test.ts:30:17
 
-        console.log
-          Response status: 200
+      console.info
+        Response status: 200
 
-          at tests/non-functional/product_information_response_time.test.ts:31:17
+        at tests/non-functional/product_information_response_time.test.ts:31:17
 
-        console.log
-          Non-Functional Test: Product response time is under 5 seconds and product is returned.
+      console.info
+        Non-Functional Test: Product response time is under 5 seconds and product is returned.
 
-          at tests/non-functional/product_information_response_time.test.ts:37:17
-      ```
+        at tests/non-functional/product_information_response_time.test.ts:37:17
+    ```
 
 ---
 
@@ -348,12 +348,12 @@ _(Placeholder for screenshots of Codacyâ€™s Issues page)_
 
 ### 5.4. Justifications for Unfixed Issues
 
-- **Code Pattern: [Usage of Deprecated Modules](#)**
+- **Code Pattern: `Too many functions inside a/an file/class/object/interface...`**
 
   1. **Issue**
 
-     - **Location in Git:** [`src/services/chatService.js#L31`](#)
-     - **Justification:** ...
+     - **Location in Git:** [`frontend/app/src/main/java/com/example/carbonwise/network/FriendsApiService.kt`](#)
+     - **Justification:** The `FriendsApiService` class contains 11 functions because they all relate specifically to managing friendships and interactions between users, maintaining high cohesion within the service. Grouping these related endpoints together improves clarity, organization, and maintainability without violating separation of concerns. Although Codacy flags this for function count, the design remains clean and logically structured.
 
   2. ...
 
