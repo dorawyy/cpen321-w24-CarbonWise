@@ -10,6 +10,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.carbonwise.databinding.DialogAddFriendBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -37,13 +40,6 @@ class AddFriendDialogFragment : BottomSheetDialogFragment() {
 
         friendsViewModel.userFriendCode.observe(viewLifecycleOwner) { friendCode ->
             binding.textFriendCode.text = friendCode
-        }
-
-        friendsViewModel.friendActions.observe(viewLifecycleOwner) { message ->
-            if (!message.isNullOrEmpty()) {
-                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                friendsViewModel._friendActions.value = ""
-            }
         }
 
         binding.imageClipboard.setOnClickListener {

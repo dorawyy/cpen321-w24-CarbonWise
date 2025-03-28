@@ -97,9 +97,11 @@ class FriendsHistoryFragment : Fragment() {
                             val hasValidProducts = historyItems.any { it.products.isNotEmpty() }
                             if (hasValidProducts) {
                                 fetchFriendEcoscore()
+                                binding.textViewEmptyHistory.visibility = View.GONE
                             } else {
                                 binding.circularContainer.visibility = View.GONE
                                 binding.ecoScoreCard.visibility = View.GONE
+                                binding.textViewEmptyHistory.visibility = View.VISIBLE
                             }
                         }
                     } else {

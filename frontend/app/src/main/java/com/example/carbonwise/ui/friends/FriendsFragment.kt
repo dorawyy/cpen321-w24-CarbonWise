@@ -6,6 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.carbonwise.databinding.FragmentFriendsBinding
 import com.google.android.material.tabs.TabLayoutMediator
@@ -48,6 +51,15 @@ class FriendsFragment : Fragment() {
             val dialog = AddFriendDialogFragment()
             dialog.show(childFragmentManager, "AddFriendDialog")
         }
+
+        friendsViewModel.friendActions.observeOnce(viewLifecycleOwner) { message ->
+            if (message.isNotEmpty()) {
+                if (message.contains("request", ignoreCase = true)) {
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                    friendsViewModel._friendActions.value = ""
+                }
+            }
+        }
     }
 
     private fun setupViewPager() {
@@ -65,5 +77,14 @@ class FriendsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    fun <T> LiveData<T>.observeOnce(owner: LifecycleOwner, observer: Observer<T>) {
+        observe(owner, object : Observer<T> {
+            override fun onChanged(value: T) {
+                removeObserver(this)
+                observer.onChanged(value)
+            }
+        })
     }
 }

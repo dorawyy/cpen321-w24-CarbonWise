@@ -126,6 +126,7 @@ class LoginFragment : BottomSheetDialogFragment() {
             if (idToken != null) {
                 processSignIn(idToken)
             } else {
+                if (!isAdded || _binding == null) return
                 Toast.makeText(context, "Sign-in failed. Please try again.", Toast.LENGTH_LONG).show()
                 binding.loginProgressBar.visibility = View.GONE
                 binding.loginStatusText.visibility = View.GONE
@@ -133,6 +134,7 @@ class LoginFragment : BottomSheetDialogFragment() {
                 Log.e(TAG, "No ID token found!")
             }
         } catch (e: ApiException) {
+            if (!isAdded || _binding == null) return
             Toast.makeText(context, "Sign-in failed. Please try again.", Toast.LENGTH_LONG).show()
             binding.loginProgressBar.visibility = View.GONE
             binding.loginStatusText.visibility = View.GONE
