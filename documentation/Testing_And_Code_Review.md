@@ -32,8 +32,8 @@
 | **POST /friends/notifications**                | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database, Firebase Cloud Messaging               |
 | **GET /friends/ecoscore_score/:user_uuid**     | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database                                         |
 | **GET /friends/history/:user_uuid**            | [`tests/unmocked/friends.test.ts#L1`](#)              | [`tests/mocked/friends.test.ts#L1`](#)             | Users Database                                         |
-| **GET /products/:product_id**                  | [`tests/unmocked/products.test.ts#L1`](#)             | [`tests/mocked/products.test.ts#L1`](#)            | Product Database, OpenFoodFacts API                    |
-| **POST /auth/google**                          | [`tests/unmocked/auth.test.ts#L1`](#)                 | [`tests/mocked/auth.test.ts#L1`](#)                | Users Database, Google OAuth                           |
+| **GET /products/:product_id**                  | [`tests/unmocked/products.test.ts#L6`](#)             | [`tests/mocked/products.test.ts#L12`](#)            | Product Database, OpenFoodFacts API                    |
+| **POST /auth/google**                          | [`tests/unmocked/auth.test.ts#L6`](#)                 | [`tests/mocked/auth.test.ts#L9`](#)                | Users Database, Google OAuth                           |
 
 #### 2.1.2. Commit Hash Where Tests Run
 
@@ -49,9 +49,9 @@
      ```
 
     - Navigate to the backend directory:
-     ```
-     cd backend
-     ```
+      ```
+      cd backend
+      ```
 
    - Install dependencies:
      ```
@@ -84,10 +84,10 @@
 
 4. **Run the Tests**:
 
-  - Run the tests with mocks:
-     ```
-     npm run test:mocked
-     ```
+    - Run the tests with mocks:
+      ```
+      npm run test:mocked
+      ```
 
    - Run the tests without mocks:
      ```
@@ -143,23 +143,23 @@
 
 - **Product Database Size**
 
-  - **Verification:** This test ensures that the database contains at least 100,000 distinct products. It connects to the database and counts the number of products with essential fields like product name, categories, and countries. The test passes if the count meets or exceeds the minimum requirement, ensuring the database's capacity to provide comprehensive product information.
+  - **Verification:** This test ensures that the database contains at least 100,000 distinct products. It connects to the product database and counts the number of products with required fields such as product name, categories, and countries. The test passes if the count meets or exceeds the minimum requirement of 100,000 products.
   - **Log Output**
     ```
-    PASS tests/non-functional/product_database_size.test.ts (120.98 s)
+    PASS  tests/non-functional/product_database_size.test.ts (24.08 s)
     ● Console
 
-      console.log
+      console.info
         Starting test for product database size...
 
         at tests/non-functional/product_database_size.test.ts:21:17
 
-      console.log
+      console.info
         Product count (clipped at 100000): 100000
 
         at tests/non-functional/product_database_size.test.ts:32:17
 
-      console.log
+      console.info
         Non-Functional Test: Product database size is sufficient.
 
         at tests/non-functional/product_database_size.test.ts:34:17
@@ -167,32 +167,32 @@
 
 - **Product Information Response Time**
 
-  - **Verification:** This test measures the time taken to retrieve product information, ensuring it is under 5 seconds. It uses performance monitoring to track the response time for fetching details of a valid product ID. The test passes if the response time is within the acceptable limit, ensuring quick access to product information for users.
+  - **Verification:** This test measures the time taken to retrieve product information, ensuring it is under 5 seconds. It uses performance monitoring to track the response time for fetching details of a valid product ID. The test passes if the response time is within the acceptable time limit of 5000 ms.
   - **Log Output**
     ```
-    PASS tests/non-functional/product_information_response_time.test.ts
-      ● Console
+    PASS  tests/non-functional/product_information_response_time.test.ts
+    ● Console
 
-        console.log
-          Starting test for product response time...
+      console.info
+        Starting test for product response time...
 
-          at tests/non-functional/product_information_response_time.test.ts:24:17
+        at tests/non-functional/product_information_response_time.test.ts:24:17
 
-        console.log
-          Response time: 2073.9587931632996 ms
+      console.info
+        Response time: 4146.11356099695 ms
 
-          at tests/non-functional/product_information_response_time.test.ts:30:17
+        at tests/non-functional/product_information_response_time.test.ts:30:17
 
-        console.log
-          Response status: 200
+      console.info
+        Response status: 200
 
-          at tests/non-functional/product_information_response_time.test.ts:31:17
+        at tests/non-functional/product_information_response_time.test.ts:31:17
 
-        console.log
-          Non-Functional Test: Product response time is under 5 seconds and product is returned.
+      console.info
+        Non-Functional Test: Product response time is under 5 seconds and product is returned.
 
-          at tests/non-functional/product_information_response_time.test.ts:37:17
-      ```
+        at tests/non-functional/product_information_response_time.test.ts:37:17
+    ```
 
 ---
 

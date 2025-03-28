@@ -7,6 +7,7 @@ import { testProductAId, testProductA, testProductImageA, testProductImageB, tes
 import { DEFAULT_RECOMMENDATIONS_LIMIT, OPENFOODFACTS_API_URL, OPENFOODFACTS_IMAGE_API_URL } from "../../constants";
 import { checkProduct, checkRecommendations } from "../res/utils";
 import { FindCursor } from "mongodb";
+
 // Interface: GET /products/:product_id
 describe("Mocked: GET /products/:product_id", () => {
 
