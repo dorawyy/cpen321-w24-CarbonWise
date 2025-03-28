@@ -18,7 +18,7 @@ describe("Non-Functional: Product Database Size", () => {
     // Expected status code: N/A
     // Expected output: Product count is greater than or equal to 100,000
     test(`Check if the number of products is greater than or equal to ${MIN_PRODUCTS}`, async () => {
-        console.log("Starting test for product database size...");
+        console.info("Starting test for product database size...");
 
         const productCount = await productsCollection.countDocuments({
             product_name: { $exists: true },
@@ -29,8 +29,8 @@ describe("Non-Functional: Product Database Size", () => {
             ingredients_tags: { $exists: true }
         }, { limit: MIN_PRODUCTS });
 
-        console.log(`Product count (clipped at ${MIN_PRODUCTS}): ${productCount}`);
+        console.info(`Product count (clipped at ${MIN_PRODUCTS}): ${productCount}`);
         expect(productCount).toBeGreaterThanOrEqual(MIN_PRODUCTS);
-        console.log("Non-Functional Test: Product database size is sufficient.");
+        console.info("Non-Functional Test: Product database size is sufficient.");
     }, JEST_TIMEOUT_MS);
 });

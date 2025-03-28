@@ -1,19 +1,15 @@
-import express, { Request, Response } from 'express'
+import express, { Application, Request, Response } from 'express'
 import { ProductsRoutes } from './routes/ProductsRoutes';
 import { UsersRoutes } from './routes/UsersRoutes';
 import { FriendsRoutes } from './routes/FriendsRoutes';
 import { validationResult } from 'express-validator';
 import morgan from "morgan";
 
-import dotenv from "dotenv";
-
 import passport from "passport";
 import session from "express-session";
 import { router as authRoutes, authenticateJWT } from "./auth";
 import { getFirebaseApp, usersCollection } from "./services";
 import { getMessaging, TokenMessage } from 'firebase-admin/messaging';
-
-dotenv.config();
 
 function createServer() {
 
@@ -22,7 +18,10 @@ function createServer() {
     app.use(express.json());
     app.use(morgan('tiny'));
 
-    app.use(session({ secret: process.env.JWT_SECRET as string, resave: false, saveUninitialized: false }));
+    if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET is not defined in the environment variables.');
+    }
+    app.use(session({ secret: process.env.JWT_SECRET, resave: false, saveUninitialized: false }));
     app.use(passport.initialize());
     app.use(passport.session());
 
@@ -31,7 +30,7 @@ function createServer() {
     const Routes = [...ProductsRoutes, ...UsersRoutes, ...FriendsRoutes]
 
     Routes.forEach((route) => {
-        (app as any)[route.method](
+        (app as Application)[route.method as keyof Application](
             route.route,
             route.validation,
             route.protected ? authenticateJWT : [],

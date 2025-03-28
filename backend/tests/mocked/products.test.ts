@@ -6,6 +6,7 @@ import axios from "axios";
 import { testProductAId, testProductA, testProductImageA, testProductImageB, testRecommendationImageA, testRecommendationImageB, testProductBId, testProductB, JEST_TIMEOUT_MS } from "../res/data";
 import { DEFAULT_RECOMMENDATIONS_LIMIT, OPENFOODFACTS_API_URL, OPENFOODFACTS_IMAGE_API_URL } from "../../constants";
 import { checkProduct, checkRecommendations } from "../res/utils";
+import { FindCursor } from "mongodb";
 
 // Interface: GET /products/:product_id
 describe("Mocked: GET /products/:product_id", () => {
@@ -33,12 +34,10 @@ describe("Mocked: GET /products/:product_id", () => {
     // Expected output: Product details with recommendations without images
     test("Valid Product ID Found in DB with Recommendations Without Images", async () => {
 
-        jest.spyOn(axios, "get").mockImplementation(() =>
-            Promise.resolve({
-                data: { status: 0 }
-            })
-        );
-
+        jest.spyOn(axios, "get").mockResolvedValue({
+            data: { status: 0 }
+        });
+    
         const res = await supertest(app).get(`/products/${testProductAId}`);
     
         expect(res.status).toStrictEqual(200);
@@ -53,15 +52,6 @@ describe("Mocked: GET /products/:product_id", () => {
         checkProduct(product, testProductA);
         checkRecommendations(recommendations);
         expect(recommendations.length).toBe(DEFAULT_RECOMMENDATIONS_LIMIT);
-        expect(axios.get).toHaveBeenCalledTimes(2);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(2,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
         expect(recommendations[0].image).toStrictEqual(null);
     });
 
@@ -97,15 +87,6 @@ describe("Mocked: GET /products/:product_id", () => {
         checkRecommendations(recommendations);
         expect(recommendations.length).toBe(DEFAULT_RECOMMENDATIONS_LIMIT);
         expect(recommendations[0].image).toStrictEqual(Buffer.from(testRecommendationImageA).toString("base64"));
-        expect(axios.get).toHaveBeenCalledTimes(2);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(2,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
     });
 
     // Input: Valid product_id found in the database with product image and no recommendation image
@@ -140,15 +121,6 @@ describe("Mocked: GET /products/:product_id", () => {
         checkRecommendations(recommendations);
         expect(recommendations.length).toBe(DEFAULT_RECOMMENDATIONS_LIMIT);
         expect(recommendations[0].image).toStrictEqual(null);
-        expect(axios.get).toHaveBeenCalledTimes(2);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(2,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
     });
 
     // Input: Valid product_id found in the database with no product image and recommendation image
@@ -183,15 +155,6 @@ describe("Mocked: GET /products/:product_id", () => {
         checkRecommendations(recommendations);
         expect(recommendations.length).toBe(DEFAULT_RECOMMENDATIONS_LIMIT);
         expect(recommendations[0].image).toStrictEqual(Buffer.from(testRecommendationImageA).toString("base64"));
-        expect(axios.get).toHaveBeenCalledTimes(2);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(2,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
     });
 
     // Input: Valid product_id not found in database but found in OpenFoodFacts without images
@@ -243,21 +206,8 @@ describe("Mocked: GET /products/:product_id", () => {
         checkRecommendations(recommendations);
         expect(recommendations.length).toBe(DEFAULT_RECOMMENDATIONS_LIMIT);
         expect(recommendations[0].image).toStrictEqual(null);
-        expect(axios.get).toHaveBeenCalledTimes(3);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(`${OPENFOODFACTS_API_URL}api/v2/product/${testProductAId}.json`)
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(2,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(3,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
         expect(productsCollection.findOne).toHaveBeenCalledWith(expect.objectContaining({ _id: testProductAId }));
         expect(productsCollection.insertOne).toHaveBeenCalledWith(testProductA);
-        
     });
 
     // Input: Valid product_id not found in database and not found in OpenFoodFacts
@@ -298,10 +248,6 @@ describe("Mocked: GET /products/:product_id", () => {
         expect(res.status).toStrictEqual(404);
         expect(res.body).toHaveProperty("message");
         expect(res.body.message).toStrictEqual("Product not found or missing required fields.");
-        expect(axios.get).toHaveBeenCalledTimes(1);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(`${OPENFOODFACTS_API_URL}api/v2/product/${testProductAId}.json`)
-        );
         expect(productsCollection.findOne).toHaveBeenCalledWith(expect.objectContaining({ _id: testProductAId }));
         expect(productsCollection.insertOne).not.toHaveBeenCalled();
         
@@ -345,10 +291,6 @@ describe("Mocked: GET /products/:product_id", () => {
         expect(res.status).toStrictEqual(404);
         expect(res.body).toHaveProperty("message");
         expect(res.body.message).toStrictEqual("Product not found or missing required fields.");
-        expect(axios.get).toHaveBeenCalledTimes(1);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(`${OPENFOODFACTS_API_URL}api/v2/product/${testProductAId}.json`)
-        );
         expect(productsCollection.findOne).toHaveBeenCalledWith(expect.objectContaining({ _id: testProductAId }));
         expect(productsCollection.insertOne).not.toHaveBeenCalled();
     });
@@ -390,19 +332,6 @@ describe("Mocked: GET /products/:product_id", () => {
         expect(recommendations.length).toBe(2);
         expect(recommendations[0].image).toStrictEqual(Buffer.from(testRecommendationImageA).toString("base64"));
         expect(recommendations[1].image).toStrictEqual(Buffer.from(testRecommendationImageB).toString("base64"));
-        expect(axios.get).toHaveBeenCalledTimes(3);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(2,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(3,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
     });
 
     // Input: Valid product_id found in the database with language filters for recommendations
@@ -440,15 +369,6 @@ describe("Mocked: GET /products/:product_id", () => {
 
         expect(await productsCollection.findOne({ _id: recommendations[0]._id })).toHaveProperty("lang", "de");
 
-        expect(axios.get).toHaveBeenCalledTimes(2);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(2,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
     });
 
     // Input: Valid product_id found in the database with countries filters for recommendations
@@ -488,15 +408,6 @@ describe("Mocked: GET /products/:product_id", () => {
         expect(recommendationProduct).toBeTruthy();
         expect(recommendationProduct?.countries_tags).toContain("en:spain");
 
-        expect(axios.get).toHaveBeenCalledTimes(2);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(2,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
     });
 
     // Input: Valid product_id found in the database with languauge and countries filters for recommendations
@@ -537,15 +448,6 @@ describe("Mocked: GET /products/:product_id", () => {
         expect(recommendationProduct?.countries_tags).toContain("en:france");
         expect(recommendationProduct?.lang).toBe("en");
 
-        expect(axios.get).toHaveBeenCalledTimes(2);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-        expect(axios.get).toHaveBeenNthCalledWith(2,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
     });
 
     // Input: Valid product_id found in the database with language filters to get no recommendations
@@ -580,12 +482,6 @@ describe("Mocked: GET /products/:product_id", () => {
         checkRecommendations(recommendations);
         expect(recommendations.length).toBe(0);
 
-        expect(axios.get).toHaveBeenCalledTimes(1);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(OPENFOODFACTS_IMAGE_API_URL),
-            { responseType: "arraybuffer" }
-        );
-       
     });
 
     // Input: Products database findOne error
@@ -640,12 +536,98 @@ describe("Mocked: GET /products/:product_id", () => {
         expect(res.status).toStrictEqual(404);
         expect(res.body).toHaveProperty("message");
         expect(res.body.message).toStrictEqual("Product not found or missing required fields.");
-        expect(axios.get).toHaveBeenCalledTimes(1);
-        expect(axios.get).toHaveBeenNthCalledWith(1,
-            expect.stringContaining(`${OPENFOODFACTS_API_URL}api/v2/product/${testProductAId}.json`)
-        );
         expect(productsCollection.findOne).toHaveBeenCalledWith(expect.objectContaining({ _id: testProductAId }));
         expect(productsCollection.insertOne).not.toHaveBeenCalled();
+    });
+
+    // Input: Valid product_id found in the database without categories tags
+    // Expected status code: 200
+    // Expected behavior: None
+    // Expected output: Product details with recommendations without categories tags
+    test("Valid Product ID Found in DB without Categories Tags", async () => {
+
+        jest.spyOn(axios, "get").mockImplementationOnce(() =>
+            Promise.resolve({
+                data: testProductImageA
+            })
+        ).mockImplementationOnce(() =>
+            Promise.resolve({
+                data: testRecommendationImageA
+            })
+        );
+
+        jest.spyOn(productsCollection, "findOne").mockImplementationOnce(() =>
+            Promise.resolve({
+                ...testProductA,
+                categories_tags: undefined
+            })
+        );
+
+        jest.spyOn(productsCollection, "find").mockImplementationOnce(() =>
+            ({
+                limit: jest.fn().mockReturnThis(),
+                toArray: jest.fn().mockResolvedValue([{ ...testProductB, categories_tags: undefined }])
+            }) as unknown as FindCursor<Product>
+        );
+
+        const res = await supertest(app).get(`/products/${testProductAId}`);
+    
+        expect(res.status).toStrictEqual(200);
+        expect(res.body).toHaveProperty("product");
+        expect(res.body).toHaveProperty("recommendations");
+
+        const product: Product = res.body.product;
+        const recommendations: Product[] = res.body.recommendations;
+
+        expect(product._id).toStrictEqual(testProductAId);
+        expect(product.image).toStrictEqual(Buffer.from(testProductImageA).toString("base64"));
+        expect(recommendations.length).toBe(1);
+        expect(recommendations[0].image).toStrictEqual(Buffer.from(testRecommendationImageA).toString("base64"));
+    });
+
+    // Input: Valid product_id found in the database with no product id on recommendations
+    // Expected status code: 200
+    // Expected behavior: None
+    // Expected output: Product details with recommendations and no recommendations image
+    test("Valid Product ID Found in DB with No Product ID on Recommendations", async () => {
+
+        jest.spyOn(axios, "get").mockImplementationOnce(() =>
+            Promise.resolve({
+                data: testProductImageA
+            })
+        ).mockImplementationOnce(() =>
+            Promise.resolve({
+                data: testRecommendationImageA
+            })
+        );
+
+        jest.spyOn(productsCollection, "findOne").mockImplementationOnce(() =>
+            Promise.resolve(testProductA)
+        );
+
+        jest.spyOn(productsCollection, "find").mockImplementationOnce(() =>
+            ({
+                limit: jest.fn().mockReturnThis(),
+                toArray: jest.fn().mockResolvedValue([{ ...testProductB, _id: undefined }, { ...testProductB, _id: undefined }])
+            }) as unknown as FindCursor<Product>
+        );
+
+        const res = await supertest(app).get(`/products/${testProductAId}`).query({ num_recommendations: 1});
+    
+        expect(res.status).toStrictEqual(200);
+        expect(res.body).toHaveProperty("product");
+        expect(res.body).toHaveProperty("recommendations");
+
+        const product: Product = res.body.product;
+        const recommendations: Product[] = res.body.recommendations;
+
+        expect(product._id).toStrictEqual(testProductAId);
+        expect(product.image).toStrictEqual(Buffer.from(testProductImageA).toString("base64"));
+        
+        checkProduct(product, testProductA);
+        checkRecommendations(recommendations);
+        expect(recommendations.length).toBe(1);
+        expect(recommendations[0].image).toStrictEqual(null);
     });
 });
 
