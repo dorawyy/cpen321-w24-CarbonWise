@@ -5,15 +5,11 @@ import { FriendsRoutes } from './routes/FriendsRoutes';
 import { validationResult } from 'express-validator';
 import morgan from "morgan";
 
-import dotenv from "dotenv";
-
 import passport from "passport";
 import session from "express-session";
 import { router as authRoutes, authenticateJWT } from "./auth";
 import { getFirebaseApp, usersCollection } from "./services";
 import { getMessaging, TokenMessage } from 'firebase-admin/messaging';
-
-dotenv.config();
 
 function createServer() {
 

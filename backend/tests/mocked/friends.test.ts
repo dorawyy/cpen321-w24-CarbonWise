@@ -161,6 +161,54 @@ describe("Mocked: POST /friends/requests", () => {
         expect(res.status).toBe(500);
     });
 
+    // Input: Other user does not have a friends collection, create one
+    // Expected status code: 200
+    // Expected behavior: Create a friends collection for the other user, and send friend request
+    // Expected output: Confirmation message
+    test("Successfully sent friend request, other user does not have a friends collection", async () => {
+
+        await usersDatabase.dropDatabase();
+
+        const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
+
+        await usersCollection.insertOne(testUserA);
+        await usersCollection.insertOne(testUserB);
+        await friendsCollection.insertOne(testFriendsA);
+        await friendsCollection.insertOne(testFriendsB);
+
+        jest.spyOn(admin, 'getApps').mockReturnValue([{ name: 'mock-app', options: {} }]);
+
+        jest.spyOn(friendsCollection, 'findOne').mockImplementationOnce(() => {
+            return Promise.resolve(null);
+        });
+
+        jest.spyOn(adminMessaging, 'getMessaging').mockReturnValue({
+            send: jest.fn().mockResolvedValue({
+                responses: [{
+                    success: true,
+                    fcm_messaging: "some_value"
+                }]
+            })
+          } as unknown as adminMessaging.Messaging);
+
+        const res = await supertest(app)
+            .post("/friends/requests")
+            .set("token", token)
+            .send({ user_uuid: testUserA.user_uuid });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty("message", "Friend request sent.");
+
+        const targetFriends = await friendsCollection.findOne({ user_uuid: testUserA.user_uuid });
+        expect(targetFriends).not.toBeNull();
+        expect(targetFriends?.incoming_requests).toContainEqual({
+            user_uuid: testUserB.user_uuid,
+            name: testUserB.name
+        });
+
+        await usersDatabase.dropDatabase();
+    });
+
 });
 
 // Interface POST /friends/requests/accept
@@ -303,6 +351,7 @@ describe("Mocked: POST /friends/requests/accept", () => {
 
         expect(res.status).toBe(500);
     });
+
 });
 
 // Interface DELETE /friends

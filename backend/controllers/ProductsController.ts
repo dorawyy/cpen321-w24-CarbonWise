@@ -73,7 +73,6 @@ export class ProductsController {
             // Fetch products and their images
             const recommendationsWithImages = await Promise.all(
                 matchingProducts
-                    .filter(product => product._id)
                     .slice(0, recommendationsLimit)
                     .map(async (product: Product) => {
                         const productImage = product._id ? await fetchProductImageById(product._id) : null;
