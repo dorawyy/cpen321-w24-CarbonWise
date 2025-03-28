@@ -152,10 +152,12 @@ class FriendsHistoryFragment : Fragment() {
 
                         binding.progressEcoscore.setProgressCompat(ecoscore.toInt(), false)
                         binding.textEcoscoreValue.text = ecoscore.toInt().toString()
+                        binding.textViewEmptyHistory.visibility = View.GONE
                     } else {
                         Log.d("FriendsHistoryFragment", "No ecoscore available for friend")
                         binding.circularContainer.visibility = View.GONE
                         binding.ecoScoreCard.visibility = View.GONE
+                        binding.textViewEmptyHistory.visibility = View.VISIBLE
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
