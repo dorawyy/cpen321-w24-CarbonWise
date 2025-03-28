@@ -10,6 +10,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.carbonwise.databinding.DialogAddFriendBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -39,10 +42,9 @@ class AddFriendDialogFragment : BottomSheetDialogFragment() {
             binding.textFriendCode.text = friendCode
         }
 
-        friendsViewModel.friendActions.observe(viewLifecycleOwner) { message ->
-            if (!message.isNullOrEmpty()) {
+        friendsViewModel.friendActions.observeOnce(viewLifecycleOwner) { message ->
+            if (message.isNotEmpty()) {
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                friendsViewModel._friendActions.value = ""
             }
         }
 
@@ -99,5 +101,14 @@ class AddFriendDialogFragment : BottomSheetDialogFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    fun <T> LiveData<T>.observeOnce(owner: LifecycleOwner, observer: Observer<T>) {
+        observe(owner, object : Observer<T> {
+            override fun onChanged(value: T) {
+                removeObserver(this)
+                observer.onChanged(value)
+            }
+        })
     }
 }
