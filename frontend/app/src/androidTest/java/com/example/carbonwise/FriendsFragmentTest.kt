@@ -6,6 +6,7 @@ import android.view.View
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
@@ -73,7 +74,7 @@ class FriendsFragmentTest {
         onView(withId(R.id.editFriendCode)).check(matches(isDisplayed()))
 
         // 2. Send a friend request to an existing user in database
-        onView(withId(R.id.editFriendCode)).perform(typeText("IrClHbn2"))
+        onView(withId(R.id.editFriendCode)).perform(typeText("IrClHbn2"), closeSoftKeyboard())
 
         onView(withId(R.id.buttonAddFriend)).perform(click())
 
@@ -91,7 +92,7 @@ class FriendsFragmentTest {
         onView(withId(R.id.editFriendCode)).check(matches(isDisplayed()))
 
         // 2. Send a friend request to a none-existing user in database
-        onView(withId(R.id.editFriendCode)).perform(typeText("NONEXISTENT_CODE"))
+        onView(withId(R.id.editFriendCode)).perform(typeText("NONEXISTENT_CODE"), closeSoftKeyboard())
 
         onView(withId(R.id.buttonAddFriend)).perform(click())
 
@@ -114,13 +115,12 @@ class FriendsFragmentTest {
         var ownFriendCode = "Error fetching code"
 
         // 2. Send a friend request to user themselves
-        onView(withId(R.id.editFriendCode)).perform(typeText(ownFriendCode))
+        onView(withId(R.id.editFriendCode)).perform(typeText(ownFriendCode), closeSoftKeyboard())
 
         onView(withId(R.id.buttonAddFriend)).perform(click())
         Thread.sleep(100)
 
-        onView(withText("You cannot send a friend request to yourself!"))
-            .check(matches(isDisplayed()))
+        onView(withText("You cannot send a friend request to yourself!")).check(matches(isDisplayed()))
 
         Thread.sleep(2000)
     }
