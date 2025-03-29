@@ -274,6 +274,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
   <img src="./images/friend_code_screen_mockup.jpg" width="25%" alt="Friend Code Screen Mockup">
   <img src="./images/history_screen_mockup.jpg" width="25%" alt="History Screen Mockup">
   <img src="./images/login_screen_mockup.jpg" width="25%" alt="Login Screen Mockup">
+  <img src="./images/scan_screen_mockup.jpg" width="25%" alt="Login Screen Mockup">
 </p>
 
 
