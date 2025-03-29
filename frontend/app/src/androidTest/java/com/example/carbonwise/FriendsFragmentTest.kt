@@ -2,15 +2,10 @@ package com.example.carbonwise
 
 import android.Manifest
 import android.content.Context
-import android.os.IBinder
-import android.util.Log
 import android.view.View
-import android.view.WindowManager
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.Root
 import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
@@ -21,10 +16,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.UiSelector
-import org.hamcrest.Description
-import org.hamcrest.Matcher
-import org.hamcrest.TypeSafeMatcher
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -58,6 +49,7 @@ class FriendsFragmentTest {
             decorView = act.window.decorView
         }
 
+        // Navigate to friends tab
         onView(withId(R.id.navigation_friends)).perform(click())
         Thread.sleep(1000)
     }
@@ -67,46 +59,43 @@ class FriendsFragmentTest {
         Intents.release()
     }
 
+    //    NOTE: This test requires a user to be signed into the device. These conditions cannot be reliably spoofed
+    //    due to constraints with Espresso and UIAutomator. Additionally, Toasts cannot be detected so in the following
+    //    tests, we do not explicitly check with the toast messages displayed.
     @Test
     fun testSendFriendRequestSuccess() {
 
+        // 1. Press the bottom right add friend button
         onView(withId(R.id.fabAddFriend)).perform(click())
         Thread.sleep(1000)
 
         onView(withId(R.id.textFriendCode)).check(matches(isDisplayed()))
         onView(withId(R.id.editFriendCode)).check(matches(isDisplayed()))
 
-        onView(withId(R.id.editFriendCode))
-            .perform(typeText("08f7403a-b934-4cc2-ab92-d0f177e79731"), closeSoftKeyboard())
+        // 2. Send a friend request to an existing user in database
+        onView(withId(R.id.editFriendCode)).perform(typeText("IrClHbn2"))
 
         onView(withId(R.id.buttonAddFriend)).perform(click())
 
-        Thread.sleep(100)
-        // Verify that the Toast with "Friend request sent!" is displayed
-        // Having issues testing this
-        //        onView(withText("Friend request sent!"))
-        //            .inRoot(isToast())
-        //            .check(matches(isDisplayed()))
+        Thread.sleep(2000)
     }
 
     @Test
     fun sendFriendRequestFailureNoMatchingUser() {
 
+        // 1. Press the bottom right add friend button
         onView(withId(R.id.fabAddFriend)).perform(click())
         Thread.sleep(1000)
 
         onView(withId(R.id.textFriendCode)).check(matches(isDisplayed()))
         onView(withId(R.id.editFriendCode)).check(matches(isDisplayed()))
 
-        onView(withId(R.id.editFriendCode)).perform(typeText("NONEXISTENT_CODE"), closeSoftKeyboard())
+        // 2. Send a friend request to a none-existing user in database
+        onView(withId(R.id.editFriendCode)).perform(typeText("NONEXISTENT_CODE"))
 
         onView(withId(R.id.buttonAddFriend)).perform(click())
 
-        Thread.sleep(100)
-
-        //        onView(withText("Enter a valid friend code"))
-        //            .inRoot(isToast())
-        //            .check(matches(isDisplayed()))
+        Thread.sleep(2000)
     }
 
     /**
@@ -116,6 +105,7 @@ class FriendsFragmentTest {
     @Test
     fun testSendFriendRequestToSelf() {
 
+        // 1. Press the bottom right add friend button
         onView(withId(R.id.fabAddFriend)).perform(click())
         Thread.sleep(1000)
 
@@ -123,8 +113,8 @@ class FriendsFragmentTest {
 
         var ownFriendCode = "Error fetching code"
 
-        onView(withId(R.id.editFriendCode))
-            .perform(typeText(ownFriendCode), closeSoftKeyboard())
+        // 2. Send a friend request to user themselves
+        onView(withId(R.id.editFriendCode)).perform(typeText(ownFriendCode))
 
         onView(withId(R.id.buttonAddFriend)).perform(click())
         Thread.sleep(100)
@@ -132,64 +122,6 @@ class FriendsFragmentTest {
         onView(withText("You cannot send a friend request to yourself!"))
             .check(matches(isDisplayed()))
 
-        Thread.sleep(100)
-    }
-
-    /**
-     * Matcher that is Toast window.
-     */
-    companion object {
-        fun isToast(): Matcher<Root> {
-            return object : TypeSafeMatcher<Root>() {
-                override fun describeTo(description: Description) {
-                    description.appendText("is toast")
-                }
-
-                override fun matchesSafely(root: Root): Boolean {
-                    val type = root.windowLayoutParams.get().type
-                    if (type == WindowManager.LayoutParams.TYPE_TOAST) {
-                        val windowToken: IBinder = root.decorView.windowToken
-                        val appToken: IBinder = root.decorView.applicationWindowToken
-                        return windowToken == appToken
-                    }
-                    return false
-                }
-            }
-        }
-    }
-
-    private fun navigateToLoginFragment() {
-        // Helper function to navigate to the login tab
-        val loginButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/navigation_login"))
-        if (loginButton.waitForExists(5000)) {
-            loginButton.click()
-        }
-    }
-
-    private fun handleGoogleSignIn() {
-        val TAG = "GoogleSignInTest"
-
-        // Step 3a: Look for the "Continue" or "@gmail.com" button
-        val continueSelector = device.findObject(UiSelector().textContains("Continue"))
-        val emailSelector = device.findObject(UiSelector().textContains("@gmail.com"))
-
-        if (continueSelector.waitForExists(5000)) {
-            Log.d(TAG, "\"Continue\" button found. Clicking it.")
-            continueSelector.click()
-        } else if (emailSelector.waitForExists(5000)) {
-            Log.d(TAG, "\"@gmail.com\" account button found. Clicking it.")
-            emailSelector.click()
-        } else {
-            Log.d(TAG, "No account selection button found.")
-        }
-
-        // Step 3b: Grant permission
-        val allowButton = device.findObject(UiSelector().textContains("Allow"))
-        if (allowButton.waitForExists(5000)) {
-            Log.d(TAG, "\"Allow\" button found. Clicking it.")
-            allowButton.click()
-        } else {
-            Log.d(TAG, "\"Allow\" button not found.")
-        }
+        Thread.sleep(2000)
     }
 }

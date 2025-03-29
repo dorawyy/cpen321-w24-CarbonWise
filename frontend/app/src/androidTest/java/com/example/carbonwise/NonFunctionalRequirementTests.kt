@@ -77,7 +77,7 @@ class NonFunctionalRequirementTests {
     }
 
     private fun navigateToScanTab() {
-        // Example: If you have a BottomNavigationView with id/navigation_scan
+        //Helper function to navigate to the scan tab
         val scanTab = device.findObject(
             UiSelector().resourceId("com.example.carbonwise:id/navigation_scan")
         )

@@ -24,16 +24,13 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="HistoryTest">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="ScanProductsTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="testScanProductC_NoProductInfo_ShowsErrorMessage()">
+      <SelectionState runConfigName="testScanProductD_ProductInDB_NoErrorMessage()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="testScanProductD_ProductInDB_NoErrorMessage()">
+      <SelectionState runConfigName="testSendFriendRequestSuccess()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
