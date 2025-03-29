@@ -17,9 +17,7 @@ export const UsersRoutes = [
         method: "get",
         route: "/users/history",
         action: controller.getHistory.bind(controller),
-        validation: [
-            query("timestamp").optional().isISO8601().withMessage("Timestamp should be a valid ISO 8601 date string")
-        ],
+        validation: [],
         protected: true
     },
     {

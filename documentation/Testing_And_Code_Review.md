@@ -341,10 +341,11 @@
 ### 5.2. Unfixed Issues per Codacy Category
 
 _(Placeholder for screenshots of Codacyâ€™s Category Breakdown table in Overview)_
+![Codacy's Category Breakdown Table](./images/codacy_dashboard.png)
 
 ### 5.3. Unfixed Issues per Codacy Code Pattern
 
-_(Placeholder for screenshots of Codacyâ€™s Issues page)_
+![Codacy's Issue List](./images/codacy_issues.png)
 
 ### 5.4. Justifications for Unfixed Issues
 

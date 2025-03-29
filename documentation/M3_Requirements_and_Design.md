@@ -2,7 +2,16 @@
 
 ## 1. Change History
 
-None (Plan B)
+| Date       | Modified Section(s)             | Rationale for Modification                   |
+|------------|------------------------------|-----------------------------------------------|
+| 2025-03-28 | 3.3 Functional Requirements - 1. Scan Products | Added step for barcode confirmation to help users avoid incorrect barcode scans. | 
+| 2025-03-28 | 3.3 Functional Requirements - 1. Scan Products  | Updated step 7 as users now have the option to manually add scans to history instead of scans automatically being added. | 
+| 2025-03-28 | 3.3 Functional Requirements - 3. Manage Friends - 1. Send a friend request | Updated step 1 to reflect user interaction with the add friend menu added to the friends tab. | 
+| 2025-03-28 | 3.4. Screen Mockups   | Updated screen mockups to reflect the new front-end design of app. |
+| 2025-03-28 | 4.1. Main Components - 1. Products | Updating the `GET /products/{product_id}` interface to include the query parameters `num_recommendations`, `include_languages`, and `include_countries` to support limiting recommendations and applying regional and language-based filtering. |
+| 2025-03-28 | 4.1. Main Components - 2. Users | Removed the `timestamp` parameter from `List<History> getHistoryByUserUUID(String user_uuid, String timestamp)` as timestamp filtering is now handled on the front-end not the back-end. |
+| 2025-03-28 | 4.1. Main Components - 3. Friends | Added the `GET /friends/requests/outgoing` interface to allow for users to retrieve their outgoing pending friend requests. Removing the `timestamp` parameter from `GET /friends/history`, `GET /friends/history/{user_uuid}`, and `GET /friends` as timestamp filtering is now handled on the front-end not the back-end. |
+| 2025-03-28 | 4.1. Main Components - 3. Friends | Removed the `timestamp` parameter from `GET /friends/history`, `GET /friends/history/{user_uuid}`, and `GET /friends` as timestamp filtering is now handled on the front-end not the back-end. |
 
 ## 2. Project Description
 
@@ -38,20 +47,23 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 2. The system requests camera permissions if not previously granted.  
                 3. User or guest user grants camera permissions if requested.  
                 4. User or guest user scans a barcode using the device camera.  
-                5. The system retrieves and displays an eco-score, sustainability information, and product recommendations for the scanned product.
-                6. The system adds the scanned product to the user’s history if the user is authenticated.
+                5. The system displays the scanned code and prompts the user for confirmation.
+                6. On confirmation the system retrieves and displays an eco-score, sustainability information, and product recommendations for the scanned product.
+                7. The user can choose to add the scanned product to the user’s history if the user is authenticated.
             - **Failure scenario(s)**:  
                 - 3a. User or guest user denies camera permissions.  
                     - 3a1. The system returns the user or guest user to the scan tab and displays a message that camera permissions are required for scanning.
                 - 4a. The barcode is unreadable due to camera quality. 
                     - 4a1. The system waits on the scan tab until it is provided with a readable barcode.  
-                - 5a. The system is unable to retrieve information for a product because it does not exist or is missing required fields.  
+                - 5a. The user denies confirmation.
+                    - 4a1. The user is returned to the scan tab, and no product is displayed.  
+                - 6a. The system is unable to retrieve information for a product because it does not exist or is missing required fields.  
                     - 5a1. The system informs the user or guest user that information for the product is not available.  
                     - 5a2. The system returns the user or guest user to the scan tab.  
-                - 5b. The system is unable to retrieve product data due to a server error.
+                - 6b. The system is unable to retrieve product data due to a server error.
                     - 5b1. The system informs the user or guest user that product information could not be retrieved and displays the relevant server error.
                     - 5b2. The system returns the user or guest user to the scan tab.
-                - 6a. The system is unable to add the scanned product to the user’s history due to a server error.  
+                - 7a. The system is unable to add the scanned product to the user’s history due to a server error.  
                     - 6a1. The system informs the user that the scanned product could not be added to history and displays the relevant server error.
 
 <a name="fr2"></a>
@@ -103,7 +115,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
             - **Description**: Users can send a friend request by entering a friend's unique friend code.  
             - **Primary actor(s)**: User  
             - **Main success scenario**:  
-                1. User navigates to the friends tab.  
+                1. User navigates to the friends tab, and opens the add friends menu.  
                 2. User enters the friend’s unique friend code and sends the friend request.  
                 3. The system updates the recipient's list of incoming friend requests.
                 4. The system sends a friend request notification to the recipient.  
@@ -260,8 +272,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
   <img src="./images/product_information_screen_mockup.jpg" width="25%" alt="Product Information Screen Mockup">
   <img src="./images/product_recommendations_screen_mockup.jpg" width="25%" alt="Product Recommendations Screen Mockup">
   <img src="./images/friend_code_screen_mockup.jpg" width="25%" alt="Friend Code Screen Mockup">
-  <img src="./images/friend_history_screen_mockup.jpg" width="25%" alt="Friend History Screen Mockup">
-  <img src="./images/scan_screen_mockup.jpg" width="25%" alt="Scan Screen Mockup">
+  <img src="./images/history_screen_mockup.jpg" width="25%" alt="History Screen Mockup">
   <img src="./images/login_screen_mockup.jpg" width="25%" alt="Login Screen Mockup">
 </p>
 
@@ -308,18 +319,20 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
         4. **`GET /products/{product_id}`**  
             - **Purpose:** Retrieves a product’s eco-score, sustainability information, image, and recommendations.   
             - **Parameters:**  
-                - `product_id` (String): The barcode of the product.  
+                - `product_id` (String): The barcode of the product. 
+                - `num_recommendations` (number): The maximum number of recommendations to return.
+                - `include_languages` (String, comma-seperated): A list of languages for which each recommended product must have its product name language in this list.
+                - `include_countries` (String, comma-seperated): A list of countries for which each recommended product must have a country tag in this list.
             - **Returns:**   
                 - Product information, recommendations, and base64-encoded images on success, or an error message on failure.
 
 2. **Users**  
     - **Purpose**: The Users component manages user authentication, Firebase Cloud Messaging (FCM) registration tokens, and product history tracking.
     - **Interfaces**:   
-        1. **`List<History> getHistoryByUserUUID(String user_uuid, String timestamp)`**  
-            - **Purpose:** Retrieves a user’s product history entries based on their UUID and an optional timestamp filter.  
+        1. **`List<History> getHistoryByUserUUID(String user_uuid)`**  
+            - **Purpose:** Retrieves a user’s product history entries based on their UUID.
             - **Parameters:**  
-                - `user_uuid` (String): The UUID of the user whose history is being retrieved.  
-                - `timestamp` (String, optional): An ISO 8601 formatted timestamp to filter history entries.  
+                - `user_uuid` (String): The UUID of the user whose history is being retrieved.
             - **Returns:**   
                 - A list of product history entries that match the given criteria.  
         2. **`POST /auth/google`**  
@@ -407,17 +420,15 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
             - **Returns:**   
                 - Confirmation message or an error response.  
         5. **`GET /friends/requests`**  
-            - **Purpose:** Retrieves a user's pending friend requests.  
+            - **Purpose:** Retrieves a user's incoming pending friend requests.  
             - **Requires:**     
                 - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Returns:**      
-                - A list of pending friend requests on success, or an error message on failure.  
+                - A list of incoming pending friend requests on success, or an error message on failure.  
         6. **`GET /friends/history`**  
             - **Purpose:** Retrieves product history for all friends.  
             - **Requires:**     
                 - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
-            - **Parameters:**  
-                - `timestamp` (String, optional): ISO 8601 formatted timestamp to filter history entries.  
             - **Returns:**   
                 - Friends product histories and product details on success, or an error message on failure.  
         7. **`GET /friends/history/{user_uuid}`**  
@@ -426,7 +437,6 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Parameters:**  
                 - `user_uuid` (String): The UUID of the friend whose history is being retrieved.  
-                - `timestamp` (String, optional): ISO 8601 formatted timestamp to filter history entries.  
             - **Returns:**   
                 - Friend product history and product details on success, or an error message on failure.  
         8. **`GET /friends`**  
@@ -434,8 +444,7 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
             - **Requires:**     
                 - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
             - **Parameters:**  
-                - `user_uuid` (String): The UUID of the friend whose history is being retrieved.  
-                - `timestamp` (String, optional): ISO 8601 formatted timestamp to filter history entries.  
+                - `user_uuid` (String): The UUID of the friend whose history is being retrieved.   
             - **Returns:**   
                 - List of a user’s friends including their names and user unique identifiers.  
         9. **`POST /friends/notifications`**  
@@ -456,6 +465,12 @@ CarbonWise empowers consumers to make more sustainable choices by providing clea
                 - `user_uuid` (String): The UUID of the friend whose average ecoscore is being retrieved.
             - **Returns:**   
                 - The friend's average ecoscore or an error response.
+        11. **`GET /friends/requests/outgoing`**  
+            - **Purpose:** Retrieves a user's outgoing pending friend requests.  
+            - **Requires:**     
+                - `token` (String): The JWT returned by the Google authentication endpoint for verifying user identity.  
+            - **Returns:**      
+                - A list of outgoing pending friend requests on success, or an error message on failure.
 
 ### **4.2. Databases**
 
