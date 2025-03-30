@@ -12,6 +12,7 @@
 | 2025-03-28 | 4.1. Main Components - 2. Users | Removed the `timestamp` parameter from `List<History> getHistoryByUserUUID(String user_uuid, String timestamp)` as timestamp filtering is now handled on the front-end not the back-end. |
 | 2025-03-28 | 4.1. Main Components - 3. Friends | Added the `GET /friends/requests/outgoing` interface to allow for users to retrieve their outgoing pending friend requests. Removing the `timestamp` parameter from `GET /friends/history`, `GET /friends/history/{user_uuid}`, and `GET /friends` as timestamp filtering is now handled on the front-end not the back-end. |
 | 2025-03-28 | 4.1. Main Components - 3. Friends | Removed the `timestamp` parameter from `GET /friends/history`, `GET /friends/history/{user_uuid}`, and `GET /friends` as timestamp filtering is now handled on the front-end not the back-end. |
+| 2025-03-29 | 3.4. Screen Mockups | Updated the recommendations screen mockup to better reflect the new recommendations system |
 
 ## 2. Project Description
 
