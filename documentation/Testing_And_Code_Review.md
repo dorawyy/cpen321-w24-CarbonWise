@@ -355,7 +355,3 @@ _(Placeholder for screenshots of Codacyâ€™s Category Breakdown table in Ove
 
      - **Location in Git:** [`frontend/app/src/main/java/com/example/carbonwise/network/FriendsApiService.kt`](#)
      - **Justification:** The `FriendsApiService` class contains 11 functions because they all relate specifically to managing friendships and interactions between users, maintaining high cohesion within the service. Grouping these related endpoints together improves clarity, organization, and maintainability without violating separation of concerns. Although Codacy flags this for function count, the design remains clean and logically structured.
-
-  2. ...
-
-- ...
