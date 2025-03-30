@@ -51,6 +51,7 @@ jobs:
             chmod 600 .env google-credentials.json
 
             # Install npm packages
+            npm config set strict-ssl false
             npm ci
 
             # Build and run container
