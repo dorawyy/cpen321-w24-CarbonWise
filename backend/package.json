@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node index.ts",
+    "start": "dotenv -e .env -- ts-node index.ts",
     "dev": "dotenv -e .env -- npx nodemon -e .ts index.ts",
     "test": "dotenv -e tests/res/.env.test -- jest tests --detectOpenHandles --forceExit",
     "test:unmocked": "dotenv -e tests/res/.env.test -- jest tests/unmocked --detectOpenHandles --forceExit",

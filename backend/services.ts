@@ -2,9 +2,6 @@ import { Collection, MongoClient, Db } from 'mongodb';
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { OAuth2Client } from 'google-auth-library';
 import { Product, User, Friends, History } from './types';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 export const client: MongoClient = new MongoClient(process.env.DB_URI ?? "mongodb://localhost:27017");
 
