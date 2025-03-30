@@ -42,6 +42,8 @@ jobs:
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}
+            USERS_DB_NAME=${{ secrets.USERS_DB_NAME }}
+            PRODUCTS_DB_NAME=${{ secrets.PRODUCTS_DB_NAME }}
             GOOGLE_APPLICATION_CREDENTIALS='google-credentials.json'
             EOF
 
