@@ -128,7 +128,7 @@
 
 `index.ts` (Lines 1-15)
 
-Reason: `index.ts` initializes the backend on our EC2 instance. According to the TA response in the Piazza discussion @176, "You do not need to cover those parts of your index.ts file where their purpose is to prepare your backend server to run. i.e. connecting to the DB, serving express. Please note that this only applies to index.ts. Please also make sure that this file should mostly be used for the initial setup, not application logic".
+Reason: These lines initialize the backend on our EC2 instance. According to the TA response in the Piazza discussion @176, "You do not need to cover those parts of your index.ts file where their purpose is to prepare your backend server to run. i.e. connecting to the DB, serving express. Please note that this only applies to index.ts. Please also make sure that this file should mostly be used for the initial setup, not application logic".
 
 `utils.ts` (Line 22)
 
