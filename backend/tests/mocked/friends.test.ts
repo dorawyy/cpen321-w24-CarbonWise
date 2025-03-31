@@ -167,13 +167,13 @@ describe("Mocked: POST /friends/requests", () => {
     // Expected output: Confirmation message
     test("Successfully sent friend request, other user does not have a friends collection", async () => {
 
-        await usersDatabase.dropDatabase();
+        
 
         const token = jwt.sign(testUserB, process.env.JWT_SECRET ?? "test-jwt-secret");
 
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
-        await friendsCollection.insertOne(testFriendsA);
+        
         await friendsCollection.insertOne(testFriendsB);
 
         jest.spyOn(admin, 'getApps').mockReturnValue([{ name: 'mock-app', options: {} }]);
@@ -206,7 +206,7 @@ describe("Mocked: POST /friends/requests", () => {
             name: testUserB.name
         });
 
-        await usersDatabase.dropDatabase();
+        
     });
 
 });
