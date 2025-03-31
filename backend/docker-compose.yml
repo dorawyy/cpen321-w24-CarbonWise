@@ -24,7 +24,7 @@ services:
       - "${PORT}:${PORT}"
     depends_on:
       - mongo
-    command: npm start
+    command: npm run start
 
 
 volumes:

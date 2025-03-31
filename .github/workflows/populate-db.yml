@@ -32,7 +32,7 @@ jobs:
             # Drop User Database if requested
             if [[ "${{ github.event.inputs.drop_user_db }}" == "true" ]]; then
               echo "Dropping user database..."
-              docker exec mongo_instance mongo user_db --eval "db.dropDatabase()"
+              docker exec mongo_instance mongosh users_db --eval "db.dropDatabase()"
             else
               echo "Skipping user database drop."
             fi
@@ -46,7 +46,7 @@ jobs:
               docker cp products_db.archive mongo_instance:/products_db.archive
 
               # Restore the database
-              docker exec mongo_instance mongorestore --verbose --db products_db --archive=/products_db.archive --gzip --drop
+              docker exec mongo_instance mongorestore --verbose --db products_db --archive=./products_db.archive --gzip --drop
                   
               echo "Products database restored and cleanup completed!"
             else

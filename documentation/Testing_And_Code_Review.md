@@ -37,7 +37,7 @@
 
 #### 2.1.2. Commit Hash Where Tests Run
 
-`22f064002f35eed9c4d52ba38675944bcdfb025a`
+`e519391d581e9a6a21d7691d8dbc9084d22723b5`
 
 #### 2.1.3. Explanation on How to Run the Tests
 
@@ -123,6 +123,20 @@
 ### 2.3. Jest Coverage Report Screenshots With Mocks
 
 ![Jest Coverage Report Screenshots With Mocks](./images/backend_tests_with_mocks.png)
+
+## 2.3.1. Uncovered Lines and Reasoning
+
+`index.ts` (Lines 1-15)
+
+Reason: These lines initialize the backend on our EC2 instance. According to the TA response in the Piazza discussion @176, "You do not need to cover those parts of your index.ts file where their purpose is to prepare your backend server to run. i.e. connecting to the DB, serving express. Please note that this only applies to index.ts. Please also make sure that this file should mostly be used for the initial setup, not application logic".
+
+`utils.ts` (Line 22)
+
+Reason: The line verifies the existence of an environment variable that is part of the initial setup and not part of any endpoint logic. Since this line runs at import time and does not affect API functionality, it is excluded from coverage.
+
+`services.ts` (Line 6)
+
+Reason: This line checks for an environment variable during file import. It is part of the setup logic and not part of any endpoint interaction, making it irrelevant for API test coverage.
 
 ### 2.4. Jest Coverage Report Screenshots Without Mocks
 
@@ -336,11 +350,10 @@
 
 ### 5.1. Commit Hash Where Codacy Ran
 
-`22f064002f35eed9c4d52ba38675944bcdfb025a`
+`e519391d581e9a6a21d7691d8dbc9084d22723b5`
 
 ### 5.2. Unfixed Issues per Codacy Category
 
-_(Placeholder for screenshots of Codacyâ€™s Category Breakdown table in Overview)_
 ![Codacy's Category Breakdown Table](./images/codacy_dashboard.png)
 
 ### 5.3. Unfixed Issues per Codacy Code Pattern
@@ -355,7 +368,3 @@ _(Placeholder for screenshots of Codacyâ€™s Category Breakdown table in Ove
 
      - **Location in Git:** [`frontend/app/src/main/java/com/example/carbonwise/network/FriendsApiService.kt`](#)
      - **Justification:** The `FriendsApiService` class contains 11 functions because they all relate specifically to managing friendships and interactions between users, maintaining high cohesion within the service. Grouping these related endpoints together improves clarity, organization, and maintainability without violating separation of concerns. Although Codacy flags this for function count, the design remains clean and logically structured.
-
-  2. ...
-
-- ...

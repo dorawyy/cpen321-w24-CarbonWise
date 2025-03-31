@@ -36,7 +36,7 @@ export class FriendsController {
         }
 
         // Check if friend request has already been sent
-        if (targetFriends && !targetFriends.incoming_requests.some(request => request.user_uuid === user_uuid)) {
+        if (!targetFriends?.incoming_requests.some(request => request.user_uuid === user_uuid)) {
             await friendsCollection.updateOne(
                 { user_uuid: friend_uuid },
                 { $addToSet: { incoming_requests: { user_uuid, name: user.name } } },
