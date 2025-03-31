@@ -124,7 +124,7 @@
 
 ![Jest Coverage Report Screenshots With Mocks](./images/backend_tests_with_mocks.png)
 
-## 2.3.1. Uncovered Lines and Reasoning
+#### 2.3.1. Uncovered Lines and Reasoning
 
 `index.ts` (Lines 1-15)
 
