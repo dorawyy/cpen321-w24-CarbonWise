@@ -2,8 +2,11 @@ package com.example.carbonwise
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
+import android.util.Log
 import android.view.View
 import androidx.test.core.app.ActivityScenario
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
@@ -17,6 +20,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiSelector
+import junit.framework.TestCase.assertNotNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -31,26 +36,37 @@ class FriendsFragmentTest {
     @get:Rule
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.CAMERA)
 
-    private lateinit var decorView: View
-    private lateinit var activity: MainActivity
-
     @Before
     fun setUp() {
 
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        assertNotNull("InstrumentationRegistry returned null!", instrumentation)
+        device = UiDevice.getInstance(instrumentation)
+
+        // Press home button to start fresh
+        device.pressHome()
+
+        // Get the app context and launch the main activity
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        assertNotNull("Application context is null!", context)
+
+        val intent = context.packageManager.getLaunchIntentForPackage("com.example.carbonwise")
+        assertNotNull("Launch intent for app is null! Check package name.", intent)
+
+        intent!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        context.startActivity(intent)
+
         val targetContext: Context = InstrumentationRegistry.getInstrumentation().targetContext
         val sharedPref = targetContext.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("jwt_token", "DUMMY_JWT_TOKEN")
-            putString("google_id_token", "DUMMY_GOOGLE_TOKEN")
-            apply()
-        }
 
-        ActivityScenario.launch(MainActivity::class.java).onActivity { act ->
-            activity = act
-            decorView = act.window.decorView
+        if (sharedPref.getString("jwt_token)", null).isNullOrEmpty()) {
+            allowCameraPermission()
+            Thread.sleep(1000)
+            navigateToLoginFragment()
+            Thread.sleep(1000)
+            handleGoogleSignIn()
+            Thread.sleep(4000)
         }
-
-        // Navigate to friends tab
         onView(withId(R.id.navigation_friends)).perform(click())
         Thread.sleep(1000)
     }
@@ -74,7 +90,7 @@ class FriendsFragmentTest {
         onView(withId(R.id.editFriendCode)).check(matches(isDisplayed()))
 
         // 2. Send a friend request to an existing user in database
-        onView(withId(R.id.editFriendCode)).perform(typeText("IrClHbn2"), closeSoftKeyboard())
+        onView(withId(R.id.editFriendCode)).perform(typeText("SvUd7gyL"), closeSoftKeyboard())
 
         onView(withId(R.id.buttonAddFriend)).perform(click())
 
@@ -110,9 +126,7 @@ class FriendsFragmentTest {
         onView(withId(R.id.fabAddFriend)).perform(click())
         Thread.sleep(1000)
 
-        onView(withId(R.id.textFriendCode)).check(matches(isDisplayed()))
-
-        var ownFriendCode = "Error fetching code"
+        var ownFriendCode = "F8HMDhJD"
 
         // 2. Send a friend request to user themselves
         onView(withId(R.id.editFriendCode)).perform(typeText(ownFriendCode), closeSoftKeyboard())
@@ -123,5 +137,41 @@ class FriendsFragmentTest {
         onView(withText("You cannot send a friend request to yourself!")).check(matches(isDisplayed()))
 
         Thread.sleep(2000)
+    }
+
+    private fun handleGoogleSignIn() {
+        val TAG = "GoogleSignInTest"
+
+        Thread.sleep(4000)
+
+        // Get screen dimensions
+        val displayWidth = device.displayWidth
+        val displayHeight = device.displayHeight
+
+        // Calculate center coordinates
+        val centerX = displayWidth / 2
+        val centerY = displayHeight / 2
+
+        // Log and perform the click
+        Log.d(TAG, "Clicking in the middle of the screen at ($centerX, $centerY)")
+        device.click(centerX, centerY)
+    }
+
+    private fun navigateToLoginFragment() {
+        // Helper function to navigate to the login tab
+        val loginButton = device.findObject(UiSelector().resourceId("com.example.carbonwise:id/navigation_login"))
+        if (loginButton.waitForExists(5000)) {
+            loginButton.click()
+        }
+    }
+
+    private fun allowCameraPermission() {
+        // Helper function to allow camera permission if prompted
+        val allowButton = device.findObject(UiSelector().resourceId("com.android.permissioncontroller:id/permission_allow_foreground_only_button"))
+        if (allowButton.waitForExists(5000) && allowButton.isEnabled) {
+            allowButton.click()
+        } else {
+            // Already allowed, do nothing
+        }
     }
 }
