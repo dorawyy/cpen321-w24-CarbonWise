@@ -37,7 +37,7 @@
 
 #### 2.1.2. Commit Hash Where Tests Run
 
-`22f064002f35eed9c4d52ba38675944bcdfb025a`
+`e519391d581e9a6a21d7691d8dbc9084d22723b5`
 
 #### 2.1.3. Explanation on How to Run the Tests
 
@@ -336,7 +336,7 @@
 
 ### 5.1. Commit Hash Where Codacy Ran
 
-`22f064002f35eed9c4d52ba38675944bcdfb025a`
+`e519391d581e9a6a21d7691d8dbc9084d22723b5`
 
 ### 5.2. Unfixed Issues per Codacy Category
 
