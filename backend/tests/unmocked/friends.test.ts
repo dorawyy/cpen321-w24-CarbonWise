@@ -33,7 +33,7 @@ describe("Unmocked: POST /friends/requests", () => {
         await usersCollection.insertOne(testUserA);
         await usersCollection.insertOne(testUserB);
 
-        await friendsCollection.insertOne(testFriendsA);
+        
         await friendsCollection.insertOne(testFriendsB);
         
         const res = await supertest(app)
