@@ -124,6 +124,20 @@
 
 ![Jest Coverage Report Screenshots With Mocks](./images/backend_tests_with_mocks.png)
 
+## 2.3.1. Uncovered Lines and Reasoning
+
+`index.ts`
+
+Reason: `index.ts` initializes the backend on our EC2 instance. According to the TA response in the Piazza discussion @176, "You do not need to cover those parts of your index.ts file where their purpose is to prepare your backend server to run. i.e. connecting to the DB, serving express. Please note that this only applies to index.ts. Please also make sure that this file should mostly be used for the initial setup, not application logic".
+
+`utils.ts` (Line 22)
+
+Reason: The line verifies the existence of an environment variable that is part of the initial setup and not part of any endpoint logic. Since this line runs at import time and does not affect API functionality, it is excluded from coverage.
+
+`services.ts` (Line 6)
+
+Reason: This line checks for an environment variable during file import. It is part of the setup logic and not part of any endpoint interaction, making it irrelevant for API test coverage.
+
 ### 2.4. Jest Coverage Report Screenshots Without Mocks
 
 ![Jest Coverage Report Screenshots Without Mocks](./images/backend_tests_without_mocks.png)
@@ -340,7 +354,6 @@
 
 ### 5.2. Unfixed Issues per Codacy Category
 
-_(Placeholder for screenshots of Codacyâ€™s Category Breakdown table in Overview)_
 ![Codacy's Category Breakdown Table](./images/codacy_dashboard.png)
 
 ### 5.3. Unfixed Issues per Codacy Code Pattern
