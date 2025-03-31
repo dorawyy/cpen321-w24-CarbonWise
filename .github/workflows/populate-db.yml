@@ -27,7 +27,7 @@ jobs:
             cd /home/ubuntu/cpen321-jelx/backend
 
             # Ensure MongoDB is running
-            docker-compose up -d mongo
+            docker-compose up -d mongo_instance
 
             # Drop User Database if requested
             if [[ "${{ github.event.inputs.drop_user_db }}" == "true" ]]; then
