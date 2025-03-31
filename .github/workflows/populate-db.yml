@@ -27,12 +27,12 @@ jobs:
             cd /home/ubuntu/cpen321-jelx/backend
 
             # Ensure MongoDB is running
-            docker-compose up -d mongo_instance
+            docker-compose up -d mongo
 
             # Drop User Database if requested
             if [[ "${{ github.event.inputs.drop_user_db }}" == "true" ]]; then
               echo "Dropping user database..."
-              docker exec mongo_instance mongo users_db --eval "db.dropDatabase()"
+              docker exec mongo_instance mongosh users_db --eval "db.dropDatabase()"
             else
               echo "Skipping user database drop."
             fi
