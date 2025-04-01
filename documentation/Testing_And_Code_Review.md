@@ -37,7 +37,7 @@
 
 #### 2.1.2. Commit Hash Where Tests Run
 
-`e519391d581e9a6a21d7691d8dbc9084d22723b5`
+`364db86ee1464deba7f1fb4c8a134c6bd733205c`
 
 #### 2.1.3. Explanation on How to Run the Tests
 
@@ -350,7 +350,7 @@ Reason: This line checks for an environment variable during file import. It is p
 
 ### 5.1. Commit Hash Where Codacy Ran
 
-`e519391d581e9a6a21d7691d8dbc9084d22723b5`
+`364db86ee1464deba7f1fb4c8a134c6bd733205c`
 
 ### 5.2. Unfixed Issues per Codacy Category
 
