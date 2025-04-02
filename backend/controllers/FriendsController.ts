@@ -43,7 +43,7 @@ export class FriendsController {
                 { upsert: true }
             );
 
-            // Send notification to the target users
+            // Send notification to the target user
             await sendNotification(friend_uuid, `${user.name} has sent you a friend request`);
 
             res.status(200).send({message: "Friend request sent."});
